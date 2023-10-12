@@ -54,3 +54,8 @@ create_hdl_wrapper C:/masters/masters_automation/cb4cled-jn-application_automati
 set_wrapper_top automated_bd_wrapper
 generate_bitstream
 export_bd
+wait_on_run
+stop_gui
+close_design
+wait_on_run
+exit

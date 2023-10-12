@@ -1,8 +1,28 @@
 import subprocess
 import time
-# Define location of vivado exe, this might need to be the bat file we will see.
+import runpy
 
+# Define location of vivado exe, this might need to be the bat file we will see.
+# D:\Xilinx\Vivado\2019.1\bin\vivado.bat -mode tcl
 # vivado_cmd = "D:\\Xilinx\\Vivado\\2019.1\\bin\\vivado.bat"
+
+class Tcl_Manager:
+    def __init__(self, vivado_bat_path):
+        self.vivado_bat_path = vivado_bat_path
+
+    def generate_tcl(self):
+        runpy.run_path(path_name='tcl_generator.py')
+
+    def run_vivado(self):
+        # D:\Xilinx\Vivado\2019.1\bin\vivado.bat -mode tcl -source C:/masters/masters_automation/generate_script.tcl
+        try:
+            print("Starting Process")
+            vivado_process = subprocess.run([self.vivado_bat_path, "-mode", "tcl", "-source", "generate_script.tcl"], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+            
+        except Exception as e:
+            print("Exception")
+            print(e)
+
 
 # try:
 #     print("Starting Process")
@@ -33,28 +53,28 @@ import time
 # except subprocess.CalledProcessError as e:
 #     print(f"Error running Vivado: {e}")
 
-class tcl_manager:
-    def __init__(self, vivado_bat_path):
-        self.vivado_bat_path = vivado_bat_path
-        # self.vivado_process = ""
-        try:
-            print("Attempting to launch vivado...")
-            self.vivado_process = subprocess.Popen([self.vivado_bat_path, "-mode", "tcl"], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-            print("Are we getting hung up here?")
-        except subprocess.CalledProcessError as e:
-            print(f"Error running Vivado: {e}")
+# class tcl_manager:
+#     def __init__(self, vivado_bat_path):
+#         self.vivado_bat_path = vivado_bat_path
+#         # self.vivado_process = ""
+#         try:
+#             print("Attempting to launch vivado...")
+#             self.vivado_process = subprocess.Popen([self.vivado_bat_path, "-mode", "tcl"], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+#             print("Are we getting hung up here?")
+#         except subprocess.CalledProcessError as e:
+#             print(f"Error running Vivado: {e}")
 
 
-    def open_project(self, vivado_xpr_path):
-        self.vivado_xpr_path = vivado_xpr_path
-        print("Opening Project")
+#     def open_project(self, vivado_xpr_path):
+#         self.vivado_xpr_path = vivado_xpr_path
+#         print("Opening Project")
 
-    def read_terminal(self):
-        print("Read Terminal")
-        time.sleep(10)
-        self.vivado_response = self.vivado_process.stdout.readline()
-        print(self.vivado_response)
+#     def read_terminal(self):
+#         print("Read Terminal")
+#         time.sleep(10)
+#         self.vivado_response = self.vivado_process.stdout.readline()
+#         print(self.vivado_response)
         
 
-    def print_vivado_path(self):
-        print(self.vivado_bat_path)
+#     def print_vivado_path(self):
+#         print(self.vivado_bat_path)

@@ -7,6 +7,10 @@
 # Run this in the Vivado Tcl Command Line
 # source C:/masters/masters_automation/generate_script.tcl
 
+# In Windows CMD:
+# D:\Xilinx\Vivado\2019.1\bin\vivado.bat -mode tcl -source C:/masters/masters_automation/generate_script.tcl
+# /path/to/vivado/bat -mode tcl -source /path/to/generate_script.tcl
+
 ## Configurable Variables
 start_gui = True
 path_to_xpr = "C:/masters/masters_automation/cb4cled-jn-application_automatic/CB4CLED/vhdl/xilinxprj/CB4CLED_Top.xpr"
