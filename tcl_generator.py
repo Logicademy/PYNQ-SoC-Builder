@@ -1,27 +1,23 @@
-# This file will generate a large Tcl script that will be launched automatically.
+# tcl_generator.py
+# This Python 3 script is responsible for generating a Tcl script file dynamically depending on the project.
 
-#
-# Need to learn how to set the board etc etc.
-#
+# Author: Luke Canny
+# Date: 12/10/23
 
+# Run this in the Vivado Tcl Command Line
 # source C:/masters/masters_automation/generate_script.tcl
 
-## Configurable Switches
+## Configurable Variables
 start_gui = True
 path_to_xpr = "C:/masters/masters_automation/cb4cled-jn-application_automatic/CB4CLED/vhdl/xilinxprj/CB4CLED_Top.xpr"
-bd_filename = "automated_bd"
-path_to_bd = "C:/masters/masters_automation/cb4cled-jn-application_automatic/CB4CLED/vhdl/xilinxprj/CB4CLED_Top.srcs/sources_1/bd"
-## This is the same information available in the JNB Generator file.
-# Information from the header element
-compName = "CB4CLED"
-title = "CB4CLED"
-description = "CB4CLED"
-authors = "LC"
-company = "University of Galway"
-email = "lcanny8@gmail.com"
-date = "12/10/23"
+bd_filename = "automated_bd"        # This could be simply set by HDLGen software and not user-defined.
+# We should make a function to determine this path dynamically from the project path provided earlier.
+path_to_bd = "C:/masters/masters_automation/cb4cled-jn-application_automatic/CB4CLED/vhdl/xilinxprj/CB4CLED_Top.srcs/sources_1/bd"  
 
-# Info from entityIOPorts -> Updated as if its for the counter project
+
+# Manually Parsed Info which should be taken from HDLGen instead.
+module_source = "CB4CLED_Top"
+
 input_ports = [
     ["clk", "in", "1", "Clock input"],
     ["rst", "in", "1", "Reset input"],
@@ -49,27 +45,11 @@ all_ports = [
     ["count", "out", "4", "counter value"]
 ]
 
-# # # Some more custom set variables that should normally be available from HDLGen
-module_source = "CB4CLED_Top"
-
-
-# testbench_cols = []
-# for i in input_ports:
-#     testbench_cols.append(i[0])
-    
-# for o in output_ports:
-#     testbench_cols.append(o[0])
-
-# test_cases = [
-#     [0,0,0],
-#     [0,1,0],
-#     [1,0,0],
-#     [1,1,1]
-# ]
-
 ########## Start of Tcl Script Generation ##########
 
-# 1. Source the procedures file
+## Order of Procedure ##
+
+# 1. Source the Tcl API file
 # 2. Open Project
 # 3. Create new Block Design file
 # 4. Add Processor IP to BD
@@ -92,7 +72,7 @@ module_source = "CB4CLED_Top"
 
 
 
-file_contents = "source C:/masters/masters_automation/generate_procs.tcl"                     # Source the procedures
+file_contents = "source C:/masters/masters_automation/generate_procs.tcl"   # Source the procedures
 
 if start_gui:
     file_contents += "\nstart_gui"                              # Open Vivado GUI (option)
@@ -103,9 +83,9 @@ file_contents += f"\ncreate_bd_file {bd_filename}"              # Create a new B
 
 file_contents += "\nadd_processing_unit"                        # Import Processing Unit to the BD
 
-file_contents += "\nset_property source_mgmt_mode All [current_project]"
+file_contents += "\nset_property source_mgmt_mode All [current_project]"    # Setting automatic mode for source management
 
-file_contents += f"\nadd_module {module_source} {module_source}_0"
+file_contents += f"\nadd_module {module_source} {module_source}_0"  # Import the user-created module
 
 # Running this as safety
 file_contents += "\nupdate_compile_order -fileset sources_1"
@@ -173,10 +153,3 @@ file_contents += "\nexport_bd"
 with open('generate_script.tcl', 'w') as file:
     # First, we want to source our test file
     file.write(file_contents)
-
-
-
-    # New lines aren't automatic.
-    # file.write("Testing if this is a new line or not")
-
-    # Need some conditional code here to get started.
