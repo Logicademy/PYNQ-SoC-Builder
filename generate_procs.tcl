@@ -144,19 +144,22 @@ proc validate_bd {} {
 }
 
 # Create HDL Wrapper
-proc create_hdl_wrapper {} {
-	make_wrapper -files [get_files C:/masters/masters_automation/cb4cled-jn-application_automatic/CB4CLED/vhdl/xilinxprj/CB4CLED_Top.srcs/sources_1/bd/automated_bd/automated_bd.bd] -top
-	add_files -norecurse C:/masters/masters_automation/cb4cled-jn-application_automatic/CB4CLED/vhdl/xilinxprj/CB4CLED_Top.srcs/sources_1/bd/automated_bd/hdl/automated_bd_wrapper.vhd
+proc create_hdl_wrapper {path_to_bd bd_filename} {
+	# C:/masters/masters_automation/cb4cled-jn-application_automatic/CB4CLED/vhdl/xilinxprj/CB4CLED_Top.srcs/sources_1/bd/automated_bd/automated_bd.bd
+	# C:/masters/masters_automation/cb4cled-jn-application_automatic/CB4CLED/vhdl/xilinxprj/CB4CLED_Top.srcs/sources_1/bd/automated_bd/hdl/automated_bd_wrapper.vhd
+	make_wrapper -files [get_files $path_to_bd/${bd_filename}/${bd_filename}.bd] -top 
+	add_files -norecurse ${path_to_bd}/${bd_filename}/hdl/${bd_filename}_wrapper.vhd
 	update_compile_order -fileset sources_1
 }
 
 # Set the VHDL wrapper as top.
-proc set_wrapper_top {} {
-	set_property top automated_bd_wrapper [current_fileset]
+proc set_wrapper_top {wrapper_name} {
+	set_property top $wrapper_name [current_fileset]
 	update_compile_order -fileset sources_1
 }
 
-proc generate_bitstream {} {
+# Generate Bitstream - synth_2 and impl_2 used in counter program but these should both be "_1"
+proc generate_bitstream {} {	
 	reset_run synth_2
 	launch_runs impl_2 -to_step write_bitstream -jobs 2
 }

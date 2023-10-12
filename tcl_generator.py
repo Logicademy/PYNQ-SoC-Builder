@@ -10,7 +10,7 @@
 start_gui = True
 path_to_xpr = "C:/masters/masters_automation/cb4cled-jn-application_automatic/CB4CLED/vhdl/xilinxprj/CB4CLED_Top.xpr"
 bd_filename = "automated_bd"
-
+path_to_bd = "C:/masters/masters_automation/cb4cled-jn-application_automatic/CB4CLED/vhdl/xilinxprj/CB4CLED_Top.srcs/sources_1/bd"
 ## This is the same information available in the JNB Generator file.
 # Information from the header element
 compName = "CB4CLED"
@@ -155,10 +155,10 @@ file_contents += "\nrun_addr_editor_auto_assign"
 file_contents += "\nvalidate_bd"
 
 # Create HDL Wrapper
-file_contents += "\ncreate_hdl_wrapper"
+file_contents += f"\ncreate_hdl_wrapper {path_to_bd} {bd_filename}"
 
 # Set VHDL Wrapper as Top
-file_contents += "\nset_wrapper_top"
+file_contents += f"\nset_wrapper_top {bd_filename}_wrapper"
 
 # Synthesis, Implementation and Generate Bitstream
 file_contents += "\ngenerate_bitstream"
@@ -166,8 +166,8 @@ file_contents += "\ngenerate_bitstream"
 # Finally, export the block diagram
 file_contents += "\nexport_bd"
 
-# Close and Quit
-file_contents += "\nclose_and_quit"
+# # Close and Quit
+# file_contents += "\nclose_and_quit"
 
 ########## Write to Tcl File ##########
 with open('generate_script.tcl', 'w') as file:
