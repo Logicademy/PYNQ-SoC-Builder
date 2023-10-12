@@ -23,6 +23,15 @@ class Tcl_Manager:
             print("Exception")
             print(e)
 
+    def upload_files(self):
+        # __init__ will also need to contain the path of the project.
+        # upload files function could be allowed to automatically find the files given the relative filepath should remain the same.
+
+
+
+## Read the docs : https://pysftp.readthedocs.io/en/release_0.2.9/cookbook.html#pysftp-connection-get
+
+## Sample code.
 
 # try:
 #     print("Starting Process")
