@@ -1,0 +1,36 @@
+#-----------------------------------------------------------
+# Vivado v2019.1 (64-bit)
+# SW Build 2552052 on Fri May 24 14:49:42 MDT 2019
+# IP Build 2548770 on Fri May 24 18:01:18 MDT 2019
+# Start of session at: Sun Sep 24 17:20:08 2023
+# Process ID: 11916
+# Current directory: D:/Vivado/cb4cled-jn-application_fresh/CB4CLED/vhdl/xilinxprj
+# Command line: vivado.exe -gui_launcher_event rodinguilauncherevent10116 D:\Vivado\cb4cled-jn-application_fresh\CB4CLED\vhdl\xilinxprj\CB4CLED_Top.xpr
+# Log file: D:/Vivado/cb4cled-jn-application_fresh/CB4CLED/vhdl/xilinxprj/vivado.log
+# Journal file: D:/Vivado/cb4cled-jn-application_fresh/CB4CLED/vhdl/xilinxprj\vivado.jou
+#-----------------------------------------------------------
+start_gui
+open_project D:/Vivado/cb4cled-jn-application_fresh/CB4CLED/vhdl/xilinxprj/CB4CLED_Top.xpr
+INFO: [Project 1-313] Project file moved from 'D:/Vivado/cb4cled-jn-application/CB4CLED/vhdl/xilinxprj' since last save.
+Scanning sources...
+Finished scanning sources
+INFO: [IP_Flow 19-234] Refreshing IP repositories
+INFO: [IP_Flow 19-1704] No user IP repositories specified
+INFO: [IP_Flow 19-2313] Loaded Vivado IP repository 'D:/Xilinx/Vivado/2019.1/data/ip'.
+WARNING: [BD 41-1661] One or more IPs have been locked in the design 'cb4cled_design.bd'. Please run report_ip_status for more details and recommendations on how to fix this issue.
+List of locked IPs:
+cb4cled_design_clk_1
+cb4cled_design_rst_0
+cb4cled_design_axi_gpio_0_0
+cb4cled_design_processing_system7_0_0
+cb4cled_design_clk_0
+cb4cled_design_clk_2
+cb4cled_design_rst_1
+cb4cled_design_rst_2
+cb4cled_design_rst_3
+cb4cled_design_TC_0
+cb4cled_design_proc_sys_reset_0_0
+
+open_project: Time (s): cpu = 00:00:21 ; elapsed = 00:00:16 . Memory (MB): peak = 880.621 ; gain = 249.953
+exit
+INFO: [Common 17-206] Exiting Vivado at Sun Sep 24 17:20:51 2023...

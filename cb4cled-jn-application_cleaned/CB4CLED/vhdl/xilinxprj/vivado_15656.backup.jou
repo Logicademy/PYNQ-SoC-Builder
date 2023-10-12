@@ -1,0 +1,20 @@
+#-----------------------------------------------------------
+# Vivado v2019.1 (64-bit)
+# SW Build 2552052 on Fri May 24 14:49:42 MDT 2019
+# IP Build 2548770 on Fri May 24 18:01:18 MDT 2019
+# Start of session at: Fri Sep 22 15:47:28 2023
+# Process ID: 15656
+# Current directory: D:/Vivado/cb4cled-jn-application/CB4CLED/vhdl/xilinxprj
+# Command line: vivado.exe -gui_launcher_event rodinguilauncherevent12344 D:\Vivado\cb4cled-jn-application\CB4CLED\vhdl\xilinxprj\CB4CLED_Top.xpr
+# Log file: D:/Vivado/cb4cled-jn-application/CB4CLED/vhdl/xilinxprj/vivado.log
+# Journal file: D:/Vivado/cb4cled-jn-application/CB4CLED/vhdl/xilinxprj\vivado.jou
+#-----------------------------------------------------------
+start_gui
+open_project D:/Vivado/cb4cled-jn-application/CB4CLED/vhdl/xilinxprj/CB4CLED_Top.xpr
+update_compile_order -fileset sources_1
+launch_runs impl_2 -to_step write_bitstream -jobs 2
+wait_on_run impl_2
+open_run impl_2
+open_hw
+open_bd_design {D:/Vivado/cb4cled-jn-application/CB4CLED/vhdl/xilinxprj/CB4CLED_Top.srcs/sources_1/bd/cb4cled_design_z2/cb4cled_design_z2.bd}
+write_bd_tcl -force D:/Vivado/cb4cled-jn-application/CB4CLED/vhdl/xilinxprj/cb4cled_design_z2.tcl

@@ -1,0 +1,8 @@
+Vivado Simulator 2019.1
+Time resolution is 1 ps
+Note: %N : Simulation Start.
+Time: 0 ps  Iteration: 0  Process: /CB4CLED_Top_TB/stim  File: C:/Users/canny/Documents/5th Year ECE/Project/PYNQ/Tutorials/cb4cled/cb4cled-jn-application/CB4CLED/vhdl/HDLmodel/testbench/CB4CLED_Top_TB.vhd
+Note: Test 0: Initialise i/ps. Toggle rst and move sim time to 0.2*period after active clk edge
+Time: 0 ps  Iteration: 0  Process: /CB4CLED_Top_TB/stim  File: C:/Users/canny/Documents/5th Year ECE/Project/PYNQ/Tutorials/cb4cled/cb4cled-jn-application/CB4CLED/vhdl/HDLmodel/testbench/CB4CLED_Top_TB.vhd
+Note: simulation done
+Time: 1124 ns  Iteration: 0  Process: /CB4CLED_Top_TB/stim  File: C:/Users/canny/Documents/5th Year ECE/Project/PYNQ/Tutorials/cb4cled/cb4cled-jn-application/CB4CLED/vhdl/HDLmodel/testbench/CB4CLED_Top_TB.vhd

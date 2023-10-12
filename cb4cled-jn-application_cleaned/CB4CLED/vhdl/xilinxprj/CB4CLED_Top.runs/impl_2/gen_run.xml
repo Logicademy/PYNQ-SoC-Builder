@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<GenRun Id="impl_2" LaunchPart="xc7z020clg400-1" LaunchTime="1697109685">
+  <File Type="BITSTR-BMM" Name="CB4CLED_Top_bd.bmm"/>
+  <File Type="OPT-METHODOLOGY-DRC" Name="CB4CLED_Top_methodology_drc_opted.rpt"/>
+  <File Type="INIT-TIMING" Name="CB4CLED_Top_timing_summary_init.rpt"/>
+  <File Type="ROUTE-PWR" Name="CB4CLED_Top_power_routed.rpt"/>
+  <File Type="PA-TCL" Name="CB4CLED_Top.tcl"/>
+  <File Type="OPT-TIMING" Name="CB4CLED_Top_timing_summary_opted.rpt"/>
+  <File Type="OPT-DCP" Name="CB4CLED_Top_opt.dcp"/>
+  <File Type="ROUTE-PWR-SUM" Name="CB4CLED_Top_power_summary_routed.pb"/>
+  <File Type="REPORTS-TCL" Name="CB4CLED_Top_reports.tcl"/>
+  <File Type="OPT-DRC" Name="CB4CLED_Top_drc_opted.rpt"/>
+  <File Type="OPT-HWDEF" Name="CB4CLED_Top.hwdef"/>
+  <File Type="PWROPT-DCP" Name="CB4CLED_Top_pwropt.dcp"/>
+  <File Type="PWROPT-DRC" Name="CB4CLED_Top_drc_pwropted.rpt"/>
+  <File Type="PWROPT-TIMING" Name="CB4CLED_Top_timing_summary_pwropted.rpt"/>
+  <File Type="PLACE-DCP" Name="CB4CLED_Top_placed.dcp"/>
+  <File Type="PLACE-IO" Name="CB4CLED_Top_io_placed.rpt"/>
+  <File Type="PLACE-CLK" Name="CB4CLED_Top_clock_utilization_placed.rpt"/>
+  <File Type="PLACE-UTIL" Name="CB4CLED_Top_utilization_placed.rpt"/>
+  <File Type="PLACE-UTIL-PB" Name="CB4CLED_Top_utilization_placed.pb"/>
+  <File Type="PLACE-CTRL" Name="CB4CLED_Top_control_sets_placed.rpt"/>
+  <File Type="PLACE-SIMILARITY" Name="CB4CLED_Top_incremental_reuse_placed.rpt"/>
+  <File Type="PLACE-PRE-SIMILARITY" Name="CB4CLED_Top_incremental_reuse_pre_placed.rpt"/>
+  <File Type="BG-BGN" Name="CB4CLED_Top.bgn"/>
+  <File Type="PLACE-TIMING" Name="CB4CLED_Top_timing_summary_placed.rpt"/>
+  <File Type="POSTPLACE-PWROPT-DCP" Name="CB4CLED_Top_postplace_pwropt.dcp"/>
+  <File Type="BG-BIN" Name="CB4CLED_Top.bin"/>
+  <File Type="POSTPLACE-PWROPT-TIMING" Name="CB4CLED_Top_timing_summary_postplace_pwropted.rpt"/>
+  <File Type="PHYSOPT-DCP" Name="CB4CLED_Top_physopt.dcp"/>
+  <File Type="PHYSOPT-DRC" Name="CB4CLED_Top_drc_physopted.rpt"/>
+  <File Type="BITSTR-MSK" Name="CB4CLED_Top.msk"/>
+  <File Type="PHYSOPT-TIMING" Name="CB4CLED_Top_timing_summary_physopted.rpt"/>
+  <File Type="ROUTE-ERROR-DCP" Name="CB4CLED_Top_routed_error.dcp"/>
+  <File Type="ROUTE-DCP" Name="CB4CLED_Top_routed.dcp"/>
+  <File Type="ROUTE-BLACKBOX-DCP" Name="CB4CLED_Top_routed_bb.dcp"/>
+  <File Type="ROUTE-DRC" Name="CB4CLED_Top_drc_routed.rpt"/>
+  <File Type="ROUTE-DRC-PB" Name="CB4CLED_Top_drc_routed.pb"/>
+  <File Type="BITSTR-LTX" Name="debug_nets.ltx"/>
+  <File Type="BITSTR-LTX" Name="CB4CLED_Top.ltx"/>
+  <File Type="ROUTE-DRC-RPX" Name="CB4CLED_Top_drc_routed.rpx"/>
+  <File Type="BITSTR-MMI" Name="CB4CLED_Top.mmi"/>
+  <File Type="ROUTE-METHODOLOGY-DRC" Name="CB4CLED_Top_methodology_drc_routed.rpt"/>
+  <File Type="ROUTE-METHODOLOGY-DRC-RPX" Name="CB4CLED_Top_methodology_drc_routed.rpx"/>
+  <File Type="BITSTR-SYSDEF" Name="CB4CLED_Top.sysdef"/>
+  <File Type="ROUTE-METHODOLOGY-DRC-PB" Name="CB4CLED_Top_methodology_drc_routed.pb"/>
+  <File Type="ROUTE-PWR-RPX" Name="CB4CLED_Top_power_routed.rpx"/>
+  <File Type="ROUTE-STATUS" Name="CB4CLED_Top_route_status.rpt"/>
+  <File Type="ROUTE-STATUS-PB" Name="CB4CLED_Top_route_status.pb"/>
+  <File Type="ROUTE-TIMINGSUMMARY" Name="CB4CLED_Top_timing_summary_routed.rpt"/>
+  <File Type="ROUTE-TIMING-PB" Name="CB4CLED_Top_timing_summary_routed.pb"/>
+  <File Type="ROUTE-TIMING-RPX" Name="CB4CLED_Top_timing_summary_routed.rpx"/>
+  <File Type="ROUTE-SIMILARITY" Name="CB4CLED_Top_incremental_reuse_routed.rpt"/>
+  <File Type="ROUTE-CLK" Name="CB4CLED_Top_clock_utilization_routed.rpt"/>
+  <File Type="ROUTE-BUS-SKEW" Name="CB4CLED_Top_bus_skew_routed.rpt"/>
+  <File Type="ROUTE-BUS-SKEW-PB" Name="CB4CLED_Top_bus_skew_routed.pb"/>
+  <File Type="ROUTE-BUS-SKEW-RPX" Name="CB4CLED_Top_bus_skew_routed.rpx"/>
+  <File Type="POSTROUTE-PHYSOPT-DCP" Name="CB4CLED_Top_postroute_physopt.dcp"/>
+  <File Type="POSTROUTE-PHYSOPT-BLACKBOX-DCP" Name="CB4CLED_Top_postroute_physopt_bb.dcp"/>
+  <File Type="POSTROUTE-PHYSOPT-TIMING" Name="CB4CLED_Top_timing_summary_postroute_physopted.rpt"/>
+  <File Type="POSTROUTE-PHYSOPT-TIMING-PB" Name="CB4CLED_Top_timing_summary_postroute_physopted.pb"/>
+  <File Type="POSTROUTE-PHYSOPT-TIMING-RPX" Name="CB4CLED_Top_timing_summary_postroute_physopted.rpx"/>
+  <File Type="POSTROUTE-PHYSOPT-BUS-SKEW" Name="CB4CLED_Top_bus_skew_postroute_physopted.rpt"/>
+  <File Type="POSTROUTE-PHYSOPT-BUS-SKEW-PB" Name="CB4CLED_Top_bus_skew_postroute_physopted.pb"/>
+  <File Type="BG-BIT" Name="CB4CLED_Top.bit"/>
+  <File Type="POSTROUTE-PHYSOPT-BUS-SKEW-RPX" Name="CB4CLED_Top_bus_skew_postroute_physopted.rpx"/>
+  <File Type="BITSTR-RBT" Name="CB4CLED_Top.rbt"/>
+  <File Type="BITSTR-NKY" Name="CB4CLED_Top.nky"/>
+  <File Type="BG-DRC" Name="CB4CLED_Top.drc"/>
+  <File Type="RDI-RDI" Name="CB4CLED_Top.vdi"/>
+  <File Type="WBT-USG" Name="usage_statistics_webtalk.html"/>
+  <FileSet Name="sources" Type="DesignSrcs" RelSrcDir="$PSRCDIR/sources_1">
+    <Filter Type="Srcs"/>
+    <File Path="$PPRDIR/../HDLmodel/CB4CLED.vhd">
+      <FileInfo>
+        <Attr Name="UsedIn" Val="synthesis"/>
+        <Attr Name="UsedIn" Val="simulation"/>
+      </FileInfo>
+    </File>
+    <File Path="$PPRDIR/../HDLmodel/singleShot.vhd">
+      <FileInfo>
+        <Attr Name="UsedIn" Val="synthesis"/>
+        <Attr Name="UsedIn" Val="simulation"/>
+      </FileInfo>
+    </File>
+    <File Path="$PPRDIR/../HDLmodel/CB4CLED_Top.vhd">
+      <FileInfo>
+        <Attr Name="UsedIn" Val="synthesis"/>
+        <Attr Name="UsedIn" Val="simulation"/>
+      </FileInfo>
+    </File>
+    <Config>
+      <Option Name="DesignMode" Val="RTL"/>
+      <Option Name="TopModule" Val="CB4CLED_Top"/>
+    </Config>
+  </FileSet>
+  <FileSet Name="constrs_in" Type="Constrs" RelSrcDir="$PSRCDIR/constrs_1">
+    <Filter Type="Constrs"/>
+    <File Path="$PSRCDIR/constrs_1/imports/pynq-z2_v1.0.xdc/physical_constr.xdc">
+      <FileInfo>
+        <Attr Name="ImportPath" Val="C:/Users/canny/Documents/5th Year ECE/Project/PYNQ_Board_Files/pynq-z2_v1.0.xdc/physical_constr.xdc"/>
+        <Attr Name="ImportTime" Val="1597890555"/>
+        <Attr Name="UsedIn" Val="synthesis"/>
+        <Attr Name="UsedIn" Val="implementation"/>
+      </FileInfo>
+    </File>
+    <Config>
+      <Option Name="ConstrsType" Val="XDC"/>
+    </Config>
+  </FileSet>
+  <FileSet Name="utils" Type="Utils" RelSrcDir="$PSRCDIR/utils_1">
+    <Filter Type="Utils"/>
+    <Config>
+      <Option Name="TopAutoSet" Val="TRUE"/>
+    </Config>
+  </FileSet>
+  <Strategy Version="1" Minor="2">
+    <StratHandle Name="Vivado Implementation Defaults" Flow="Vivado Implementation 2018"/>
+    <Step Id="init_design"/>
+    <Step Id="opt_design"/>
+    <Step Id="power_opt_design"/>
+    <Step Id="place_design"/>
+    <Step Id="post_place_power_opt_design"/>
+    <Step Id="phys_opt_design"/>
+    <Step Id="route_design"/>
+    <Step Id="post_route_phys_opt_design"/>
+    <Step Id="write_bitstream"/>
+  </Strategy>
+</GenRun>

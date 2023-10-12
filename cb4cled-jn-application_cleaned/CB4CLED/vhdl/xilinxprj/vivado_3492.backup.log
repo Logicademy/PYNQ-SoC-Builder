@@ -1,0 +1,271 @@
+#-----------------------------------------------------------
+# Vivado v2019.1 (64-bit)
+# SW Build 2552052 on Fri May 24 14:49:42 MDT 2019
+# IP Build 2548770 on Fri May 24 18:01:18 MDT 2019
+# Start of session at: Fri Sep 22 15:20:16 2023
+# Process ID: 3492
+# Current directory: C:/Users/canny/Documents/5th Year ECE/Project/PYNQ/Tutorials/cb4cled/cb4cled-jn-application/CB4CLED/vhdl/xilinxprj
+# Command line: vivado.exe -gui_launcher_event rodinguilauncherevent5988 C:\Users\canny\Documents\5th Year ECE\Project\PYNQ\Tutorials\cb4cled\cb4cled-jn-application\CB4CLED\vhdl\xilinxprj\CB4CLED_Top.xpr
+# Log file: C:/Users/canny/Documents/5th Year ECE/Project/PYNQ/Tutorials/cb4cled/cb4cled-jn-application/CB4CLED/vhdl/xilinxprj/vivado.log
+# Journal file: C:/Users/canny/Documents/5th Year ECE/Project/PYNQ/Tutorials/cb4cled/cb4cled-jn-application/CB4CLED/vhdl/xilinxprj\vivado.jou
+#-----------------------------------------------------------
+start_gui
+open_project {C:/Users/canny/Documents/5th Year ECE/Project/PYNQ/Tutorials/cb4cled/cb4cled-jn-application/CB4CLED/vhdl/xilinxprj/CB4CLED_Top.xpr}
+INFO: [ProjectBase 1-489] The host OS only allows 260 characters in a normal path. The project is stored in a path with more than 80 characters. If you experience issues with IP, Block Designs, or files not being found, please consider moving the project to a location with a shorter path. Alternately consider using the OS subst command to map part of the path to a drive letter.
+Current project path is 'C:/Users/canny/Documents/5th Year ECE/Project/PYNQ/Tutorials/cb4cled/cb4cled-jn-application/CB4CLED/vhdl/xilinxprj'
+Scanning sources...
+Finished scanning sources
+INFO: [IP_Flow 19-234] Refreshing IP repositories
+INFO: [IP_Flow 19-1704] No user IP repositories specified
+INFO: [IP_Flow 19-2313] Loaded Vivado IP repository 'D:/Xilinx/Vivado/2019.1/data/ip'.
+WARNING: [BD 41-1661] One or more IPs have been locked in the design 'cb4cled_design.bd'. Please run report_ip_status for more details and recommendations on how to fix this issue.
+List of locked IPs:
+cb4cled_design_clk_1
+cb4cled_design_rst_0
+cb4cled_design_axi_gpio_0_0
+cb4cled_design_processing_system7_0_0
+cb4cled_design_clk_0
+cb4cled_design_clk_2
+cb4cled_design_rst_1
+cb4cled_design_rst_2
+cb4cled_design_rst_3
+cb4cled_design_TC_0
+cb4cled_design_proc_sys_reset_0_0
+
+open_project: Time (s): cpu = 00:00:18 ; elapsed = 00:00:13 . Memory (MB): peak = 870.570 ; gain = 255.324
+update_compile_order -fileset sources_1
+set_property board_part tul.com.tw:pynq-z2:part0:1.0 [current_project]
+export_ip_user_files -of_objects  [get_files {{C:/Users/canny/Documents/5th Year ECE/Project/PYNQ/Tutorials/cb4cled/cb4cled-jn-application/CB4CLED/vhdl/xilinxprj/CB4CLED_Top.srcs/constrs_1/imports/pynq-z1_c/physical_contr.xdc}}] -no_script -reset -force -quiet
+remove_files  -fileset constrs_1 {{C:/Users/canny/Documents/5th Year ECE/Project/PYNQ/Tutorials/cb4cled/cb4cled-jn-application/CB4CLED/vhdl/xilinxprj/CB4CLED_Top.srcs/constrs_1/imports/pynq-z1_c/physical_contr.xdc}}
+file delete -force {C:/Users/canny/Documents/5th Year ECE/Project/PYNQ/Tutorials/cb4cled/cb4cled-jn-application/CB4CLED/vhdl/xilinxprj/CB4CLED_Top.srcs/constrs_1/imports/pynq-z1_c/physical_contr.xdc}
+add_files -fileset constrs_1 -norecurse {{C:/Users/canny/Documents/5th Year ECE/Project/PYNQ_Board_Files/pynq-z2_v1.0.xdc/physical_constr.xdc}}
+import_files -fileset constrs_1 {{C:/Users/canny/Documents/5th Year ECE/Project/PYNQ_Board_Files/pynq-z2_v1.0.xdc/physical_constr.xdc}}
+create_bd_design "cb4cled_design_z2"
+Wrote  : <C:\Users\canny\Documents\5th Year ECE\Project\PYNQ\Tutorials\cb4cled\cb4cled-jn-application\CB4CLED\vhdl\xilinxprj\CB4CLED_Top.srcs\sources_1\bd\cb4cled_design_z2\cb4cled_design_z2.bd> 
+create_bd_design: Time (s): cpu = 00:00:08 ; elapsed = 00:00:08 . Memory (MB): peak = 1076.844 ; gain = 0.000
+startgroup
+create_bd_cell -type ip -vlnv xilinx.com:ip:processing_system7:5.5 processing_system7_0
+endgroup
+update_compile_order -fileset sources_1
+create_bd_cell -type module -reference CB4CLED_Top CB4CLED_Top_0
+set_property location {1.5 612 -132} [get_bd_cells CB4CLED_Top_0]
+startgroup
+create_bd_cell -type ip -vlnv xilinx.com:ip:axi_gpio:2.0 axi_gpio_0
+endgroup
+set_property location {0.5 -76 -132} [get_bd_cells processing_system7_0]
+set_property location {3 711 -133} [get_bd_cells CB4CLED_Top_0]
+set_property location {2.5 342 -134} [get_bd_cells axi_gpio_0]
+set_property location {2 340 -20} [get_bd_cells axi_gpio_0]
+set_property name CLK [get_bd_cells axi_gpio_0]
+set_property name clk1 [get_bd_cells CLK]
+set_property name clk [get_bd_cells clk1]
+set_property -dict [list CONFIG.C_GPIO_WIDTH {1} CONFIG.C_ALL_OUTPUTS {1}] [get_bd_cells clk]
+set_property location {2 327 -264} [get_bd_cells clk]
+connect_bd_net [get_bd_pins clk/gpio_io_o] [get_bd_pins CB4CLED_Top_0/clk]
+WARNING: [BD 41-1306] The connection to interface pin /clk/gpio_io_o is being overridden by the user. This pin will not be connected as a part of interface connection GPIO
+WARNING: [BD 41-1731] Type mismatch between connected pins: /clk/gpio_io_o(undef) and /CB4CLED_Top_0/clk(clk)
+set_property location {2 163 -371} [get_bd_cells clk]
+copy_bd_objs /  [get_bd_cells {clk}]
+set_property name rst [get_bd_cells clk1]
+connect_bd_net [get_bd_pins rst/gpio_io_o] [get_bd_pins CB4CLED_Top_0/rst]
+WARNING: [BD 41-1306] The connection to interface pin /rst/gpio_io_o is being overridden by the user. This pin will not be connected as a part of interface connection GPIO
+WARNING: [BD 41-1731] Type mismatch between connected pins: /rst/gpio_io_o(undef) and /CB4CLED_Top_0/rst(rst)
+copy_bd_objs /  [get_bd_cells {rst}]
+set_property name load [get_bd_cells rst1]
+set_property name loadDat [get_bd_cells load]
+set_property -dict [list CONFIG.C_GPIO_WIDTH {4}] [get_bd_cells loadDat]
+connect_bd_net [get_bd_pins loadDat/gpio_io_o] [get_bd_pins CB4CLED_Top_0/loadDat]
+WARNING: [BD 41-1306] The connection to interface pin /loadDat/gpio_io_o is being overridden by the user. This pin will not be connected as a part of interface connection GPIO
+copy_bd_objs /  [get_bd_cells {rst}]
+copy_bd_objs /  [get_bd_cells {rst}]
+copy_bd_objs /  [get_bd_cells {rst}]
+startgroup
+set_property location {2 316 424} [get_bd_cells rst1]
+set_property location {2 316 144} [get_bd_cells rst3]
+set_property location {2 316 284} [get_bd_cells rst2]
+endgroup
+set_property location {2 339 -292} [get_bd_cells loadDat]
+startgroup
+set_property location {2 343 154} [get_bd_cells rst1]
+set_property location {2 343 24} [get_bd_cells rst2]
+set_property location {2 343 -386} [get_bd_cells rst3]
+endgroup
+startgroup
+set_property location {2 338 422} [get_bd_cells rst1]
+set_property location {2 338 282} [get_bd_cells rst2]
+set_property location {2 338 -128} [get_bd_cells rst3]
+endgroup
+startgroup
+set_property location {2 338 43} [get_bd_cells rst2]
+set_property location {2 338 183} [get_bd_cells rst1]
+endgroup
+set_property name load [get_bd_cells rst3]
+set_property name ce [get_bd_cells rst2]
+set_property name up [get_bd_cells rst1]
+set_property location {2 341 28} [get_bd_cells ce]
+connect_bd_net [get_bd_pins load/gpio_io_o] [get_bd_pins CB4CLED_Top_0/load]
+WARNING: [BD 41-1306] The connection to interface pin /load/gpio_io_o is being overridden by the user. This pin will not be connected as a part of interface connection GPIO
+connect_bd_net [get_bd_pins ce/gpio_io_o] [get_bd_pins CB4CLED_Top_0/ce]
+WARNING: [BD 41-1306] The connection to interface pin /ce/gpio_io_o is being overridden by the user. This pin will not be connected as a part of interface connection GPIO
+connect_bd_net [get_bd_pins up/gpio_io_o] [get_bd_pins CB4CLED_Top_0/up]
+WARNING: [BD 41-1306] The connection to interface pin /up/gpio_io_o is being overridden by the user. This pin will not be connected as a part of interface connection GPIO
+startgroup
+set_property location {2 349 -421} [get_bd_cells rst]
+set_property location {2 349 -561} [get_bd_cells clk]
+endgroup
+copy_bd_objs /  [get_bd_cells {clk}]
+set_property location {2 335 -825} [get_bd_cells clk1]
+startgroup
+set_property location {2 341 -417} [get_bd_cells rst]
+set_property location {2 341 -557} [get_bd_cells clk]
+endgroup
+set_property location {2 340 -734} [get_bd_cells clk1]
+set_property -dict [list CONFIG.C_GPIO_WIDTH {4} CONFIG.C_ALL_INPUTS {1} CONFIG.C_ALL_OUTPUTS {0}] [get_bd_cells clk1]
+set_property name count [get_bd_cells clk1]
+set_property location {2 360 -1080} [get_bd_cells count]
+set_property location {2 342 -919} [get_bd_cells count]
+connect_bd_net [get_bd_pins CB4CLED_Top_0/TC] [get_bd_pins count/gpio_io_i]
+WARNING: [BD 41-1306] The connection to interface pin /count/gpio_io_i is being overridden by the user. This pin will not be connected as a part of interface connection GPIO
+delete_bd_objs [get_bd_nets CB4CLED_Top_0_TC]
+connect_bd_net [get_bd_pins CB4CLED_Top_0/count] [get_bd_pins count/gpio_io_i]
+WARNING: [BD 41-1306] The connection to interface pin /count/gpio_io_i is being overridden by the user. This pin will not be connected as a part of interface connection GPIO
+copy_bd_objs /  [get_bd_cells {count}]
+copy_bd_objs /  [get_bd_cells {count}]
+set_property location {2 336 -794} [get_bd_cells count1]
+set_property location {2 354 -652} [get_bd_cells count2]
+set_property location {2 328 -501} [get_bd_cells clk]
+set_property location {2 356 -808} [get_bd_cells count1]
+set_property location {2 352 -961} [get_bd_cells count]
+set_property name TC [get_bd_cells count1]
+set_property name ceo [get_bd_cells count2]
+set_property -dict [list CONFIG.C_GPIO_WIDTH {1}] [get_bd_cells TC]
+set_property -dict [list CONFIG.C_GPIO_WIDTH {1}] [get_bd_cells ceo]
+connect_bd_net [get_bd_pins CB4CLED_Top_0/TC] [get_bd_pins TC/gpio_io_i]
+WARNING: [BD 41-1306] The connection to interface pin /TC/gpio_io_i is being overridden by the user. This pin will not be connected as a part of interface connection GPIO
+connect_bd_net [get_bd_pins CB4CLED_Top_0/ceo] [get_bd_pins ceo/gpio_io_i]
+WARNING: [BD 41-1306] The connection to interface pin /ceo/gpio_io_i is being overridden by the user. This pin will not be connected as a part of interface connection GPIO
+set_property location {0.5 -342 -137} [get_bd_cells processing_system7_0]
+startgroup
+create_bd_cell -type ip -vlnv xilinx.com:ip:axi_interconnect:2.1 axi_interconnect_0
+endgroup
+set_property -dict [list CONFIG.NUM_SI {1} CONFIG.NUM_MI {9} CONFIG.NUM_MI {9}] [get_bd_cells axi_interconnect_0]
+set_property location {1 -525 -240} [get_bd_cells processing_system7_0]
+set_property location {0.5 -634 -245} [get_bd_cells processing_system7_0]
+set_property location {1.5 -167 -344} [get_bd_cells axi_interconnect_0]
+set_property location {2 -81 -362} [get_bd_cells axi_interconnect_0]
+connect_bd_intf_net -boundary_type upper [get_bd_intf_pins axi_interconnect_0/M00_AXI] [get_bd_intf_pins count/S_AXI]
+connect_bd_intf_net -boundary_type upper [get_bd_intf_pins axi_interconnect_0/M01_AXI] [get_bd_intf_pins TC/S_AXI]
+connect_bd_intf_net -boundary_type upper [get_bd_intf_pins axi_interconnect_0/M02_AXI] [get_bd_intf_pins ceo/S_AXI]
+connect_bd_intf_net -boundary_type upper [get_bd_intf_pins axi_interconnect_0/M03_AXI] [get_bd_intf_pins clk/S_AXI]
+connect_bd_intf_net -boundary_type upper [get_bd_intf_pins axi_interconnect_0/M04_AXI] [get_bd_intf_pins rst/S_AXI]
+connect_bd_intf_net -boundary_type upper [get_bd_intf_pins axi_interconnect_0/M05_AXI] [get_bd_intf_pins loadDat/S_AXI]
+connect_bd_intf_net -boundary_type upper [get_bd_intf_pins axi_interconnect_0/M06_AXI] [get_bd_intf_pins load/S_AXI]
+connect_bd_intf_net -boundary_type upper [get_bd_intf_pins axi_interconnect_0/M07_AXI] [get_bd_intf_pins ce/S_AXI]
+connect_bd_intf_net [get_bd_intf_pins up/S_AXI] -boundary_type upper [get_bd_intf_pins axi_interconnect_0/M08_AXI]
+connect_bd_net [get_bd_pins processing_system7_0/FCLK_CLK0] [get_bd_pins axi_interconnect_0/ACLK]
+delete_bd_objs [get_bd_nets processing_system7_0_FCLK_CLK0]
+connect_bd_intf_net [get_bd_intf_pins processing_system7_0/M_AXI_GP0] -boundary_type upper [get_bd_intf_pins axi_interconnect_0/S00_AXI]
+startgroup
+create_bd_cell -type ip -vlnv xilinx.com:ip:proc_sys_reset:5.0 proc_sys_reset_0
+INFO: [Ipptcl 7-1463] No Compatible Board Interface found. Board Tab not created in customize GUI
+endgroup
+WARNING: [BD 5-232] No interface pins matched 'get_bd_intf_pins /proc_sys_reset_0/ext_reset_in'
+WARNING: [BD 5-232] No interface pins matched 'get_bd_intf_pins /proc_sys_reset_0/ext_reset_in'
+WARNING: [BD 5-232] No interface pins matched 'get_bd_intf_pins /proc_sys_reset_0/ext_reset_in'
+WARNING: [BD 5-232] No interface pins matched 'get_bd_intf_pins /proc_sys_reset_0/ext_reset_in'
+startgroup
+apply_bd_automation -rule xilinx.com:bd_rule:clkrst -config {Clk "/processing_system7_0/FCLK_CLK0 (50 MHz)" }  [get_bd_pins processing_system7_0/M_AXI_GP0_ACLK]
+apply_bd_automation -rule xilinx.com:bd_rule:clkrst -config {Clk "/processing_system7_0/FCLK_CLK0 (50 MHz)" }  [get_bd_pins clk/s_axi_aclk]
+apply_bd_automation -rule xilinx.com:bd_rule:clkrst -config {Clk "/processing_system7_0/FCLK_CLK0 (50 MHz)" }  [get_bd_pins rst/s_axi_aclk]
+apply_bd_automation -rule xilinx.com:bd_rule:clkrst -config {Clk "/processing_system7_0/FCLK_CLK0 (50 MHz)" }  [get_bd_pins loadDat/s_axi_aclk]
+apply_bd_automation -rule xilinx.com:bd_rule:clkrst -config {Clk "/processing_system7_0/FCLK_CLK0 (50 MHz)" }  [get_bd_pins up/s_axi_aclk]
+apply_bd_automation -rule xilinx.com:bd_rule:clkrst -config {Clk "/processing_system7_0/FCLK_CLK0 (50 MHz)" }  [get_bd_pins ce/s_axi_aclk]
+apply_bd_automation -rule xilinx.com:bd_rule:clkrst -config {Clk "/processing_system7_0/FCLK_CLK0 (50 MHz)" }  [get_bd_pins load/s_axi_aclk]
+apply_bd_automation -rule xilinx.com:bd_rule:clkrst -config {Clk "/processing_system7_0/FCLK_CLK0 (50 MHz)" }  [get_bd_pins count/s_axi_aclk]
+apply_bd_automation -rule xilinx.com:bd_rule:clkrst -config {Clk "/processing_system7_0/FCLK_CLK0 (50 MHz)" }  [get_bd_pins TC/s_axi_aclk]
+apply_bd_automation -rule xilinx.com:bd_rule:clkrst -config {Clk "/processing_system7_0/FCLK_CLK0 (50 MHz)" }  [get_bd_pins ceo/s_axi_aclk]
+apply_bd_automation -rule xilinx.com:bd_rule:clkrst -config {Clk "/processing_system7_0/FCLK_CLK0 (50 MHz)" }  [get_bd_pins axi_interconnect_0/ACLK]
+INFO: [BD 5-455] Automation on '/axi_interconnect_0/S00_ACLK' will not be run, since it is obsolete due to previously run automations
+INFO: [BD 5-455] Automation on '/axi_interconnect_0/M00_ACLK' will not be run, since it is obsolete due to previously run automations
+INFO: [BD 5-455] Automation on '/axi_interconnect_0/M01_ACLK' will not be run, since it is obsolete due to previously run automations
+INFO: [BD 5-455] Automation on '/axi_interconnect_0/M02_ACLK' will not be run, since it is obsolete due to previously run automations
+INFO: [BD 5-455] Automation on '/axi_interconnect_0/M03_ACLK' will not be run, since it is obsolete due to previously run automations
+INFO: [BD 5-455] Automation on '/axi_interconnect_0/M04_ACLK' will not be run, since it is obsolete due to previously run automations
+INFO: [BD 5-455] Automation on '/axi_interconnect_0/M05_ACLK' will not be run, since it is obsolete due to previously run automations
+INFO: [BD 5-455] Automation on '/axi_interconnect_0/M06_ACLK' will not be run, since it is obsolete due to previously run automations
+INFO: [BD 5-455] Automation on '/axi_interconnect_0/M07_ACLK' will not be run, since it is obsolete due to previously run automations
+INFO: [BD 5-455] Automation on '/axi_interconnect_0/M08_ACLK' will not be run, since it is obsolete due to previously run automations
+INFO: [BD 5-455] Automation on '/proc_sys_reset_0/slowest_sync_clk' will not be run, since it is obsolete due to previously run automations
+INFO: [BD 5-455] Automation on '/proc_sys_reset_0/ext_reset_in' will not be run, since it is obsolete due to previously run automations
+endgroup
+apply_bd_automation -rule xilinx.com:bd_rule:processing_system7 -config {make_external "FIXED_IO, DDR" apply_board_preset "1" Master "Disable" Slave "Disable" }  [get_bd_cells processing_system7_0]
+assign_bd_address
+Slave segment </TC/S_AXI/Reg> is being mapped into address space </processing_system7_0/Data> at <0x4120_0000 [ 64K ]>
+Slave segment </ce/S_AXI/Reg> is being mapped into address space </processing_system7_0/Data> at <0x4121_0000 [ 64K ]>
+Slave segment </ceo/S_AXI/Reg> is being mapped into address space </processing_system7_0/Data> at <0x4122_0000 [ 64K ]>
+Slave segment </clk/S_AXI/Reg> is being mapped into address space </processing_system7_0/Data> at <0x4123_0000 [ 64K ]>
+Slave segment </count/S_AXI/Reg> is being mapped into address space </processing_system7_0/Data> at <0x4124_0000 [ 64K ]>
+Slave segment </load/S_AXI/Reg> is being mapped into address space </processing_system7_0/Data> at <0x4125_0000 [ 64K ]>
+Slave segment </loadDat/S_AXI/Reg> is being mapped into address space </processing_system7_0/Data> at <0x4126_0000 [ 64K ]>
+Slave segment </rst/S_AXI/Reg> is being mapped into address space </processing_system7_0/Data> at <0x4127_0000 [ 64K ]>
+Slave segment </up/S_AXI/Reg> is being mapped into address space </processing_system7_0/Data> at <0x4128_0000 [ 64K ]>
+validate_bd_design
+WARNING: [BD 41-702] Propagation TCL tries to overwrite USER strength parameter PCW_M_AXI_GP0_FREQMHZ(10) on '/processing_system7_0' with propagated value(100). Command ignored
+make_wrapper -files [get_files {{C:/Users/canny/Documents/5th Year ECE/Project/PYNQ/Tutorials/cb4cled/cb4cled-jn-application/CB4CLED/vhdl/xilinxprj/CB4CLED_Top.srcs/sources_1/bd/cb4cled_design_z2/cb4cled_design_z2.bd}}] -top
+INFO: [BD 41-1662] The design 'cb4cled_design_z2.bd' is already validated. Therefore parameter propagation will not be re-run.
+Wrote  : <C:\Users\canny\Documents\5th Year ECE\Project\PYNQ\Tutorials\cb4cled\cb4cled-jn-application\CB4CLED\vhdl\xilinxprj\CB4CLED_Top.srcs\sources_1\bd\cb4cled_design_z2\cb4cled_design_z2.bd> 
+Wrote  : <C:/Users/canny/Documents/5th Year ECE/Project/PYNQ/Tutorials/cb4cled/cb4cled-jn-application/CB4CLED/vhdl/xilinxprj/CB4CLED_Top.srcs/sources_1/bd/cb4cled_design_z2/ui/bd_c366b6f7.ui> 
+VHDL Output written to : C:/Users/canny/Documents/5th Year ECE/Project/PYNQ/Tutorials/cb4cled/cb4cled-jn-application/CB4CLED/vhdl/xilinxprj/CB4CLED_Top.srcs/sources_1/bd/cb4cled_design_z2/synth/cb4cled_design_z2.vhd
+VHDL Output written to : C:/Users/canny/Documents/5th Year ECE/Project/PYNQ/Tutorials/cb4cled/cb4cled-jn-application/CB4CLED/vhdl/xilinxprj/CB4CLED_Top.srcs/sources_1/bd/cb4cled_design_z2/sim/cb4cled_design_z2.vhd
+VHDL Output written to : C:/Users/canny/Documents/5th Year ECE/Project/PYNQ/Tutorials/cb4cled/cb4cled-jn-application/CB4CLED/vhdl/xilinxprj/CB4CLED_Top.srcs/sources_1/bd/cb4cled_design_z2/hdl/cb4cled_design_z2_wrapper.vhd
+add_files -norecurse {{C:/Users/canny/Documents/5th Year ECE/Project/PYNQ/Tutorials/cb4cled/cb4cled-jn-application/CB4CLED/vhdl/xilinxprj/CB4CLED_Top.srcs/sources_1/bd/cb4cled_design_z2/hdl/cb4cled_design_z2_wrapper.vhd}}
+update_compile_order -fileset sources_1
+set_property top cb4cled_design_z2_wrapper [current_fileset]
+update_compile_order -fileset sources_1
+launch_runs impl_2 -to_step write_bitstream -jobs 2
+INFO: [BD 41-1662] The design 'cb4cled_design_z2.bd' is already validated. Therefore parameter propagation will not be re-run.
+VHDL Output written to : C:/Users/canny/Documents/5th Year ECE/Project/PYNQ/Tutorials/cb4cled/cb4cled-jn-application/CB4CLED/vhdl/xilinxprj/CB4CLED_Top.srcs/sources_1/bd/cb4cled_design_z2/synth/cb4cled_design_z2.vhd
+VHDL Output written to : C:/Users/canny/Documents/5th Year ECE/Project/PYNQ/Tutorials/cb4cled/cb4cled-jn-application/CB4CLED/vhdl/xilinxprj/CB4CLED_Top.srcs/sources_1/bd/cb4cled_design_z2/sim/cb4cled_design_z2.vhd
+VHDL Output written to : C:/Users/canny/Documents/5th Year ECE/Project/PYNQ/Tutorials/cb4cled/cb4cled-jn-application/CB4CLED/vhdl/xilinxprj/CB4CLED_Top.srcs/sources_1/bd/cb4cled_design_z2/hdl/cb4cled_design_z2_wrapper.vhd
+ERROR: [Common 17-680] Path length exceeds 260-Byte maximum allowed by Windows: c:/Users/canny/Documents/5th Year ECE/Project/PYNQ/Tutorials/cb4cled/cb4cled-jn-application/CB4CLED/vhdl/xilinxprj/CB4CLED_Top.srcs/sources_1/bd/cb4cled_design_z2/ip/cb4cled_design_z2_processing_system7_0_0/hdl/verilog/cb4cled_design_z2_processing_system7_0_0.hwdef
+Please consider using the OS subst command to shorten the path length by mapping part of the path to a virtual drive letter. See Answer Record AR52787 for more information.
+Resolution: In Windows 7 or later, the mklink command can also be used to create a symbolic link and shorten the path.
+ERROR: [Ipptcl 7-5] XIT evaluation error: Invalid file name: c:/Users/canny/Documents/5th Year ECE/Project/PYNQ/Tutorials/cb4cled/cb4cled-jn-application/CB4CLED/vhdl/xilinxprj/CB4CLED_Top.srcs/sources_1/bd/cb4cled_design_z2/ip/cb4cled_design_z2_processing_system7_0_0/hdl/verilog/cb4cled_design_z2_processing_system7_0_0.hwdef
+ERROR: [Common 17-39] 'xit::add_ipfile' failed due to earlier errors.
+CRITICAL WARNING: [IP_Flow 19-1747] Failed to deliver file 'd:/Xilinx/Vivado/2019.1/data/ip/xilinx/processing_system7_v5_5/xit/xdc.xit': ERROR: [Common 17-39] 'xit::add_ipfile' failed due to earlier errors.
+
+ERROR: [Common 17-99] Failed to open zip archive c:/Users/canny/Documents/5th Year ECE/Project/PYNQ/Tutorials/cb4cled/cb4cled-jn-application/CB4CLED/vhdl/xilinxprj/CB4CLED_Top.srcs/sources_1/bd/cb4cled_design_z2/ip/cb4cled_design_z2_processing_system7_0_0/hdl/verilog/cb4cled_design_z2_processing_system7_0_0.hwdef.
+Resolution: Check that you have write permissions at the path specified, and sufficient free disk space.
+ERROR: [Common 17-680] Path length exceeds 260-Byte maximum allowed by Windows: c:/Users/canny/Documents/5th Year ECE/Project/PYNQ/Tutorials/cb4cled/cb4cled-jn-application/CB4CLED/vhdl/xilinxprj/CB4CLED_Top.srcs/sources_1/bd/cb4cled_design_z2/ip/cb4cled_design_z2_processing_system7_0_0/hdl/verilog/processing_system7_v5_5_processing_system7.v
+Please consider using the OS subst command to shorten the path length by mapping part of the path to a virtual drive letter. See Answer Record AR52787 for more information.
+Resolution: In Windows 7 or later, the mklink command can also be used to create a symbolic link and shorten the path.
+ERROR: [Ipptcl 7-5] XIT evaluation error: Invalid file name: c:/Users/canny/Documents/5th Year ECE/Project/PYNQ/Tutorials/cb4cled/cb4cled-jn-application/CB4CLED/vhdl/xilinxprj/CB4CLED_Top.srcs/sources_1/bd/cb4cled_design_z2/ip/cb4cled_design_z2_processing_system7_0_0/hdl/verilog/processing_system7_v5_5_processing_system7.v
+ERROR: [Common 17-39] 'xit::add_ipfile' failed due to earlier errors.
+CRITICAL WARNING: [IP_Flow 19-1747] Failed to deliver file 'd:/Xilinx/Vivado/2019.1/data/ip/xilinx/processing_system7_v5_5/ttcl/processing_system7.ttcl': ERROR: [Common 17-39] 'xit::add_ipfile' failed due to earlier errors.
+
+ERROR: [IP_Flow 19-167] Failed to deliver one or more file(s).
+ERROR: [IP_Flow 19-3505] IP Generation error: Failed to generate IP 'processing_system7_0'. Failed to generate 'Vivado Synthesis' outputs: 
+ERROR: [IP_Flow 19-98] Generation of the IP CORE failed.
+Failed to generate IP 'processing_system7_0'. Failed to generate 'Vivado Synthesis' outputs: 
+ERROR: [BD 41-1030] Generation failed for the IP Integrator block processing_system7_0 
+INFO: [BD 41-1029] Generation completed for the IP Integrator block CB4CLED_Top_0 .
+INFO: [BD 41-1029] Generation completed for the IP Integrator block clk .
+INFO: [BD 41-1029] Generation completed for the IP Integrator block rst .
+INFO: [BD 41-1029] Generation completed for the IP Integrator block loadDat .
+INFO: [BD 41-1029] Generation completed for the IP Integrator block up .
+INFO: [BD 41-1029] Generation completed for the IP Integrator block ce .
+INFO: [BD 41-1029] Generation completed for the IP Integrator block load .
+INFO: [BD 41-1029] Generation completed for the IP Integrator block count .
+INFO: [BD 41-1029] Generation completed for the IP Integrator block TC .
+INFO: [BD 41-1029] Generation completed for the IP Integrator block ceo .
+INFO: [BD 41-1029] Generation completed for the IP Integrator block axi_interconnect_0/xbar .
+WARNING: [IP_Flow 19-4994] Overwriting existing constraint file 'c:/Users/canny/Documents/5th Year ECE/Project/PYNQ/Tutorials/cb4cled/cb4cled-jn-application/CB4CLED/vhdl/xilinxprj/CB4CLED_Top.srcs/sources_1/bd/cb4cled_design_z2/ip/cb4cled_design_z2_auto_pc_0/cb4cled_design_z2_auto_pc_0_ooc.xdc'
+INFO: [BD 41-1029] Generation completed for the IP Integrator block axi_interconnect_0/s00_couplers/auto_pc .
+INFO: [BD 41-1029] Generation completed for the IP Integrator block proc_sys_reset_0 .
+Exporting to file C:/Users/canny/Documents/5th Year ECE/Project/PYNQ/Tutorials/cb4cled/cb4cled-jn-application/CB4CLED/vhdl/xilinxprj/CB4CLED_Top.srcs/sources_1/bd/cb4cled_design_z2/hw_handoff/cb4cled_design_z2.hwh
+Generated Block Design Tcl file C:/Users/canny/Documents/5th Year ECE/Project/PYNQ/Tutorials/cb4cled/cb4cled-jn-application/CB4CLED/vhdl/xilinxprj/CB4CLED_Top.srcs/sources_1/bd/cb4cled_design_z2/hw_handoff/cb4cled_design_z2_bd.tcl
+Generated Hardware Definition File C:/Users/canny/Documents/5th Year ECE/Project/PYNQ/Tutorials/cb4cled/cb4cled-jn-application/CB4CLED/vhdl/xilinxprj/CB4CLED_Top.srcs/sources_1/bd/cb4cled_design_z2/synth/cb4cled_design_z2.hwdef
+INFO: [IP_Flow 19-4993] Using cached IP synthesis design for IP cb4cled_design_z2_auto_pc_0, cache-ID = 918c20c150427b09; cache size = 6.772 MB.
+ERROR: [Vivado 12-4756] Launch of runs aborted due to earlier errors while preparing sub-designs for run execution.
+exit
+INFO: [Common 17-206] Exiting Vivado at Fri Sep 22 15:46:00 2023...

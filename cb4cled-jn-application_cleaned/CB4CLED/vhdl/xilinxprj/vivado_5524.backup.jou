@@ -1,0 +1,128 @@
+#-----------------------------------------------------------
+# Vivado v2019.1 (64-bit)
+# SW Build 2552052 on Fri May 24 14:49:42 MDT 2019
+# IP Build 2548770 on Fri May 24 18:01:18 MDT 2019
+# Start of session at: Sun Jan 16 10:42:16 2022
+# Process ID: 5524
+# Current directory: E:/BE_Project/Project/Project_files/CB4CLED/CB4CLED_Top/CB4CLED_Top/vhdl/xilinxprj
+# Command line: vivado.exe -gui_launcher_event rodinguilauncherevent16436 E:\BE_Project\Project\Project_files\CB4CLED\CB4CLED_Top\CB4CLED_Top\vhdl\xilinxprj\CB4CLED_Top.xpr
+# Log file: E:/BE_Project/Project/Project_files/CB4CLED/CB4CLED_Top/CB4CLED_Top/vhdl/xilinxprj/vivado.log
+# Journal file: E:/BE_Project/Project/Project_files/CB4CLED/CB4CLED_Top/CB4CLED_Top/vhdl/xilinxprj\vivado.jou
+#-----------------------------------------------------------
+start_gui
+open_project E:/BE_Project/Project/Project_files/CB4CLED/CB4CLED_Top/CB4CLED_Top/vhdl/xilinxprj/CB4CLED_Top.xpr
+update_compile_order -fileset sources_1
+set_property board_part www.digilentinc.com:pynq-z1:part0:1.0 [current_project]
+add_files -fileset constrs_1 -norecurse C:/Users/abish/Desktop/pynq-z1_c/physical_contr.xdc
+import_files -fileset constrs_1 C:/Users/abish/Desktop/pynq-z1_c/physical_contr.xdc
+create_bd_design "cb4cled_design"
+update_compile_order -fileset sources_1
+startgroup
+create_bd_cell -type ip -vlnv xilinx.com:ip:processing_system7:5.5 processing_system7_0
+endgroup
+create_bd_cell -type module -reference CB4CLED_Top CB4CLED_Top_0
+set_property location {1.5 584 -195} [get_bd_cells CB4CLED_Top_0]
+set_property location {0.5 -134 -175} [get_bd_cells processing_system7_0]
+startgroup
+create_bd_cell -type ip -vlnv xilinx.com:ip:axi_gpio:2.0 axi_gpio_0
+endgroup
+set_property location {1.5 250 -452} [get_bd_cells axi_gpio_0]
+set_property name clk [get_bd_cells axi_gpio_0]
+set_property -dict [list CONFIG.C_GPIO_WIDTH {1} CONFIG.C_ALL_OUTPUTS {1}] [get_bd_cells clk]
+connect_bd_net [get_bd_pins clk/gpio_io_o] [get_bd_pins CB4CLED_Top_0/clk]
+copy_bd_objs /  [get_bd_cells {clk}]
+set_property name rst [get_bd_cells clk1]
+connect_bd_net [get_bd_pins rst/gpio_io_o] [get_bd_pins CB4CLED_Top_0/rst]
+copy_bd_objs /  [get_bd_cells {rst}]
+set_property name loadDat [get_bd_cells rst1]
+set_property -dict [list CONFIG.C_GPIO_WIDTH {4}] [get_bd_cells loadDat]
+connect_bd_net [get_bd_pins loadDat/gpio_io_o] [get_bd_pins CB4CLED_Top_0/loadDat]
+copy_bd_objs /  [get_bd_cells {rst}]
+set_property location {2 285 -19} [get_bd_cells rst1]
+set_property name load [get_bd_cells rst1]
+connect_bd_net [get_bd_pins load/gpio_io_o] [get_bd_pins CB4CLED_Top_0/load]
+copy_bd_objs /  [get_bd_cells {rst}]
+set_property location {2 292 85} [get_bd_cells rst1]
+set_property name ce [get_bd_cells rst1]
+connect_bd_net [get_bd_pins ce/gpio_io_o] [get_bd_pins CB4CLED_Top_0/ce]
+copy_bd_objs /  [get_bd_cells {rst}]
+set_property location {2 256 104} [get_bd_cells rst1]
+set_property location {2 268 207} [get_bd_cells rst1]
+set_property location {2 251 -106} [get_bd_cells load]
+set_property location {2 230 65} [get_bd_cells ce]
+set_property name up [get_bd_cells rst1]
+connect_bd_net [get_bd_pins up/gpio_io_o] [get_bd_pins CB4CLED_Top_0/up]
+copy_bd_objs /  [get_bd_cells {clk}]
+set_property location {2 244 -666} [get_bd_cells clk1]
+set_property -dict [list CONFIG.C_GPIO_WIDTH {4} CONFIG.C_ALL_INPUTS {1} CONFIG.C_ALL_OUTPUTS {0}] [get_bd_cells clk1]
+set_property name count [get_bd_cells clk1]
+connect_bd_net [get_bd_pins count/gpio_io_i] [get_bd_pins CB4CLED_Top_0/count]
+set_property location {2 244 -101} [get_bd_cells load]
+set_property location {2 248 45} [get_bd_cells ce]
+set_property location {2 250 180} [get_bd_cells up]
+copy_bd_objs /  [get_bd_cells {clk}]
+set_property location {2 247 274} [get_bd_cells clk1]
+set_property location {2 240 -156} [get_bd_cells load]
+set_property location {2 246 -24} [get_bd_cells ce]
+set_property location {2 230 117} [get_bd_cells up]
+set_property -dict [list CONFIG.C_ALL_INPUTS {1} CONFIG.C_ALL_OUTPUTS {0}] [get_bd_cells clk1]
+set_property name TC [get_bd_cells clk1]
+connect_bd_net [get_bd_pins CB4CLED_Top_0/TC] [get_bd_pins TC/gpio_io_i]
+copy_bd_objs /  [get_bd_cells {TC}]
+set_property location {2 259 457} [get_bd_cells TC1]
+set_property location {2 264 70} [get_bd_cells up]
+set_property location {2 256 220} [get_bd_cells TC]
+set_property location {2 261 353} [get_bd_cells TC1]
+set_property name ceo [get_bd_cells TC1]
+connect_bd_net [get_bd_pins CB4CLED_Top_0/ceo] [get_bd_pins ceo/gpio_io_i]
+set_property location {0.5 -487 -157} [get_bd_cells processing_system7_0]
+startgroup
+create_bd_cell -type ip -vlnv xilinx.com:ip:axi_interconnect:2.1 axi_interconnect_0
+endgroup
+set_property location {1.5 -128 -169} [get_bd_cells axi_interconnect_0]
+set_property -dict [list CONFIG.NUM_MI {9}] [get_bd_cells axi_interconnect_0]
+connect_bd_intf_net -boundary_type upper [get_bd_intf_pins axi_interconnect_0/M00_AXI] [get_bd_intf_pins count/S_AXI]
+connect_bd_intf_net -boundary_type upper [get_bd_intf_pins axi_interconnect_0/M01_AXI] [get_bd_intf_pins clk/S_AXI]
+connect_bd_intf_net -boundary_type upper [get_bd_intf_pins axi_interconnect_0/M02_AXI] [get_bd_intf_pins rst/S_AXI]
+connect_bd_intf_net -boundary_type upper [get_bd_intf_pins axi_interconnect_0/M03_AXI] [get_bd_intf_pins loadDat/S_AXI]
+connect_bd_intf_net -boundary_type upper [get_bd_intf_pins axi_interconnect_0/M04_AXI] [get_bd_intf_pins load/S_AXI]
+connect_bd_intf_net -boundary_type upper [get_bd_intf_pins axi_interconnect_0/M05_AXI] [get_bd_intf_pins ce/S_AXI]
+connect_bd_intf_net -boundary_type upper [get_bd_intf_pins axi_interconnect_0/M06_AXI] [get_bd_intf_pins up/S_AXI]
+connect_bd_intf_net -boundary_type upper [get_bd_intf_pins axi_interconnect_0/M07_AXI] [get_bd_intf_pins TC/S_AXI]
+connect_bd_intf_net -boundary_type upper [get_bd_intf_pins axi_interconnect_0/M08_AXI] [get_bd_intf_pins ceo/S_AXI]
+connect_bd_intf_net -boundary_type upper [get_bd_intf_pins axi_interconnect_0/S00_AXI] [get_bd_intf_pins processing_system7_0/M_AXI_GP0]
+startgroup
+create_bd_cell -type ip -vlnv xilinx.com:ip:proc_sys_reset:5.0 proc_sys_reset_0
+endgroup
+set_property location {2 -188 101} [get_bd_cells proc_sys_reset_0]
+startgroup
+apply_bd_automation -rule xilinx.com:bd_rule:clkrst -config {Clk "/processing_system7_0/FCLK_CLK0 (50 MHz)" }  [get_bd_pins processing_system7_0/M_AXI_GP0_ACLK]
+apply_bd_automation -rule xilinx.com:bd_rule:clkrst -config {Clk "/processing_system7_0/FCLK_CLK0 (50 MHz)" }  [get_bd_pins clk/s_axi_aclk]
+apply_bd_automation -rule xilinx.com:bd_rule:clkrst -config {Clk "/processing_system7_0/FCLK_CLK0 (50 MHz)" }  [get_bd_pins rst/s_axi_aclk]
+apply_bd_automation -rule xilinx.com:bd_rule:clkrst -config {Clk "/processing_system7_0/FCLK_CLK0 (50 MHz)" }  [get_bd_pins loadDat/s_axi_aclk]
+apply_bd_automation -rule xilinx.com:bd_rule:clkrst -config {Clk "/processing_system7_0/FCLK_CLK0 (50 MHz)" }  [get_bd_pins load/s_axi_aclk]
+apply_bd_automation -rule xilinx.com:bd_rule:clkrst -config {Clk "/processing_system7_0/FCLK_CLK0 (50 MHz)" }  [get_bd_pins ce/s_axi_aclk]
+apply_bd_automation -rule xilinx.com:bd_rule:clkrst -config {Clk "/processing_system7_0/FCLK_CLK0 (50 MHz)" }  [get_bd_pins up/s_axi_aclk]
+apply_bd_automation -rule xilinx.com:bd_rule:clkrst -config {Clk "/processing_system7_0/FCLK_CLK0 (50 MHz)" }  [get_bd_pins count/s_axi_aclk]
+apply_bd_automation -rule xilinx.com:bd_rule:clkrst -config {Clk "/processing_system7_0/FCLK_CLK0 (50 MHz)" }  [get_bd_pins TC/s_axi_aclk]
+apply_bd_automation -rule xilinx.com:bd_rule:clkrst -config {Clk "/processing_system7_0/FCLK_CLK0 (50 MHz)" }  [get_bd_pins ceo/s_axi_aclk]
+apply_bd_automation -rule xilinx.com:bd_rule:clkrst -config {Clk "/processing_system7_0/FCLK_CLK0 (50 MHz)" }  [get_bd_pins axi_interconnect_0/ACLK]
+endgroup
+apply_bd_automation -rule xilinx.com:bd_rule:processing_system7 -config {make_external "FIXED_IO, DDR" apply_board_preset "1" Master "Disable" Slave "Disable" }  [get_bd_cells processing_system7_0]
+assign_bd_address
+validate_bd_design
+make_wrapper -files [get_files E:/BE_Project/Project/Project_files/CB4CLED/CB4CLED_Top/CB4CLED_Top/vhdl/xilinxprj/CB4CLED_Top.srcs/sources_1/bd/cb4cled_design/cb4cled_design.bd] -top
+add_files -norecurse E:/BE_Project/Project/Project_files/CB4CLED/CB4CLED_Top/CB4CLED_Top/vhdl/xilinxprj/CB4CLED_Top.srcs/sources_1/bd/cb4cled_design/hdl/cb4cled_design_wrapper.vhd
+update_compile_order -fileset sources_1
+# Disabling source management mode.  This is to allow the top design properties to be set without GUI intervention.
+set_property source_mgmt_mode None [current_project]
+set_property top cb4cled_design_wrapper [current_fileset]
+# Re-enabling previously disabled source management mode.
+set_property source_mgmt_mode All [current_project]
+update_compile_order -fileset sources_1
+launch_runs impl_1 -to_step write_bitstream -jobs 8
+wait_on_run impl_1
+write_bd_tcl -force E:/BE_Project/Project/Project_files/CB4CLED/CB4CLED_Top/CB4CLED_Top/vhdl/xilinxprj/cb4cled_design.tcl
+reset_run synth_1
+launch_runs impl_1 -to_step write_bitstream -jobs 8
+wait_on_run impl_1
