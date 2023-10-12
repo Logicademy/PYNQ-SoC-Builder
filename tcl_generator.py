@@ -152,6 +152,15 @@ file_contents += "\nexport_bd"
 
 # # Close and Quit
 # file_contents += "\nclose_and_quit"
+##
+# generate_bitstream
+# export_bd
+# wait_on_run
+# stop_gui
+# close_design
+# wait_on_run
+# exit
+# Need to have wait_on_run command somewhere to let the full process complete before closing.
 
 ########## Write to Tcl File ##########
 with open('generate_script.tcl', 'w') as file:
