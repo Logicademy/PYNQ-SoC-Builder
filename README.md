@@ -2,4 +2,4 @@
 
 # # Overview of System to date:
 
-[Project Architecture](docs/Automation_Architecture.png)
+![Project Architecture](docs/Automation_Architecture.png)
