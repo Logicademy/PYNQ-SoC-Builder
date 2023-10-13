@@ -6,7 +6,7 @@ import runpy
 # D:\Xilinx\Vivado\2019.1\bin\vivado.bat -mode tcl
 # vivado_cmd = "D:\\Xilinx\\Vivado\\2019.1\\bin\\vivado.bat"
 
-class Tcl_Manager:
+class Pynq_Manager:
     def __init__(self, vivado_bat_path):
         self.vivado_bat_path = vivado_bat_path
 
@@ -24,6 +24,7 @@ class Tcl_Manager:
             print(e)
 
     def upload_files(self):
+        pass
         # __init__ will also need to contain the path of the project.
         # upload files function could be allowed to automatically find the files given the relative filepath should remain the same.
 
