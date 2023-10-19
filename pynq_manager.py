@@ -19,17 +19,16 @@ class Pynq_Manager:
     def run_vivado(self):
         # D:\Xilinx\Vivado\2019.1\bin\vivado.bat -mode tcl -source C:/masters/masters_automation/generate_script.tcl
         try:
-            print("Starting Process")
+            print("Starting Vivado")
             vivado_process = subprocess.run([self.vivado_bat_path, "-mode", "tcl", "-source", "generate_script.tcl"], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-            
+            print("Bit stream generation is complete")
         except Exception as e:
             print("Exception")
             print(e)
 
     def upload_to_pynq(self):
+        
         pass
-        # __init__ will also need to contain the path of the project.
-        # upload files function could be allowed to automatically find the files given the relative filepath should remain the same.
 
     def copy_to_dir(self):
         pass
