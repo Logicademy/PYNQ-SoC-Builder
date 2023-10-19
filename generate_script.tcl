@@ -31,8 +31,7 @@ create_hdl_wrapper D:/HDLGen-ChatGPT/User_Projects/LukeAND/LukeAND/VHDL/AMDprj/L
 set_wrapper_top LukeAND_bd_wrapper
 generate_bitstream
 export_bd
-wait_on_run
+wait_on_run impl_1
 stop_gui
 close_design
-wait_on_run
 exit
