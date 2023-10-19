@@ -153,3 +153,6 @@ with open('generated.ipynb', 'w') as f:
     
 print("Notebook Generated")
 
+def create_jnb(path_to_hdlgen_file):
+    
+    pass
