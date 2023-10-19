@@ -171,10 +171,9 @@ def generate_tcl(path_to_hdlgen_project):
     file_contents += "\nexport_bd"
     
     # (13) Save and Quit
-    file_contents += "\nwait_on_run"
+    file_contents += "\nwait_on_run impl_1"
     file_contents += "\nstop_gui"
     file_contents += "\nclose_design"
-    file_contents += "\nwait_on_run"
     file_contents += "\nexit"
     
     ########## Writing to generate_script.tcl ##########
