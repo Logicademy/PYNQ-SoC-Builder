@@ -124,9 +124,27 @@ proc run_bd_auto_connect {} {
 	endgroup
 }
 
-proc run_bd_automation_rule {bd_pin} {
+# Running on the Processor:
+# apply_bd_automation -rule xilinx.com:bd_rule:clkrst -config {Clk "/processing_system7_0/FCLK_CLK0 (50 MHz)" }  [get_bd_pins processing_system7_0/M_AXI_GP0_ACLK]
+
+# Running on the Interconnect:
+# apply_bd_automation -rule xilinx.com:bd_rule:clkrst -config {Clk "/processing_system7_0/FCLK_CLK0 (50 MHz)" }  [get_bd_pins axi_interconnect_0/ACLK]
+
+# On all the remaining I/O
+# apply_bd_automation -rule xilinx.com:bd_rule:axi4 -config { Clk_master {/processing_system7_0/FCLK_CLK0 (50 MHz)} Clk_slave {Auto} Clk_xbar {/processing_system7_0/FCLK_CLK0 (50 MHz)} Master {/processing_system7_0/M_AXI_GP0} Slave {/ANDOut/S_AXI} intc_ip {/axi_interconnect_0} master_apm {0}}  [get_bd_intf_pins ANDOut/S_AXI]
+
+proc run_bd_automation_rule_processor {} {
+	apply_bd_automation -rule xilinx.com:bd_rule:clkrst -config {Clk "/processing_system7_0/FCLK_CLK0 (50 MHz)" }  [get_bd_pins processing_system7_0/M_AXI_GP0_ACLK]
+}
+
+proc run_bd_automation_rule_interconnect {} {
+	apply_bd_automation -rule xilinx.com:bd_rule:clkrst -config {Clk "/processing_system7_0/FCLK_CLK0 (50 MHz)" }  [get_bd_pins axi_interconnect_0/ACLK]
+}
+
+proc run_bd_automation_rule_io {bd_pin} {
 	apply_bd_automation -rule xilinx.com:bd_rule:clkrst -config {Clk "/processing_system7_0/FCLK_CLK0 (50 MHz)" }  [get_bd_pins $bd_pin]
 }
+
 
 # Run Block Automation {for use after connection automation}
 proc run_bd_block_automation {} {
@@ -160,8 +178,8 @@ proc set_wrapper_top {wrapper_name} {
 
 # Generate Bitstream - synth_2 and impl_2 used in counter program but these should both be "_1"
 proc generate_bitstream {} {	
-	reset_run synth_2
-	launch_runs impl_2 -to_step write_bitstream -jobs 2
+	reset_run synth_1
+	launch_runs impl_1 -to_step write_bitstream -jobs 2
 }
 
 

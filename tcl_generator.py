@@ -116,6 +116,9 @@ start_gui = True
 # # Add the AXI Interconnect to the IP Block Design
 # file_contents += f"\nadd_axi_interconnect 1 {len(all_ports)}"
 
+#
+
+#
 # # Connect each GPIO to the Interconnect
 # for x in range(len(all_ports)):
 #     file_contents += f"\nconnect_bd_intf_net -boundary_type upper [get_bd_intf_pins axi_interconnect_0/M{x:02d}_AXI] [get_bd_intf_pins {all_ports[x][0]}/S_AXI]"
@@ -207,10 +210,10 @@ def generate_tcl(path_to_hdlgen_project):
         )
 
     # Derived Variables
-    path_to_xpr = location + AMDproj_folder_rel_path + name + ".xpr"
-    bd_filename = name
+    path_to_xpr = location + "/" + AMDproj_folder_rel_path + "/" + name + ".xpr"
+    bd_filename = name + "_bd"
     module_source = name
-    path_to_bd = location + AMDproj_folder_rel_path + name + ".srcs/sources_1/bd"
+    path_to_bd = location + "/" + AMDproj_folder_rel_path + "/" + name + ".srcs/sources_1/bd"
 
 # path_to_bd = "C:/masters/masters_automation/cb4cled-jn-application_automatic/CB4CLED/vhdl/xilinxprj/CB4CLED_Top.srcs/sources_1/bd"  
 
@@ -288,18 +291,24 @@ def generate_tcl(path_to_hdlgen_project):
     # (7) Add the AXI Interconnect to the IP Block Design
     file_contents += f"\nadd_axi_interconnect 1 {len(all_ports)}"
 
+    # Connect each GPIO to the Interconnect
+    for x in range(len(all_ports)):
+        file_contents += f"\nconnect_bd_intf_net -boundary_type upper [get_bd_intf_pins axi_interconnect_0/M{x:02d}_AXI] [get_bd_intf_pins {all_ports[x][0]}/S_AXI]"
+		
+
     # (8) Add "Processor System Reset" IP
-    
+    file_contents += "\nadd_system_reset_ip"
     # Connect M_AXI_GP0 of the Processing System to S00_AXI connection of the AXI Interconnect.
     # TODO: Add this line to the proc file instead maybe
     file_contents += "\nconnect_bd_intf_net [get_bd_intf_pins processing_system7_0/M_AXI_GP0] -boundary_type upper [get_bd_intf_pins axi_interconnect_0/S00_AXI]"
 
     # Run auto-connection tool
     # file_contents += "\nrun_bd_auto_connect"
-    file_contents += "\nrun_bd_automation_rule processing_system7_0/M_AXI_GP0_ACLK"
-    file_contents += "\nrun_bd_automation_rule axi_interconnect_0/ACLK"
+    file_contents += "\nrun_bd_automation_rule_processor"
+    file_contents += "\nrun_bd_automation_rule_interconnect"
     for io in all_ports:
-        file_contents += f"\nrun_bd_automation_rule {io[0]}/s_axi_aclk" 
+        file_contents += f"\nrun_bd_automation_rule_io {io[0]}/s_axi_aclk" 
+    
 
     # Run block automation tool
     file_contents += "\nrun_bd_block_automation"
@@ -325,10 +334,41 @@ def generate_tcl(path_to_hdlgen_project):
     file_contents += "\nwait_on_run"
     file_contents += "\nexit"
     
+    # ########## Write to Tcl File ##########
+    with open('generate_script.tcl', 'w') as file:
+        # First, we want to source our test file
+        file.write(file_contents)
+        print("generate_script.tcl generated!")
     
     
     
 
 generate_tcl("C:\\masters\\masters_automation\\LukeAND_working\\LukeAND\\HDLGenPrj\\LukeAND.hdlgen")
+# source C:/masters/masters_automation/generate_script.tcl
 
+# Currently an issue:
+# Vivado Wishes to run:
+# apply_bd_automation -rule xilinx.com:bd_rule:axi4 
+#           -config { Clk_master {/processing_system7_0/FCLK_CLK0 (50 MHz)} Clk_slave {Auto} 
+#           Clk_xbar {/processing_system7_0/FCLK_CLK0 (50 MHz)} 
+#           Master {/processing_system7_0/M_AXI_GP0} 
+#           Slave {/AND2In1/S_AXI} 
+#           intc_ip {/axi_interconnect_0} 
+#           master_apm {0}}  
+#           [get_bd_intf_pins AND2In1/S_AXI]
 
+# What we wanted to run first:
+#   apply_bd_automation -rule xilinx.com:bd_rule:clkrst -config {Clk "/processing_system7_0/FCLK_CLK0 (50 MHz)" }  [get_bd_pins $bd_pin]
+#           $BD_PIN = AND2In1/s_axi_aclk
+
+# apply_bd_automation -rule xilinx.com:bd_rule:clkrst -config {Clk "/processing_system7_0/FCLK_CLK0 (50 MHz)" }  [get_bd_pins $bd_pin]
+# apply_bd_automation -rule xilinx.com:bd_rule:axi4 -config { Clk_master {/processing_system7_0/FCLK_CLK0 (50 MHz)} Clk_slave {Auto} Clk_xbar {/processing_system7_0/FCLK_CLK0 (50 MHz)} Master {/processing_system7_0/M_AXI_GP0} Slave {/AND2In1/S_AXI} intc_ip {/axi_interconnect_0} master_apm {0}}  [get_bd_intf_pins AND2In1/S_AXI]
+
+# Running on the Processor:
+# apply_bd_automation -rule xilinx.com:bd_rule:clkrst -config {Clk "/processing_system7_0/FCLK_CLK0 (50 MHz)" }  [get_bd_pins processing_system7_0/M_AXI_GP0_ACLK]
+
+# Running on the Interconnect:
+# apply_bd_automation -rule xilinx.com:bd_rule:clkrst -config {Clk "/processing_system7_0/FCLK_CLK0 (50 MHz)" }  [get_bd_pins axi_interconnect_0/ACLK]
+
+# On all the remaining I/O
+# apply_bd_automation -rule xilinx.com:bd_rule:axi4 -config { Clk_master {/processing_system7_0/FCLK_CLK0 (50 MHz)} Clk_slave {Auto} Clk_xbar {/processing_system7_0/FCLK_CLK0 (50 MHz)} Master {/processing_system7_0/M_AXI_GP0} Slave {/ANDOut/S_AXI} intc_ip {/axi_interconnect_0} master_apm {0}}  [get_bd_intf_pins ANDOut/S_AXI]
