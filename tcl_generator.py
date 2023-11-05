@@ -124,7 +124,7 @@ def generate_tcl(path_to_hdlgen_project):
             # <type>bus(31 downto 0)</type>     ## Example Type Value
             substring = gpio_mode[4:]           # substring = '31 downto 0)'
             words = substring.split()           # words = ['31', 'downto', '0)']
-            gpio_width = words[0]               # words[0] = 31
+            gpio_width = words[0] + 1           # words[0] = 31
         elif (gpio_mode[:5] == "array"):
             print("ERROR: Array mode type is not yet supported :(")
         else:
