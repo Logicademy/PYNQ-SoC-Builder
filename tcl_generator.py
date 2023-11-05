@@ -114,16 +114,27 @@ def generate_tcl(path_to_hdlgen_project):
 
     # (6) Add AXI GPIO for each input/output
     for io in all_ports:
-        gpio_name = io[0]
-        if (io[2] == "single bit"):
-            gpio_width = 1  
+        gpio_name = io[0]   # GPIO Name
+        gpio_mode = io[1]   # GPIO Mode (in/out)
+        gpio_type = io[2]   # GPIO Type (single bit/bus/array)
+
+        if (gpio_type == "single bit"):
+            gpio_width = 1
+        elif (gpio_mode[:3] == "bus"):
+            # <type>bus(31 downto 0)</type>     ## Example Type Value
+            substring = gpio_mode[4:]           # substring = '31 downto 0)'
+            words = substring.split()           # words = ['31', 'downto', '0)']
+            gpio_width = words[0]               # words[0] = 31
+        elif (gpio_mode[:5] == "array"):
+            print("ERROR: Array mode type is not yet supported :(")
         else:
-            print("buses/arrays not yet supported") # TODO support buses/arrays
-        if io[1] == "out":
+            print("ERROR: Unknown GPIO Type")
+
+        if gpio_mode == "out":
             file_contents += f"\nadd_axi_gpio_all_input {gpio_name} {gpio_width}"
             # If the GPIO is added correctly, connect it to the User I/O
             file_contents += f"\nconnect_gpio_all_input_to_module_port {io[0]} {module_source}_0"
-        elif io[1] == "in":
+        elif gpio_mode == "in":
             file_contents += f"\nadd_axi_gpio_all_output {gpio_name} {gpio_width}"
             # If the GPIO is added correctly, connect it to the User I/O
             file_contents += f"\nconnect_gpio_all_output_to_module_port {io[0]} {module_source}_0"
