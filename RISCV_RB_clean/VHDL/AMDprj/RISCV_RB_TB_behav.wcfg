@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wave_config>
+   <wave_state>
+   </wave_state>
+   <db_ref_list>
+      <db_ref path="RISCV_RB_behav.wdb" id="1">
+         <top_modules>
+            <top_module name="RISCV_RB_TB" />
+         </top_modules>
+      </db_ref>
+   </db_ref_list>
+
+   <zoom_setting>
+      <ZoomStartTime time="350ns"></ZoomStartTime>
+      <ZoomEndTime time="1100ns"></ZoomEndTime>
+      <Cursor1Time time="1100ns"></Cursor1Time>
+   </zoom_setting>
+
+   <column_width_setting>
+      <NameColumnWidth column_width="250"></NameColumnWidth>
+      <ValueColumnWidth column_width="70"></ValueColumnWidth>
+   </column_width_setting>
+
+   <WVObjectSize size="4" />
+   <wvobject fp_name="/RISCV_RB_TB/testNo" type="other">
+      <obj_property name="ElementShortName">testNo</obj_property>
+      <obj_property name="ObjectShortName">testNo</obj_property>
+   </wvobject>
+
+   <wvobject fp_name="/RISCV_RB_TB/endOfSim" type="other">
+      <obj_property name="ElementShortName">endOfSim</obj_property>
+      <obj_property name="ObjectShortName">endOfSim</obj_property>
+   </wvobject>
+
+    <wvobject fp_name="UUTGroup" type="group">
+      <obj_property name="label">UUT</obj_property>
+      <obj_property name="DisplayName">label</obj_property>
+      <wvobject fp_name="group30" type="group">
+         <obj_property name="label">entity</obj_property>
+         <obj_property name="DisplayName">label</obj_property>
+         <obj_property name="isExpanded"></obj_property>
+
+    <wvobject fp_name="/RISCV_RB_TB/UUT/RWr" type="logic">
+        <obj_property name="ElementShortName">RWr</obj_property>
+        <obj_property name="ObjectShortName">RWr</obj_property>
+    </wvobject>
+
+    <wvobject fp_name="/RISCV_RB_TB/UUT/rd" type="array">
+        <obj_property name="ElementShortName">rd[4:0]</obj_property>
+        <obj_property name="ObjectShortName">rd[4:0]</obj_property>
+    </wvobject>
+
+    <wvobject fp_name="/RISCV_RB_TB/UUT/rs1" type="array">
+        <obj_property name="ElementShortName">rs1[4:0]</obj_property>
+        <obj_property name="ObjectShortName">rs1[4:0]</obj_property>
+    </wvobject>
+
+    <wvobject fp_name="/RISCV_RB_TB/UUT/rs2" type="array">
+        <obj_property name="ElementShortName">rs2[4:0]</obj_property>
+        <obj_property name="ObjectShortName">rs2[4:0]</obj_property>
+    </wvobject>
+
+    <wvobject fp_name="/RISCV_RB_TB/UUT/rs1D" type="array">
+        <obj_property name="ElementShortName">rs1D[31:0]</obj_property>
+        <obj_property name="ObjectShortName">rs1D[31:0]</obj_property>
+    </wvobject>
+
+    <wvobject fp_name="/RISCV_RB_TB/UUT/rs2D" type="array">
+        <obj_property name="ElementShortName">rs2D[31:0]</obj_property>
+        <obj_property name="ObjectShortName">rs2D[31:0]</obj_property>
+    </wvobject>
+
+    <wvobject fp_name="/RISCV_RB_TB/UUT/WBDat" type="array">
+        <obj_property name="ElementShortName">WBDat[31:0]</obj_property>
+        <obj_property name="ObjectShortName">WBDat[31:0]</obj_property>
+    </wvobject>
+
+    <wvobject fp_name="/RISCV_RB_TB/UUT/ce" type="logic">
+        <obj_property name="ElementShortName">ce</obj_property>
+        <obj_property name="ObjectShortName">ce</obj_property>
+    </wvobject>
+
+    <wvobject fp_name="/RISCV_RB_TB/UUT/clk" type="logic">
+        <obj_property name="ElementShortName">clk</obj_property>
+        <obj_property name="ObjectShortName">clk</obj_property>
+    </wvobject>
+
+    <wvobject fp_name="/RISCV_RB_TB/UUT/rst" type="logic">
+        <obj_property name="ElementShortName">rst</obj_property>
+        <obj_property name="ObjectShortName">rst</obj_property>
+    </wvobject>
+
+    </wvobject>
+    <wvobject fp_name="UUTInternalSignalGroup" type="group">
+        <obj_property name="label">internal</obj_property>
+        <obj_property name="DisplayName">label</obj_property>
+    <obj_property name="isExpanded"></obj_property>
+
+    <wvobject fp_name="/RISCV_RB_TB/UUT/NSArray" type="array">
+         <obj_property name="ElementShortName">NSArray</obj_property>
+         <obj_property name="ObjectShortName">NSArray</obj_property>
+      </wvobject>
+
+    <wvobject fp_name="/RISCV_RB_TB/UUT/CSArray" type="array">
+         <obj_property name="ElementShortName">CSArray</obj_property>
+         <obj_property name="ObjectShortName">CSArray</obj_property>
+      </wvobject>
+	</wvobject>
+  </wvobject>
+</wave_config>

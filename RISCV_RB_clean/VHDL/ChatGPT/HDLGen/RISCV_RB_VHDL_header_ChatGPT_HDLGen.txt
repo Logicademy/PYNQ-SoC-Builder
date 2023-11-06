@@ -1,0 +1,66 @@
+Complete the following VHDL model, and output in a code box.
+
+Do not include any assignment when-else VHDL constructs (conditional VHDL) inside process VHDL code (only supported in ieee 1076-2008).
+Do not add any new library 'use' statements, to avoid conflicts with the ieee.numeric_std package functions.
+
+For each line containing the prefix '---', replace with generated VHDL code for the logic described, and remove the '---'.
+For every assignment that includes an add (+) or subtract (-) operation, use 'ieee.numeric_std' package signal type conversion functions.
+For every assignment which includes a shift operation, only use ieee.numeric_std package shift_left or shift_right functions, and do not use sra, srl, sll functions.
+In VHDL processes, place the modified line containing suffix '-- Default assignment' immediately before the VHDL statements generated for lines containing prefix '---'.
+Do not include any assignments which duplicate the signal assignment values, for assignments labelled '-- Default assignment'.
+Leave all labels unchanged.
+
+-- library declarations
+library ieee;
+use ieee.std_logic_1164.all;
+use ieee.numeric_std.all;
+use work.MainPackage.all;
+
+-- entity declaration
+entity RISCV_RB is 
+Port(
+	clk : in std_logic;
+	rst : in std_logic;
+	RWr : in std_logic;
+	rd : in std_logic_vector(4 downto 0);
+	rs1 : in std_logic_vector(4 downto 0);
+	rs2 : in std_logic_vector(4 downto 0);
+	rs1D : out std_logic_vector(31 downto 0);
+	rs2D : out std_logic_vector(31 downto 0);
+	WBDat : in std_logic_vector(31 downto 0);
+	ce : in std_logic
+);
+end entity RISCV_RB;
+
+architecture RTL of RISCV_RB is
+-- Internal signal declarations
+signal CSArray : array32x32;
+signal NSArray : array32x32;
+
+begin
+
+NSDecode_p: process(RWr,rd,WBDat,CSArray)
+begin
+	NSArray <= CSArray;-- Default assignment 
+	
+--- if RWr = '1' --- if rd > '0' --- NSArray(rd) = WBDat
+end process;
+
+--- rs1D_c: rs1D <= CSArray(rs1);
+
+
+--- rs2D_c: rs2D <= CSArray(rs2);
+
+
+stateReg_p: process(clk,rst)
+begin
+	if rst = '1' then
+		CSArray <= (others =>(others => '0'));
+	elsif rising_edge(clk) then
+    	if ce = '1' then -- enable register
+    		CSArray <= NSArray;
+    	end if;
+	end if;
+end process;
+
+end RTL;
