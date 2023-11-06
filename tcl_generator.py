@@ -120,15 +120,16 @@ def generate_tcl(path_to_hdlgen_project):
 
         if (gpio_type == "single bit"):
             gpio_width = 1
-        elif (gpio_mode[:3] == "bus"):
+        elif (gpio_type[:3] == "bus"):
             # <type>bus(31 downto 0)</type>     ## Example Type Value
-            substring = gpio_mode[4:]           # substring = '31 downto 0)'
+            substring = gpio_type[4:]           # substring = '31 downto 0)'
             words = substring.split()           # words = ['31', 'downto', '0)']
-            gpio_width = words[0] + 1           # words[0] = 31
-        elif (gpio_mode[:5] == "array"):
+            gpio_width = int(words[0]) + 1           # words[0] = 31
+        elif (gpio_type[:5] == "array"):
             print("ERROR: Array mode type is not yet supported :(")
         else:
             print("ERROR: Unknown GPIO Type")
+            print(gpio_type)
 
         if gpio_mode == "out":
             file_contents += f"\nadd_axi_gpio_all_input {gpio_name} {gpio_width}"
