@@ -1,4 +1,5 @@
 import argparse
+import pynq_manager as pm
 
 argparser = argparse.ArgumentParser(description="A simple CLI program with subcommands")
 
@@ -19,11 +20,15 @@ args = argparser.parse_args()
 if args.command == "generate_tcl":
     if args.hdlgen:
         print(f"Executing generate_tcl with argument: {args.hdlgen}")
+        pm = pm.Pynq_Manager(args.hdlgen)
+        pm.generate_tcl()
     else:
         print("Error: No path to HDLGen project specified")
 elif args.command == "run_vivado":
     if args.hdlgen:
         print(f"Executing run_vivado with argument: {args.hdlgen}")
+        pm = pm.Pynq_Manager(args.hdlgen)
+        pm.run_vivado()
     else:
         print("Error: No path to HDLGen project specified")
 else:

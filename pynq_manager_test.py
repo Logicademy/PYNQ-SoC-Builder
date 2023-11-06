@@ -4,8 +4,8 @@ import os
 # Pynq_Manager( Path to Vivado Bat File, Path to HDLGen file )
 
 pm = pm.Pynq_Manager(
-    "D:/Xilinx/Vivado/2019.1/bin/vivado.bat", 
-    "D:\\HDLGen-ChatGPT\\User_Projects\\LukeAND_used_good\\LukeAND\\HDLGenPrj\\LukeAND.hdlgen"
+    "D:\\HDLGen-ChatGPT\\User_Projects\\LukeAND_used_good\\LukeAND\\HDLGenPrj\\LukeAND.hdlgen",
+    "D:/Xilinx/Vivado/2019.1/bin/vivado.bat"
 )
 
 # pm.generate_tcl()             # Produce generate_script.tcl
