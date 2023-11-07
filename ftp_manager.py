@@ -2,8 +2,8 @@ import pysftp
 import xml.dom.minidom
 import shutil
 
-host_name = "192.168.0.53"
-other_host_name = "pynq"
+other_host_name = "192.168.0.53"
+host_name = "pynq"
 user_name = "xilinx"
 pass_word = "xilinx"
 
@@ -11,6 +11,10 @@ pass_word = "xilinx"
 #       according to pysftp documentation.
 cnopts = pysftp.CnOpts()
 cnopts.hostkeys = None
+
+# with pysftp.Connection(host=host_name, username=user_name, password=pass_word, cnopts=cnopts) as sftp:
+#     print("Connection Estabilished Successfully\n")
+#     sftp.put("C:\\masters\\masters_automation\\tmp.txt", "jupyter_notebooks/live_directory/text.tmp")
 
 class Ftp_Manager:
     # Using the IP address directly or simply "pynq" both work.
@@ -32,7 +36,6 @@ class Ftp_Manager:
         # self.ChatGPT_folder = genFolder.getElementsByTagName("vhdl_folder")[2]             # Commented as not needed
         # self.ChatGPT_Backups_folder = genFolder.getElementsByTagName("vhdl_folder")[3]     # Commented as not needed
         self.AMDproj_folder_path = genFolder.getElementsByTagName("vhdl_folder")[4].firstChild.data
-        
 
     def copy_bitstream_to_dir(self, dest_path):
         
@@ -60,22 +63,41 @@ class Ftp_Manager:
     #     print("Connection Estabilished Successfully\n")
     #     print(sftp.pwd)
 
-    def pwd():
+    def pwd(self):
         with pysftp.Connection(host=host_name, username=user_name, password=pass_word, cnopts=cnopts) as sftp:
             print("Connection Estabilished Successfully\n")
             result = sftp.pwd
             print(result)
             return result
         
-    def upload_file(local_path, remote_path):
+    def upload_file(self, local_path, remote_path):
         with pysftp.Connection(host=host_name, username=user_name, password=pass_word, cnopts=cnopts) as sftp:
             print("Connection Estabilished Successfully\n")
             sftp.put(local_path, remote_path)
+
         
-    def download_file(remote_path, local_path):
+    def download_file(self, remote_path, local_path):
         with pysftp.Connection(host=host_name, username=user_name, password=pass_word, cnopts=cnopts) as sftp:
             print("Connection Estabilished Successfully\n")
             sftp.get(remote_path, local_path)
+
+        
+    def upload_bitstream(self, remote_path="jupyter_notebooks/live_directory"):
+        tcl_location = self.location + "/" + self.AMDproj_folder_path
+        hwh_location = tcl_location + "/" + self.name + ".srcs/sources_1/bd/" + self.name + "_bd/hw_handoff"
+        bit_location = tcl_location + "/" + self.name + ".runs/impl_1"
+
+        bit_filename = self.name + "_bd_wrapper.bit"
+        hwh_filename = self.name + "_bd.hwh"
+        tcl_filename = self.name + ".tcl"
+        
+        tcl_full_path = tcl_location + "/" + tcl_filename
+        hwh_full_path = hwh_location + "/" + hwh_filename
+        bit_full_path = bit_location + "/" + bit_filename
+
+        self.upload_file(tcl_full_path, remote_path+"/"+self.name+".tcl") # local_path, remote_path
+        self.upload_file(hwh_full_path, remote_path+"/"+self.name+".hwh") # local_path, remote_path
+        self.upload_file(bit_full_path, remote_path+"/"+self.name+".bit") # local_path, remote_path
 
         # with sftp.cd('/allcode'):           # temporarily chdir to allcode
         #     sftp.put('/pycode/filename')  	# upload file to allcode/pycode on remote
