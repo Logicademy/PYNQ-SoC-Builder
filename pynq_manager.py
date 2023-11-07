@@ -3,15 +3,33 @@ import time
 import runpy
 import tcl_generator
 import ftp_manager
+import xml.dom.minidom
+
 # Define location of vivado exe, this might need to be the bat file we will see.
 # D:\Xilinx\Vivado\2019.1\bin\vivado.bat -mode tcl
 # vivado_cmd = "D:\\Xilinx\\Vivado\\2019.1\\bin\\vivado.bat"
 
 class Pynq_Manager:
 
-    def __init__(self, vivado_bat_path, hdlgen_project_path):
-        self.vivado_bat_path = vivado_bat_path              # Path to vivado .bat file
+    def __init__(self, hdlgen_project_path, vivado_bat_path=None):
         self.hdlgen_project_path = hdlgen_project_path      # Path to .hdlgen file
+        if vivado_bat_path == None:
+            # If the Vivado bat path isn't defined, extract it from the HDLGen XML
+            hdlgen = xml.dom.minidom.parse(hdlgen_project_path)
+            root = hdlgen.documentElement
+            projectManager = root.getElementsByTagName("projectManager")[0]
+            projectManagerEda = projectManager.getElementsByTagName("EDA")[0]
+            projectManagerEdaTool = projectManagerEda.getElementsByTagName("tool")[0]
+            projectManagerEdaToolDir = projectManagerEdaTool.getElementsByTagName("dir")[0]
+            self.vivado_bat_path = projectManagerEdaToolDir.firstChild.data
+        else:
+            self.vivado_bat_path = vivado_bat_path              # Path to vivado .bat file
+        
+
+
+
+
+
 
     def generate_tcl(self):
         tcl_generator.generate_tcl(self.hdlgen_project_path)
