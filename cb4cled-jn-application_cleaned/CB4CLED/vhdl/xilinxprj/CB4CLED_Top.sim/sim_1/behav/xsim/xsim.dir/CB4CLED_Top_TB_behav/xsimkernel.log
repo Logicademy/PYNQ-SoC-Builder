@@ -1,7 +1,0 @@
-Running: xsim.dir/CB4CLED_Top_TB_behav/xsimk.exe -simmode gui -wdb CB4CLED_Top_TB_behav.wdb -simrunnum 0 -socket 58228
-Design successfully loaded
-Design Loading Memory Usage: 6400 KB (Peak: 6400 KB)
-Design Loading CPU Usage: 0 ms
-Simulation completed
-Simulation Memory Usage: 7120 KB (Peak: 7120 KB)
-Simulation CPU Usage: 0 ms

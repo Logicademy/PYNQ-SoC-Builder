@@ -1,1 +1,0 @@
--wto "8d980530a83e457380aeeb91ed1971ff" --incr --debug "typical" --relax --mt "2" -L "xil_defaultlib" -L "xilinx_vip" -L "unisims_ver" -L "unimacro_ver" -L "secureip" -L "xpm" --snapshot "CB4CLED_Top_TB_behav" "xil_defaultlib.CB4CLED_Top_TB" "xil_defaultlib.glbl" -log "elaborate.log" 

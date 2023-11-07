@@ -1,9 +1,0 @@
-# compile vhdl design source files
-vhdl xil_defaultlib  \
-"../../../../../HDLmodel/CB4CLED.vhd" \
-"../../../../../HDLmodel/CB4CLED_Top.vhd" \
-"../../../../../HDLmodel/singleShot.vhd" \
-"../../../../../HDLmodel/testbench/CB4CLED_Top_TB.vhd" \
-
-# Do not sort compile order
-nosort
