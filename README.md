@@ -16,13 +16,9 @@ PYNQ Automate is a CLI tool for generating PYNQ Overlays in Vivado automatically
 
 ## Installation
 
-Clone this repo to any directory
-
-Open CMD or Anaconda terminal and go to the cloned repo directory
-
-Install the required libraries
-
-```pip install -r requirements.txt```
+1. Clone this repo to any directory
+2. Open CMD or Anaconda terminal and go to the cloned repo directory
+3. Install the required libraries using ```pip install -r requirements.txt```
 
 
 ## Overview of System to date
