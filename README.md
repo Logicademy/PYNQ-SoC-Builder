@@ -42,3 +42,9 @@ PYNQ Automate is a CLI tool for generating PYNQ Overlays in Vivado automatically
 If --dest flag is not specified, output files are copied to *current_directory\output*
 
 ```python pynq_automate.py copy --hdlgen C:\projects\My_Project\HDLGenPrj\My_Project.hdlgen --dest C:\projects\output_files```
+
+## Known Bugs
+
+Program expects you to run pynq_automate.py from the same folder. You cannot run the application as:
+
+```python C:\path\pynq_automate.py generate_tcl --hdlgen...```

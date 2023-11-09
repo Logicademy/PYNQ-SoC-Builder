@@ -12,6 +12,7 @@
 # /path/to/vivado/bat -mode tcl -source /path/to/generate_script.tcl
 
 import xml.dom.minidom
+import os
 
 # Configurable Variables
 start_gui = True
@@ -88,7 +89,9 @@ def generate_tcl(path_to_hdlgen_project):
     ########## Start of Tcl Script Generation ##########
 
     # (1) Source Procedures File
-    file_contents = "source C:/masters/masters_automation/generate_procs.tcl"   # Source the procedures
+    current_dir = os.getcwd()
+    friendly_current_dir = current_dir.replace("\\", "/")
+    file_contents = "source " + friendly_current_dir + "/generate_procs.tcl"  # Source the procedures
     
     # Additional Step: Set if GUI should be opened
     if start_gui:
