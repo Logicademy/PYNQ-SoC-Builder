@@ -16,6 +16,17 @@ python pynq_automate.py [command] --hdlgen [path to .hdlgen file]
 - run_vivado
 - copy
 
+## Installation
+
+Clone this repo to any directory
+
+Open CMD or Anaconda terminal and go to the cloned repo directory
+
+Install the required libraries
+
+```pip install -r requirements.txt```
+
+
 ## Overview of System to date
 
 ![Project Architecture](docs/Automation_Architecture.png)
@@ -40,7 +51,7 @@ python pynq_automate.py run_vivado --hdlgen C:\projects\My_Project\HDLGenPrj\My_
 python pynq_automate.py copy --hdlgen C:\projects\My_Project\HDLGenPrj\My_Project.hdlgen
 ```
 
-__If --dest flag is not specified, output files are copied to *current_directory\output*__
+If --dest flag is not specified, output files are copied to *current_directory\output*
 
 ```
 python pynq_automate.py copy --hdlgen C:\projects\My_Project\HDLGenPrj\My_Project.hdlgen --dest C:\projects\output_files
