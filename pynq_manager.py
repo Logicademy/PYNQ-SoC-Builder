@@ -33,7 +33,6 @@ class Pynq_Manager:
 
     def generate_tcl(self):
         tcl_generator.generate_tcl(self.hdlgen_project_path)
-        print("Generated Tcl script")
 
     def run_vivado(self):
         # D:\Xilinx\Vivado\2019.1\bin\vivado.bat -mode tcl -source C:/masters/masters_automation/generate_script.tcl
