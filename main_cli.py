@@ -24,7 +24,7 @@ def quit_app():
 
 def print_splash_return_choice():
     print("========== Select an Option ==========")
-    print("0) RUN ALL (Steps 1 and 2 so far)")
+    print("0) RUN ALL BUILD STEPS")
     print("1) Generate Tcl Build Script")
     print("2) Run Vivado")
     print("3) Copy Bitstream Files")

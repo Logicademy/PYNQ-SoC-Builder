@@ -16,6 +16,11 @@ PYNQ Automate is a CLI tool for generating PYNQ Overlays in Vivado automatically
 python main_cli.py
 ```
 
+## Main Menu
+
+![Main Menu](docs/main_menu.png)
+
+
 ## Overview of System to date
 
 ![Project Architecture](docs/Automation_Architecture.png)
