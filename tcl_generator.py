@@ -149,6 +149,7 @@ def generate_tcl(path_to_hdlgen_project):
 
     # Run Experimental Code ?
     experimental_block_design_checks = False
+    print(f"Experimental BD Checks: {experimental_block_design_checks}")
     if experimental_block_design_checks:
         pass
 
