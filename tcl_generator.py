@@ -101,8 +101,62 @@ def generate_tcl(path_to_hdlgen_project):
     # (2) Open Project
     file_contents += f"\nopen_project {path_to_xpr}"                # Open Project
 
+
+    ################################ Experimental Block for Board Contraints ################################
+    
+    # Run Experimental Blocks ?
+    experimental_board_config = True
+    experimental_import_contraints = True
+    print(f"Experimental Board Configuration: {experimental_board_config}")
+    print(f"Experimental Import Constraints: {experimental_import_contraints}")
+
+    # Set Board Part (Project Parameter)
+    if experimental_board_config:
+        file_contents += f"\nset_property board_part tul.com.tw:pynq-z2:part0:1.0 [current_project]"
+
+    # Import Board Constraints
+    if experimental_import_contraints:
+        ## Need to find a way to check if the contraints already exist - if we learned Tcl error handling we could just always attempt to add it.
+
+        # Specify the name of the constraint
+        file_contents += "\nset constraint_name \"constr_1\""
+
+        # Check if the constraint exists
+        file_contents += "\nset constraint_exists [catch {"
+        file_contents += "\n    get_property -quiet $constraint_name [get_constraints]"
+        file_contents += "\n} result]"
+
+        file_contents += "\nif {$constraint_exists} {"
+        file_contents += "\n    puts \"Constraint $constraint_name exists - Skipping Step\""
+        file_contents += "\n} else {"
+        file_contents += "\n    puts \"Constraint $constraint_name does not exist - Importing Constraints.\""
+        
+        # Constaints do not exist - Import now:
+        path_to_constraints = friendly_current_dir + "/pynq-z2_v1.0.xdc/PYNQ-Z2 v1.0.xdc"
+        file_contents += f"\n    set path_to_constraints \"{path_to_constraints}\""
+        file_contents += "\n    add_files -fileset constrs_1 -norecurse {{$path_to_constraints}}"
+        file_contents += "\n    import_files -fileset constrs_1 {{$path_to_constraints}}"
+
+        file_contents += "\n}"
+
+        #add_files -fileset constrs_1 -norecurse {{C:/Users/canny/Documents/5th Year ECE/Project/PYNQ Board Files Complete/pynq-z2_v1.0.xdc/PYNQ-Z2 v1.0.xdc}}
+        #import_files -fileset constrs_1 {{C:/Users/canny/Documents/5th Year ECE/Project/PYNQ Board Files Complete/pynq-z2_v1.0.xdc/PYNQ-Z2 v1.0.xdc}}
+        
+
+    #########################################################################################################
+    
+    ################### Experimental Check if Block Design Exists (and a Wrapper Exists) ####################
+
+    # Run Experimental Code ?
+    experimental_block_design_checks = False
+    if experimental_block_design_checks:
+        pass
+
+    
     # (3) Create a new BD File
     file_contents += f"\ncreate_bd_file {bd_filename}"              # Create a new BD
+
+    #########################################################################################################
 
     # (4) Add Processor to BD
     file_contents += "\nadd_processing_unit"                        # Import Processing Unit to the BD
