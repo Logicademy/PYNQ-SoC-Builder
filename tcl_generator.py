@@ -111,9 +111,6 @@ def generate_tcl(path_to_hdlgen_project, regenerate_bd=False):
     
     # Run Experimental Blocks ?
 
-    print(f"Experimental Board Configuration: {experimental_board_config}")
-    print(f"Experimental Import Constraints: {experimental_import_contraints}")
-
     # Set Board Part (Project Parameter)
     if experimental_board_config:
         file_contents += f"\nset_property board_part tul.com.tw:pynq-z2:part0:1.0 [current_project]"
@@ -167,19 +164,19 @@ def generate_tcl(path_to_hdlgen_project, regenerate_bd=False):
     path_to_bd_file_check = path_to_bd_folder_check + "/" + bd_filename + ".bd"
     path_to_wrapper_file_check = path_to_bd_folder_check + "/hdl/" + bd_filename + "_wrapper.vhd"
 
-    print(path_to_bd_file_check)
-    print(path_to_wrapper_file_check)
+    # print(path_to_bd_file_check)
+    # print(path_to_wrapper_file_check)
 
     bd_exists = os.path.exists(path_to_bd_file_check)
     wrapper_exists = os.path.exists(path_to_wrapper_file_check)
 
     if (wrapper_exists and bd_exists):
-        print("Wrapper and BD exist")
+        print("-> Wrapper and BD exist")
         if regenerate_bd:
-            print("New Wrapper and BD will be generated!")
+            print("-> New Wrapper and BD will be generated!")
             delete_old_bd_design = True
         else:
-            print("Generating bitstream using existing BD/Wrapper")
+            print("-> Generating bitstream using existing BD/Wrapper")
             generate_new_bd_design = False
 
     elif (not wrapper_exists and bd_exists):
@@ -187,11 +184,11 @@ def generate_tcl(path_to_hdlgen_project, regenerate_bd=False):
     elif (wrapper_exists and not bd_exists):
         print("-> Wrapper exists but BD doesn't, application cannot handle this situation.")
     elif (not wrapper_exists and not bd_exists):
-        print("Wrapper and BD not found, generating these components...")
+        print("-> Wrapper and BD not found, generating these components...")
 
     if delete_old_bd_design:
-        file_contents += f"delete_file {path_to_wrapper_file_check}"  # Wrapper deletes first
-        file_contents += f"delete_file {path_to_bd_file_check}"  # then the BD design
+        file_contents += f"\ndelete_file {path_to_wrapper_file_check}"  # Wrapper deletes first
+        file_contents += f"\ndelete_file {path_to_bd_file_check}"  # then the BD design
     
         # export_ip_user_files -of_objects  [get_files D:/HDLGen-ChatGPT/User_Projects/Fearghal_November/RISCV_RB/VHDL/AMDprj/RISCV_RB.srcs/sources_1/bd/RISCV_RB_bd/hdl/RISCV_RB_bd_wrapper.vhd] -no_script -reset -force -quiet
         # remove_files  D:/HDLGen-ChatGPT/User_Projects/Fearghal_November/RISCV_RB/VHDL/AMDprj/RISCV_RB.srcs/sources_1/bd/RISCV_RB_bd/hdl/RISCV_RB_bd_wrapper.vhd

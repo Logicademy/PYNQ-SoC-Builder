@@ -28,8 +28,8 @@ def print_splash_return_choice():
     print("1) Generate Tcl Build Script")
     print("2) Run Vivado")
     print("3) Copy Bitstream Files")
-    print("4) Generate Notebook with Test Plan")
-    print("5) Generate Notebook without Test Plan")
+    # print("4) Generate Notebook with Test Plan")
+    # print("5) Generate Notebook without Test Plan")
     print("q) Quit")
     user_choice = input("Option: ")
     possible_options = ["1", "2", "3", "4", "5", "0", "q"]
@@ -40,7 +40,7 @@ def print_splash_return_choice():
     else:
         while user_choice not in possible_options:
             print("-> Invalid Option Selected")
-            user_choice = input("Option: ")
+            user_choice = input("Input: ")
     
 def prepare_output_folder():
     folder_path = os.getcwd() + "\\output"
@@ -66,7 +66,18 @@ def prepare_output_folder():
 def gen_tcl(pynq_manager):
     print("== Generate Tcl Build Script ==")
     print("-> Generating script")
-    pynq_manager.generate_tcl()
+    regenerate_bd = False # Default
+    if pynq_manager.get_bd_exists():
+        print("== Block Design already exists, would you like to regenerate a new one (existing BD is deleted)? (y/n)")
+        response = input("Input: ")
+        while (response != "y") and (response != "n"):
+            response = input("Invalid Response (y/n): ")
+        if response == "y":
+            regenerate_bd = True
+        elif response == "n":
+            regenerate_bd = False
+
+    pynq_manager.generate_tcl(regenerate_bd)
     print("-> Tcl script generated")
 
 def run_viv(pynq_manager):
@@ -82,6 +93,10 @@ def copy_out(pynq_manager):
     print("-> Copying output bitstream to {os.getcwd()+'\\'}")
     pynq_manager.copy_to_dir(os.getcwd() + "\\output")
 
+def run_all(pynq_manager):
+    gen_tcl(pynq_manager)
+    run_viv(pynq_manager)
+    copy_out(pynq_manager)
 
 def main():
     print("========== PYNQ Automate ==========")
@@ -112,7 +127,7 @@ def main():
             print("Generate without test plan not implemented yet")
             pass
         elif choice == "0":
-            print("Run all not yet implemented")
+            run_all(pynq_manager)
             pass
 
 

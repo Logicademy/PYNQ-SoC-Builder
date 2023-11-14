@@ -4,7 +4,7 @@ import runpy
 import tcl_generator
 import ftp_manager
 import xml.dom.minidom
-
+import os
 # Define location of vivado exe, this might need to be the bat file we will see.
 # D:\Xilinx\Vivado\2019.1\bin\vivado.bat -mode tcl
 # vivado_cmd = "D:\\Xilinx\\Vivado\\2019.1\\bin\\vivado.bat"
@@ -29,10 +29,41 @@ class Pynq_Manager:
 
 
 
+    def get_bd_exists(self):
+        ## This function is highly inefficient and could be condensed easily, for sake of
+        ## speed the function was ripped from tcl_generator.py as quick as possible so that
+        ## this API is available to main_cli.py to ask user if they'd like to upgrade or not
+        hdlgen = xml.dom.minidom.parse(self.hdlgen_project_path)
+        root = hdlgen.documentElement
 
+        # Project Manager - Settings
+        projectManager = root.getElementsByTagName("projectManager")[0]
+        projectManagerSettings = projectManager.getElementsByTagName("settings")[0]
+        name = projectManagerSettings.getElementsByTagName("name")[0].firstChild.data
+        environment = projectManagerSettings.getElementsByTagName("environment")[0].firstChild.data
+        location = projectManagerSettings.getElementsByTagName("location")[0].firstChild.data
 
-    def generate_tcl(self):
-        tcl_generator.generate_tcl(self.hdlgen_project_path)
+        # genFolder - VHDL Folders
+        genFolder = root.getElementsByTagName("genFolder")[0]
+        model_folder = genFolder.getElementsByTagName("vhdl_folder")[0]
+        testbench_folder = genFolder.getElementsByTagName("vhdl_folder")[1]
+        # ChatGPT_folder = genFolder.getElementsByTagName("vhdl_folder")[2]             # Commented as not needed
+        # ChatGPT_Backups_folder = genFolder.getElementsByTagName("vhdl_folder")[3]     # Commented as not needed
+        AMDproj_folder = genFolder.getElementsByTagName("vhdl_folder")[4]
+        AMDproj_folder_rel_path = AMDproj_folder.firstChild.data
+
+        bd_filename = name + "_bd"
+        path_to_bd = location + "/" + AMDproj_folder_rel_path + "/" + name + ".srcs/sources_1/bd"
+        path_to_bd_folder_check = path_to_bd + "/" +  bd_filename
+        path_to_bd_file_check = path_to_bd_folder_check + "/" + bd_filename + ".bd"
+        path_to_wrapper_file_check = path_to_bd_folder_check + "/hdl/" + bd_filename + "_wrapper.vhd"
+        bd_exists = os.path.exists(path_to_bd_file_check)
+        wrapper_exists = os.path.exists(path_to_wrapper_file_check)
+
+        return bd_exists
+
+    def generate_tcl(self, regenerate_bd=False):
+        tcl_generator.generate_tcl(self.hdlgen_project_path, regenerate_bd=regenerate_bd)
 
     def run_vivado(self):
         # D:\Xilinx\Vivado\2019.1\bin\vivado.bat -mode tcl -source C:/masters/masters_automation/generate_script.tcl
