@@ -44,7 +44,15 @@ verbose_prints = False # Not implemented yet.
 # 12. Run Synthesis, Implementation and Generate Bitstream
 
 
-def generate_tcl(path_to_hdlgen_project):
+def generate_tcl(path_to_hdlgen_project, experimental_board_config=False, experimental_import_contraints=False, experimental_block_design_checks=False):
+
+    ########## Options ########## 
+    experimental_board_config = True
+    experimental_import_contraints = True
+    experimental_block_design_checks = True
+
+
+
     ########## Parsing .hdlgen file for required information ##########
     hdlgen = xml.dom.minidom.parse(path_to_hdlgen_project)
     root = hdlgen.documentElement
@@ -105,8 +113,7 @@ def generate_tcl(path_to_hdlgen_project):
     ################################ Experimental Block for Board Contraints ################################
     
     # Run Experimental Blocks ?
-    experimental_board_config = True
-    experimental_import_contraints = True
+
     print(f"Experimental Board Configuration: {experimental_board_config}")
     print(f"Experimental Import Constraints: {experimental_import_contraints}")
 
@@ -148,16 +155,41 @@ def generate_tcl(path_to_hdlgen_project):
     ################### Experimental Check if Block Design Exists (and a Wrapper Exists) ####################
 
     # Run Experimental Code ?
-    experimental_block_design_checks = False
+
     print(f"Experimental BD Checks: {experimental_block_design_checks}")
     if experimental_block_design_checks:
-        pass
+        # Need to check if block design actually exists already,
+        # And does a wrapper exist
+        
+        # Wrapper Path:
+        # D:/HDLGen-ChatGPT/User_Projects/Fearghal_November/RISCV_RB/VHDL/AMDprj/RISCV_RB.srcs/sources_1/bd/RISCV_RB_bd/hdl/RISCV_RB_bd_wrapper.vhd
 
-    
-    # (3) Create a new BD File
-    file_contents += f"\ncreate_bd_file {bd_filename}"              # Create a new BD
+        # BD Path:
+        # D:/HDLGen-ChatGPT/User_Projects/Fearghal_November/RISCV_RB/VHDL/AMDprj/RISCV_RB.srcs/sources_1/bd/RISCV_RB_bd/RISCV_RB_bd.bd
+
+        path_to_bd_folder_check = path_to_bd + "/" +  bd_filename
+        path_to_bd_file_check = path_to_bd_folder_check + "/" + bd_filename + ".bd"
+        path_to_wrapper_file_check = path_to_bd_folder_check + "/hdl/" + bd_filename + "_wrapper.vhd"
+
+        print(path_to_bd_file_check)
+        print(path_to_wrapper_file_check)
+
+        bd_exists = os.path.exists(path_to_bd_file_check)
+        wrapper_exists = os.path.exists(path_to_wrapper_file_check)
+
+        if (wrapper_exists and bd_exists):
+            print("Wrapper and BD exist")
+        elif (not wrapper_exists and bd_exists):
+            print("Wrapper does not exist, BD does exist.")
+        elif (wrapper_exists and not bd_exists):
+            print("Wrapper exists but BD doesn't. Cannot proceed.")
+        elif (not wrapper_exists and not bd_exists):
+            print("Wrapper or BD not found, creating...")
 
     #########################################################################################################
+
+    # (3) Create a new BD File
+    file_contents += f"\ncreate_bd_file {bd_filename}"              # Create a new BD
 
     # (4) Add Processor to BD
     file_contents += "\nadd_processing_unit"                        # Import Processing Unit to the BD
