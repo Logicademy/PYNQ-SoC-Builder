@@ -44,14 +44,11 @@ verbose_prints = False # Not implemented yet.
 # 12. Run Synthesis, Implementation and Generate Bitstream
 
 
-def generate_tcl(path_to_hdlgen_project, experimental_board_config=False, experimental_import_contraints=False, experimental_block_design_checks=False):
+def generate_tcl(path_to_hdlgen_project, regenerate_bd=False):
 
     ########## Options ########## 
     experimental_board_config = True
     experimental_import_contraints = True
-    experimental_block_design_checks = True
-
-
 
     ########## Parsing .hdlgen file for required information ##########
     hdlgen = xml.dom.minidom.parse(path_to_hdlgen_project)
@@ -154,119 +151,143 @@ def generate_tcl(path_to_hdlgen_project, experimental_board_config=False, experi
     
     ################### Experimental Check if Block Design Exists (and a Wrapper Exists) ####################
 
-    # Run Experimental Code ?
+    generate_new_bd_design = True   # Default Consignment
+    delete_old_bd_design = False    # Default Consignment
 
-    print(f"Experimental BD Checks: {experimental_block_design_checks}")
-    if experimental_block_design_checks:
-        # Need to check if block design actually exists already,
-        # And does a wrapper exist
+    # Need to check if block design actually exists already,
+    # And does a wrapper exist
+    
+    # Wrapper Path:
+    # D:/HDLGen-ChatGPT/User_Projects/Fearghal_November/RISCV_RB/VHDL/AMDprj/RISCV_RB.srcs/sources_1/bd/RISCV_RB_bd/hdl/RISCV_RB_bd_wrapper.vhd
+
+    # BD Path:
+    # D:/HDLGen-ChatGPT/User_Projects/Fearghal_November/RISCV_RB/VHDL/AMDprj/RISCV_RB.srcs/sources_1/bd/RISCV_RB_bd/RISCV_RB_bd.bd
+
+    path_to_bd_folder_check = path_to_bd + "/" +  bd_filename
+    path_to_bd_file_check = path_to_bd_folder_check + "/" + bd_filename + ".bd"
+    path_to_wrapper_file_check = path_to_bd_folder_check + "/hdl/" + bd_filename + "_wrapper.vhd"
+
+    print(path_to_bd_file_check)
+    print(path_to_wrapper_file_check)
+
+    bd_exists = os.path.exists(path_to_bd_file_check)
+    wrapper_exists = os.path.exists(path_to_wrapper_file_check)
+
+    if (wrapper_exists and bd_exists):
+        print("Wrapper and BD exist")
+        if regenerate_bd:
+            print("New Wrapper and BD will be generated!")
+            delete_old_bd_design = True
+        else:
+            print("Generating bitstream using existing BD/Wrapper")
+            generate_new_bd_design = False
+
+    elif (not wrapper_exists and bd_exists):
+        print("-> WARNING: Wrapper does not exist, BD does exist, application cannot handle this situation")
+    elif (wrapper_exists and not bd_exists):
+        print("-> Wrapper exists but BD doesn't, application cannot handle this situation.")
+    elif (not wrapper_exists and not bd_exists):
+        print("Wrapper and BD not found, generating these components...")
+
+    if delete_old_bd_design:
+        file_contents += f"delete_file {path_to_wrapper_file_check}"  # Wrapper deletes first
+        file_contents += f"delete_file {path_to_bd_file_check}"  # then the BD design
+    
+        # export_ip_user_files -of_objects  [get_files D:/HDLGen-ChatGPT/User_Projects/Fearghal_November/RISCV_RB/VHDL/AMDprj/RISCV_RB.srcs/sources_1/bd/RISCV_RB_bd/hdl/RISCV_RB_bd_wrapper.vhd] -no_script -reset -force -quiet
+        # remove_files  D:/HDLGen-ChatGPT/User_Projects/Fearghal_November/RISCV_RB/VHDL/AMDprj/RISCV_RB.srcs/sources_1/bd/RISCV_RB_bd/hdl/RISCV_RB_bd_wrapper.vhd
+        # file delete -force D:/HDLGen-ChatGPT/User_Projects/Fearghal_November/RISCV_RB/VHDL/AMDprj/RISCV_RB.srcs/sources_1/bd/RISCV_RB_bd/hdl/RISCV_RB_bd_wrapper.vhd
+        # update_compile_order -fileset sources_1
+
+        # export_ip_user_files -of_objects  [get_files D:/HDLGen-ChatGPT/User_Projects/Fearghal_November/RISCV_RB/VHDL/AMDprj/RISCV_RB.srcs/sources_1/bd/RISCV_RB_bd/RISCV_RB_bd.bd] -no_script -reset -force -quiet
+        # remove_files  D:/HDLGen-ChatGPT/User_Projects/Fearghal_November/RISCV_RB/VHDL/AMDprj/RISCV_RB.srcs/sources_1/bd/RISCV_RB_bd/RISCV_RB_bd.bd
+        # file delete -force D:/HDLGen-ChatGPT/User_Projects/Fearghal_November/RISCV_RB/VHDL/AMDprj/RISCV_RB.srcs/sources_1/bd/RISCV_RB_bd
+        # update_compile_order -fileset sources_1 // this wont cause a fail but also isn't neccessary.
+
+    if generate_new_bd_design:
+        # (3) Create a new BD File
+        file_contents += f"\ncreate_bd_file {bd_filename}"              # Create a new BD
+
+        # (4) Add Processor to BD
+        file_contents += "\nadd_processing_unit"                        # Import Processing Unit to the BD
+
+        # (5) Add User Created Model to BD
+        file_contents += "\nset_property source_mgmt_mode All [current_project]"    # Setting automatic mode for source management
+        file_contents += f"\nadd_module {module_source} {module_source}_0"  # Import the user-created module
+
+        # Running this as safety
+        file_contents += "\nupdate_compile_order -fileset sources_1"
+        file_contents += "\nupdate_compile_order -fileset sim_1"
+
+        # (6) Add AXI GPIO for each input/output
+        for io in all_ports:
+            gpio_name = io[0]   # GPIO Name
+            gpio_mode = io[1]   # GPIO Mode (in/out)
+            gpio_type = io[2]   # GPIO Type (single bit/bus/array)
+
+            if (gpio_type == "single bit"):
+                gpio_width = 1
+            elif (gpio_type[:3] == "bus"):
+                # <type>bus(31 downto 0)</type>     ## Example Type Value
+                substring = gpio_type[4:]           # substring = '31 downto 0)'
+                words = substring.split()           # words = ['31', 'downto', '0)']
+                gpio_width = int(words[0]) + 1           # words[0] = 31
+            elif (gpio_type[:5] == "array"):
+                print("ERROR: Array mode type is not yet supported :(")
+            else:
+                print("ERROR: Unknown GPIO Type")
+                print(gpio_type)
+
+            if gpio_mode == "out":
+                file_contents += f"\nadd_axi_gpio_all_input {gpio_name} {gpio_width}"
+                # If the GPIO is added correctly, connect it to the User I/O
+                file_contents += f"\nconnect_gpio_all_input_to_module_port {io[0]} {module_source}_0"
+            elif gpio_mode == "in":
+                file_contents += f"\nadd_axi_gpio_all_output {gpio_name} {gpio_width}"
+                # If the GPIO is added correctly, connect it to the User I/O
+                file_contents += f"\nconnect_gpio_all_output_to_module_port {io[0]} {module_source}_0"
+            else:
+                print("Error Adding GPIO Connection, in/out not specified correctly")
+                break
+
+        # (7) Add the AXI Interconnect to the IP Block Design
+        file_contents += f"\nadd_axi_interconnect 1 {len(all_ports)}"
+
+        # Connect each GPIO to the Interconnect
+        for x in range(len(all_ports)):
+            file_contents += f"\nconnect_bd_intf_net -boundary_type upper [get_bd_intf_pins axi_interconnect_0/M{x:02d}_AXI] [get_bd_intf_pins {all_ports[x][0]}/S_AXI]"
+            
+
+        # (8) Add "Processor System Reset" IP
+        file_contents += "\nadd_system_reset_ip"
+        # Connect M_AXI_GP0 of the Processing System to S00_AXI connection of the AXI Interconnect.
+        # TODO: Add this line to the proc file instead maybe
+        file_contents += "\nconnect_bd_intf_net [get_bd_intf_pins processing_system7_0/M_AXI_GP0] -boundary_type upper [get_bd_intf_pins axi_interconnect_0/S00_AXI]"
+
+        # Run auto-connection tool
+        # file_contents += "\nrun_bd_auto_connect"
+        file_contents += "\nrun_bd_automation_rule_processor"
+        file_contents += "\nrun_bd_automation_rule_interconnect"
+        for io in all_ports:
+            file_contents += f"\nrun_bd_automation_rule_io {io[0]}/s_axi_aclk" 
         
-        # Wrapper Path:
-        # D:/HDLGen-ChatGPT/User_Projects/Fearghal_November/RISCV_RB/VHDL/AMDprj/RISCV_RB.srcs/sources_1/bd/RISCV_RB_bd/hdl/RISCV_RB_bd_wrapper.vhd
 
-        # BD Path:
-        # D:/HDLGen-ChatGPT/User_Projects/Fearghal_November/RISCV_RB/VHDL/AMDprj/RISCV_RB.srcs/sources_1/bd/RISCV_RB_bd/RISCV_RB_bd.bd
+        # Run block automation tool
+        file_contents += "\nrun_bd_block_automation"
 
-        path_to_bd_folder_check = path_to_bd + "/" +  bd_filename
-        path_to_bd_file_check = path_to_bd_folder_check + "/" + bd_filename + ".bd"
-        path_to_wrapper_file_check = path_to_bd_folder_check + "/hdl/" + bd_filename + "_wrapper.vhd"
-
-        print(path_to_bd_file_check)
-        print(path_to_wrapper_file_check)
-
-        bd_exists = os.path.exists(path_to_bd_file_check)
-        wrapper_exists = os.path.exists(path_to_wrapper_file_check)
-
-        if (wrapper_exists and bd_exists):
-            print("Wrapper and BD exist")
-        elif (not wrapper_exists and bd_exists):
-            print("Wrapper does not exist, BD does exist.")
-        elif (wrapper_exists and not bd_exists):
-            print("Wrapper exists but BD doesn't. Cannot proceed.")
-        elif (not wrapper_exists and not bd_exists):
-            print("Wrapper or BD not found, creating...")
-
-    #########################################################################################################
-
-    # (3) Create a new BD File
-    file_contents += f"\ncreate_bd_file {bd_filename}"              # Create a new BD
-
-    # (4) Add Processor to BD
-    file_contents += "\nadd_processing_unit"                        # Import Processing Unit to the BD
-
-    # (5) Add User Created Model to BD
-    file_contents += "\nset_property source_mgmt_mode All [current_project]"    # Setting automatic mode for source management
-    file_contents += f"\nadd_module {module_source} {module_source}_0"  # Import the user-created module
-
-    # Running this as safety
-    file_contents += "\nupdate_compile_order -fileset sources_1"
-    file_contents += "\nupdate_compile_order -fileset sim_1"
-
-    # (6) Add AXI GPIO for each input/output
-    for io in all_ports:
-        gpio_name = io[0]   # GPIO Name
-        gpio_mode = io[1]   # GPIO Mode (in/out)
-        gpio_type = io[2]   # GPIO Type (single bit/bus/array)
-
-        if (gpio_type == "single bit"):
-            gpio_width = 1
-        elif (gpio_type[:3] == "bus"):
-            # <type>bus(31 downto 0)</type>     ## Example Type Value
-            substring = gpio_type[4:]           # substring = '31 downto 0)'
-            words = substring.split()           # words = ['31', 'downto', '0)']
-            gpio_width = int(words[0]) + 1           # words[0] = 31
-        elif (gpio_type[:5] == "array"):
-            print("ERROR: Array mode type is not yet supported :(")
-        else:
-            print("ERROR: Unknown GPIO Type")
-            print(gpio_type)
-
-        if gpio_mode == "out":
-            file_contents += f"\nadd_axi_gpio_all_input {gpio_name} {gpio_width}"
-            # If the GPIO is added correctly, connect it to the User I/O
-            file_contents += f"\nconnect_gpio_all_input_to_module_port {io[0]} {module_source}_0"
-        elif gpio_mode == "in":
-            file_contents += f"\nadd_axi_gpio_all_output {gpio_name} {gpio_width}"
-            # If the GPIO is added correctly, connect it to the User I/O
-            file_contents += f"\nconnect_gpio_all_output_to_module_port {io[0]} {module_source}_0"
-        else:
-            print("Error Adding GPIO Connection, in/out not specified correctly")
-            break
-
-    # (7) Add the AXI Interconnect to the IP Block Design
-    file_contents += f"\nadd_axi_interconnect 1 {len(all_ports)}"
-
-    # Connect each GPIO to the Interconnect
-    for x in range(len(all_ports)):
-        file_contents += f"\nconnect_bd_intf_net -boundary_type upper [get_bd_intf_pins axi_interconnect_0/M{x:02d}_AXI] [get_bd_intf_pins {all_ports[x][0]}/S_AXI]"
-		
-
-    # (8) Add "Processor System Reset" IP
-    file_contents += "\nadd_system_reset_ip"
-    # Connect M_AXI_GP0 of the Processing System to S00_AXI connection of the AXI Interconnect.
-    # TODO: Add this line to the proc file instead maybe
-    file_contents += "\nconnect_bd_intf_net [get_bd_intf_pins processing_system7_0/M_AXI_GP0] -boundary_type upper [get_bd_intf_pins axi_interconnect_0/S00_AXI]"
-
-    # Run auto-connection tool
-    # file_contents += "\nrun_bd_auto_connect"
-    file_contents += "\nrun_bd_automation_rule_processor"
-    file_contents += "\nrun_bd_automation_rule_interconnect"
-    for io in all_ports:
-        file_contents += f"\nrun_bd_automation_rule_io {io[0]}/s_axi_aclk" 
+        # (9) Populate Memory Information
+        file_contents += "\nrun_addr_editor_auto_assign"
+        
+        # (10) Validate the Block Diagram
+        file_contents += "\nvalidate_bd"
+        
+        # (11) Create HDL Wrapper and set created wrapper as top
+        file_contents += f"\ncreate_hdl_wrapper {path_to_bd} {bd_filename}"
+        file_contents += f"\nset_wrapper_top {bd_filename}_wrapper"
     
+        ## IF BLOCK ENDS
 
-    # Run block automation tool
-    file_contents += "\nrun_bd_block_automation"
+    ########### END OF BLOCK DIAGRAM / WRAPPER CREATION ########### 
 
-    # (9) Populate Memory Information
-    file_contents += "\nrun_addr_editor_auto_assign"
-    
-    # (10) Validate the Block Diagram
-    file_contents += "\nvalidate_bd"
-    
-    # (11) Create HDL Wrapper and set created wrapper as top
-    file_contents += f"\ncreate_hdl_wrapper {path_to_bd} {bd_filename}"
-    file_contents += f"\nset_wrapper_top {bd_filename}_wrapper"
 
     # (12) Run Synthesis, Implementation and Generate Bitstream
     file_contents += "\ngenerate_bitstream"
@@ -283,9 +304,3 @@ def generate_tcl(path_to_hdlgen_project, experimental_board_config=False, experi
         # First, we want to source our test file
         file.write(file_contents)
         # print("generate_script.tcl generated!")
-    
-    
-    
-
-# generate_tcl("C:\\masters\\masters_automation\\LukeAND_working\\LukeAND\\HDLGenPrj\\LukeAND.hdlgen")
-# source C:/masters/masters_automation/generate_script.tcl

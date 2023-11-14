@@ -194,3 +194,10 @@ proc close_and_quit {} {
 	close_project
 	exit
 }
+
+proc delete_file {path_to_file} {
+	export_ip_user_files -of_objects  [get_files $path_to_file] -no_script -reset -force -quiet
+	remove_files  $path_to_file
+	file delete -force $path_to_file
+	update_compile_order -fileset sources_1 
+}
