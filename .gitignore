@@ -1,3 +1,6 @@
 __pycache__/
 generate_script.tcl
 output/
+*.log
+*.jou
+NA/
