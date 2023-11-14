@@ -90,7 +90,7 @@ def copy_out(pynq_manager):
     print("== Copying Output Bitstream ==")
     print("-> Preparing output folder")
     prepare_output_folder()
-    print("-> Copying output bitstream to {os.getcwd()+'\\'}")
+    print(f"-> Copying output bitstream to {os.getcwd()}")
     pynq_manager.copy_to_dir(os.getcwd() + "\\output")
 
 def run_all(pynq_manager):
