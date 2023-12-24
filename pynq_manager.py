@@ -3,6 +3,7 @@ import time
 import runpy
 import tcl_generator
 import ftp_manager
+import notebook_generator as nbg
 import xml.dom.minidom
 import os
 # Define location of vivado exe, this might need to be the bat file we will see.
@@ -87,6 +88,8 @@ class Pynq_Manager:
     def test_connection(self):
         ftp_manager.pwd()
 
+    def generate_jnb(self):
+        nbg.create_jnb(self.hdlgen_project_path)
 
 
 ## Read the docs : https://pysftp.readthedocs.io/en/release_0.2.9/cookbook.html#pysftp-connection-get
