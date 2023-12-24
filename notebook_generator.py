@@ -2,51 +2,23 @@ import nbformat as nbf
 import xml.dom.minidom
 import csv
 from io import StringIO
-# Instanciating sample variables from AND2_1 project
-# These variables would normally be supplied by HDLGen
 
-# Information from the header element
-# compName = "AND2_1"
-# title = "AND2_1 2-input AND"
-# description = "AND2_1 2-input AND &amp;#10;AndOut asserted when ANDIn1 and ANDIn0 are both asserted&amp;#44; otherwise deasserted"
-# authors = "Fearghal Morgan"
-# company = "University of Galway"
-# email = "fearghal.mogran1@gmail.com"
-# date = "12/09/2023"
-
-# # Info from entityIOPorts
-# input_ports = [
-#     ["AND2In1", "in", "single bit", "datapath signal 1"],
-#     ["AND2In0", "in", "single bit", "datapath single 0"]
-# ]
-
-# output_ports = [
-#     ["AndOut", "out", "single bit", "Output datapath signal"]
-# ]
-
-# testbench_cols = []
-# for i in input_ports:
-#     testbench_cols.append(i[0])
-    
-# for o in output_ports:
-#     testbench_cols.append(o[0])
-
-# test_cases = [
-#     [0,0,0],
-#     [0,1,0],
-#     [1,0,0],
-#     [1,1,1]
-# ]
+# Function to generate JNB, takes HDLGen file path and notebook name as parameters
 def create_jnb(path_to_hdlgen_file, output_filename=None):
 
+    # Open HDLGen xml and get root node.
     hdlgen = xml.dom.minidom.parse(path_to_hdlgen_file)
     root = hdlgen.documentElement
+
     # Project Manager - Settings
     projectManager = root.getElementsByTagName("projectManager")[0]
     projectManagerSettings = projectManager.getElementsByTagName("settings")[0]
+    
+    # Settings Data
     name = projectManagerSettings.getElementsByTagName("name")[0].firstChild.data
     environment = projectManagerSettings.getElementsByTagName("environment")[0].firstChild.data
     location = projectManagerSettings.getElementsByTagName("location")[0].firstChild.data
+
 
     # hdlDesign - header
     hdlDesign = root.getElementsByTagName("hdlDesign")[0]
@@ -72,14 +44,7 @@ def create_jnb(path_to_hdlgen_file, output_filename=None):
             [signame.firstChild.data, mode.firstChild.data, type.firstChild.data, desc.firstChild.data]
         )
 
-    # input_ports = [
-    #     ["AND2In1", "in", "single bit", "datapath signal 1"],
-    #     ["AND2In0", "in", "single bit", "datapath single 0"]
-    # ]
-
-    # output_ports = [
-    #     ["AndOut", "out", "single bit", "Output datapath signal"]
-    # ]
+    # Separating signals into input and outputs
     input_ports = []
     output_ports = []
     for port in all_ports:
@@ -90,14 +55,22 @@ def create_jnb(path_to_hdlgen_file, output_filename=None):
         else:
             print("Line 91 NBG: Invalid Port")
 
+    # Retrieve TB Data from HDLGen
     testbench = root.getElementsByTagName("testbench")[0]
     TBNote = testbench.getElementsByTagName("TBNote")[0]
     TBNoteData = TBNote.firstChild.data
+    
     # Convert the test plan into a 2-D array of rows and columns
     lines = TBNoteData.split("\n")
     TBNoteDataArray = []
     for line in lines:
         TBNoteDataArray.append(line.split())
+    
+    # TB Design Assumptions I am going to make.
+    # We can learn the order of the input/output signals but it must be:
+    # All inputs, then all outputs
+    # We will then read the radix line and understand form for each signal
+    # From here, any line beginning with a number will go: Test Number; Delay; Inputs; Outputs; Note;
 
     inputs = []
     outputs = []
