@@ -184,8 +184,8 @@ proc generate_bitstream {} {
 
 
 
-proc export_bd {} {
-	write_bd_tcl -force C:/masters/masters_automation/cb4cled-jn-application_automatic/CB4CLED/vhdl/xilinxprj/automated_bd.tcl
+proc export_bd {bd_tcl_path} {
+	write_bd_tcl -force $bd_tcl_path
 }
 
 

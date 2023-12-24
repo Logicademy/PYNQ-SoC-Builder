@@ -159,6 +159,8 @@ def generate_tcl(path_to_hdlgen_project, regenerate_bd=False):
 
     # BD Path:
     # D:/HDLGen-ChatGPT/User_Projects/Fearghal_November/RISCV_RB/VHDL/AMDprj/RISCV_RB.srcs/sources_1/bd/RISCV_RB_bd/RISCV_RB_bd.bd
+    
+
 
     path_to_bd_folder_check = path_to_bd + "/" +  bd_filename
     path_to_bd_file_check = path_to_bd_folder_check + "/" + bd_filename + ".bd"
@@ -288,7 +290,11 @@ def generate_tcl(path_to_hdlgen_project, regenerate_bd=False):
 
     # (12) Run Synthesis, Implementation and Generate Bitstream
     file_contents += "\ngenerate_bitstream"
-    file_contents += "\nexport_bd"
+    # C:/masters/masters_automation/cb4cled-jn-application_automatic/CB4CLED/vhdl/xilinxprj/automated_bd.tcl
+
+    path_to_bd_export = location + "/" + AMDproj_folder_rel_path + "/" + bd_filename + ".tcl"
+
+    file_contents += f"\nexport_bd {path_to_bd_export}"
     
     # (13) Save and Quit
     file_contents += "\nwait_on_run impl_1"
