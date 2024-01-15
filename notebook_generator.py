@@ -143,6 +143,7 @@ def create_jnb(path_to_hdlgen_file, output_filename=None):
     # Python Set Up Code Block
     code_cell_contents = "from pynq import Overlay"
     code_cell_contents += "\nimport pandas as pd"
+    code_cell_contents += "\nimport time"
     code_cell_contents += "\n\n# Import Overlay"
     code_cell_contents += f"\n{compName} = Overlay(/path/to/overlay)"
     code_cell_contents += "\n# Inputs:"
