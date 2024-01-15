@@ -105,17 +105,17 @@ def create_jnb(path_to_hdlgen_file, output_filename=None):
         else:
             test_cases.append(row)
 
-    print("Signals: ", signals_line)
-    print("Mode: ", mode_line)
-    print("Radix: ", radix_line)
+    # print("Signals: ", signals_line)
+    # print("Mode: ", mode_line)
+    # print("Radix: ", radix_line)
 
     signals_tb = []
     for i in range(len(signals_line)):  # range(1, len(signals_line)-3)
         signals_tb.append([signals_line[i], mode_line[i], radix_line[i]])
     
-    print("Test Cases")
-    for t in test_cases:
-        print(t)
+    # print("Test Cases")
+    # for t in test_cases:
+    #     print(t)
 
     ####### Start of JNB Generation #######
     
@@ -194,8 +194,8 @@ def create_jnb(path_to_hdlgen_file, output_filename=None):
 
     for test in test_cases:
 
-        print(f"Generating for test case {test_number}")
-        print(test)
+        # print(f"Generating for test case {test_number}")
+        # print(test)
 
         test_converted_to_decimal_from_radix = []
         for val in range(1, len(test)-3):
@@ -213,7 +213,7 @@ def create_jnb(path_to_hdlgen_file, output_filename=None):
             else:
                 print(f"Warning: Could not detect radix form properly for: {radix_val}")
             
-        print(test_converted_to_decimal_from_radix)
+        # print(test_converted_to_decimal_from_radix)
 
         # Create title cell.
         markdown_cell = nbf.v4.new_markdown_cell(f"**Test Case: {test_number}**")
@@ -284,6 +284,3 @@ def create_jnb(path_to_hdlgen_file, output_filename=None):
         nbf.write(notebook, f)
         
     print("Notebook Generated")
-
-
-create_jnb("E:\\HDLGEN\\RISCV_RB\\RISCV_RB\\HDLGenPrj\\RISCV_RB.hdlgen")
