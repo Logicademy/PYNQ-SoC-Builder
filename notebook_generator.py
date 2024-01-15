@@ -224,7 +224,7 @@ def create_jnb(path_to_hdlgen_file, output_filename=None):
         code_cell_contents = "# Asserting Inputs\n" 
 
         
-        delay_total += test[-3]
+        delay_total += int(test[-3])
 
         sub_signals = signals_line[1:-3]
         sub_modes = mode_line[1:-3]
@@ -234,12 +234,16 @@ def create_jnb(path_to_hdlgen_file, output_filename=None):
                 code_cell_contents += f"{sub_signals[i]}.write(0, {test_converted_to_decimal_from_radix[i]})\n"
 
         if delay_total >= 1 and clock_enabled:
-            # run clock some how...
-            pass
+            # run clock 
+            code_cell_contents += "\nRunning Clock Pulse"
+            code_cell_contents += "\ntime.sleep(0.05) # Sleep for 50 ms"
+            code_cell_contents += "\nclk.write(1,0)"
+            code_cell_contents += "\ntime.sleep(0.05) # Sleep for 50 ms"
+            code_cell_contents += "\nclk.write(0,0)\n"
         
         # Break
-        code_cell_contents += "\n# Recording Outputs\n"
-        code_cell_contents += "tst_res = []"
+        code_cell_contents += "\n# Recording Outputs"
+        code_cell_contents += "\ntst_res = []"
         # Checking Output:
         for i in range(len(sub_signals)):
             if sub_modes[i] == "out":
