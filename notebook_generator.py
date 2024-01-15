@@ -52,15 +52,6 @@ def create_jnb(path_to_hdlgen_file, output_filename=None):
     for row in tsv_data:
         print(row)   
 
-
-
-
-
-
-
-
-
-
     all_ports = []
     for sig in signals:
         signame = sig.getElementsByTagName("name")[0]
