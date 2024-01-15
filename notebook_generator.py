@@ -187,7 +187,33 @@ def create_jnb(path_to_hdlgen_file, output_filename=None):
 
     # Loop to Generate each test case
     test_number = 0
+
+    clock_enabled = False
+    delay_total = 0 
+
     for test in test_cases:
+
+        print(f"Generating for test case {test_number}")
+        print(test)
+
+        test_converted_to_decimal_from_radix = []
+        for val in range(1, len(test)-3):
+            radix_val = radix_line[val]
+            radix_form = radix_val[-1]
+            value = test[val]
+            if radix_form == 'h':
+                # Convert for hexidecimal
+                decimal_value = int(value, 16)
+                test_converted_to_decimal_from_radix.append(str(decimal_value))
+            elif radix_form == 'b':
+                # Convert for binary
+                decimal_value = int(value, 2)
+                test_converted_to_decimal_from_radix.append(str(decimal_value))
+            else:
+                print(f"Warning: Could not detect radix form properly for: {radix_val}")
+            
+        print(test_converted_to_decimal_from_radix)
+
         # Create title cell.
         markdown_cell = nbf.v4.new_markdown_cell(f"**Test Case: {test_number}**")
         notebook.cells.append(markdown_cell)
