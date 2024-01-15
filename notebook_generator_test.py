@@ -150,7 +150,7 @@ def create_jnb(path_to_hdlgen_file, output_filename=None):
         code_cell_contents += f"\n{o[0]} = {compName}.{o[0]}"
     code_cell_contents += "\n\n# Test Case Set Up"
     code_cell_contents += f"\n# Number Of Test Cases: {len(test_cases)}"
-    code_cell_contents += f"test_results = [None] * {len(test_cases)}"
+    code_cell_contents += f"\ntest_results = [None] * {len(test_cases)}"
 
     code_cell = nbf.v4.new_code_cell(code_cell_contents)
     notebook.cells.append(code_cell)
@@ -184,6 +184,51 @@ def create_jnb(path_to_hdlgen_file, output_filename=None):
 
     markdown_cell = nbf.v4.new_markdown_cell(markdown_cell_contents)
     notebook.cells.append(markdown_cell)
+
+    # Loop to Generate each test case
+    test_number = 0
+    for test in test_cases:
+        # Create title cell.
+        markdown_cell = nbf.v4.new_markdown_cell(f"**Test Case: {test_number}**")
+        notebook.cells.append(markdown_cell)
+
+        # Code Cell:
+        # Generating Inputs:
+        code_cell_contents = "# Asserting Inputs\n" 
+        # for i in range(len(input_ports)):
+        #     code_cell_contents += f"{input_ports[i][0]}.write(0, {test[i]})\n"
+        
+        # Break
+        code_cell_contents += "\n\n# Recording Outputs\n"
+        
+        # Checking Output:
+        # for o in range(len(output_ports)):
+        #     code_cell_contents += f"if {output_ports[o][0]}.read(0) == {test[len(input_ports)+o]}:\n\ttest_result[{test_number}] = True\nelse:\n\ttest_result[{test_number}] = False\n"
+
+        test_number += 1    # Increment Test Number after use.
+        code_cell = nbf.v4.new_code_cell(code_cell_contents)
+        notebook.cells.append(code_cell)
+
+
+    # Finally, presenting the results in a presentable fashion:
+    # Title Markdown Cell
+    markdown_cell = nbf.v4.new_markdown_cell("# Test Results")
+    notebook.cells.append(markdown_cell)
+
+    code_cell_contents = "import pandas as pd\n"
+    code_cell_contents += "\ndf = pd.DataFrame({'Result': test_results})"
+    code_cell_contents += "\npd.set_option('display.notebook_repr_html', False)"
+    code_cell_contents += "\ndef highlight_cells(val):"
+    code_cell_contents += "\n\tif val == True:"
+    code_cell_contents += "\n\t\treturn 'background-color: green'"
+    code_cell_contents += "\n\telif val == False:"
+    code_cell_contents += "\n\t\treturn 'background-color: red'"
+    code_cell_contents += "\n\telse:"
+    code_cell_contents += "\n\t\treturn 'background-color: darkorange'"
+    code_cell_contents += "\nstyled_df = df.style.applymap(highlight_cells, subset=['Result'])"
+    code_cell_contents += "\nstyled_df"
+    code_cell = nbf.v4.new_code_cell(code_cell_contents)
+    notebook.cells.append(code_cell)
 
     output_file = 'generated.ipynb'
     # if output_filename is not None:
