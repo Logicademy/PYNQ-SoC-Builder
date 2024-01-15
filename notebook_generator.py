@@ -44,10 +44,13 @@ def create_jnb(path_to_hdlgen_file, output_filename=None):
             [signame.firstChild.data, mode.firstChild.data, type.firstChild.data, desc.firstChild.data]
         )
 
-    # Separating signals into input and outputs
+    # Separating signals into input and outputs, enable clock mode if clk exists;
+    clock_enabled = False
     input_ports = []
     output_ports = []
     for port in all_ports:
+        if port[0] == 'clk':
+            clock_enabled = True
         if port[1] == "in":
             input_ports.append(port)
         elif port[1] == "out":
@@ -187,7 +190,6 @@ def create_jnb(path_to_hdlgen_file, output_filename=None):
 
     # Loop to Generate each test case
     test_number = 0
-    clock_enabled = False
     delay_total = 0 
 
     for test in test_cases:
@@ -221,8 +223,8 @@ def create_jnb(path_to_hdlgen_file, output_filename=None):
         # Generating Inputs:
         code_cell_contents = "# Asserting Inputs\n" 
 
-        if clock_enabled:
-            delay_total += test[-3]
+        
+        delay_total += test[-3]
 
         sub_signals = signals_line[1:-3]
         sub_modes = mode_line[1:-3]
@@ -231,9 +233,8 @@ def create_jnb(path_to_hdlgen_file, output_filename=None):
             if sub_modes[i] == "in":
                 code_cell_contents += f"{sub_signals[i]}.write(0, {test_converted_to_decimal_from_radix[i]})\n"
 
-        if delay_total >= 1:
-            #clock_mode = "RE" # rising edge or falling edge
-            #pulse_clock(clock_mode)
+        if delay_total >= 1 and clock_enabled:
+            # run clock some how...
             pass
         
         # Break
