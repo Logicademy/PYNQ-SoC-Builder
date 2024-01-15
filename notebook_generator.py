@@ -187,7 +187,6 @@ def create_jnb(path_to_hdlgen_file, output_filename=None):
 
     # Loop to Generate each test case
     test_number = 0
-
     clock_enabled = False
     delay_total = 0 
 
@@ -221,15 +220,31 @@ def create_jnb(path_to_hdlgen_file, output_filename=None):
         # Code Cell:
         # Generating Inputs:
         code_cell_contents = "# Asserting Inputs\n" 
-        # for i in range(len(input_ports)):
-        #     code_cell_contents += f"{input_ports[i][0]}.write(0, {test[i]})\n"
+
+        if clock_enabled:
+            delay_total += test[-3]
+
+        sub_signals = signals_line[1:-3]
+        sub_modes = mode_line[1:-3]
+
+        for i in range(len(sub_signals)):
+            if sub_modes[i] == "in":
+                code_cell_contents += f"{sub_signals[i]}.write(0, {test_converted_to_decimal_from_radix[i]})\n"
+
+        if delay_total >= 1:
+            #clock_mode = "RE" # rising edge or falling edge
+            #pulse_clock(clock_mode)
+            pass
         
         # Break
-        code_cell_contents += "\n\n# Recording Outputs\n"
-        
+        code_cell_contents += "\n# Recording Outputs\n"
+        code_cell_contents += "tst_res = []"
         # Checking Output:
-        # for o in range(len(output_ports)):
-        #     code_cell_contents += f"if {output_ports[o][0]}.read(0) == {test[len(input_ports)+o]}:\n\ttest_result[{test_number}] = True\nelse:\n\ttest_result[{test_number}] = False\n"
+        for i in range(len(sub_signals)):
+            if sub_modes[i] == "out":
+                code_cell_contents += f"\ntst_res.append(True if {sub_signals[i]}.read(0) == {test_converted_to_decimal_from_radix[i]} else False)"
+
+        code_cell_contents += f"\ntest_results[{test_number}] = all(tst_res)"
 
         test_number += 1    # Increment Test Number after use.
         code_cell = nbf.v4.new_code_cell(code_cell_contents)
