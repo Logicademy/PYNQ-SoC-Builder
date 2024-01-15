@@ -34,24 +34,6 @@ def create_jnb(path_to_hdlgen_file, output_filename=None):
     entityIOPorts = hdlDesign.getElementsByTagName("entityIOPorts")[0]
     signals = entityIOPorts.getElementsByTagName("signal")
 
-    # Retrieve TB Data from HDLGen
-    testbench = root.getElementsByTagName("testbench")[0]
-    TBNote = testbench.getElementsByTagName("TBNote")[0]
-    TBNoteData = TBNote.firstChild.data
-
-    # Parsing TB data into variables
-    # Convert HTML entities into their coorresponding characters
-    decoded_string = html.unescape(TBNoteData)
-    # Replace &#x9; with actual tabs
-    tsv_string = decoded_string.replace("&#x9;", "\t")
-    # Read TSV string into a CSV reader
-    tsv_reader = csv.reader(StringIO(tsv_string), delimiter='\t')
-    # Convert CSV reader into a list of lists
-    tsv_data = [row for row in tsv_reader]
-
-    for row in tsv_data:
-        print(row)   
-
     all_ports = []
     for sig in signals:
         signame = sig.getElementsByTagName("name")[0]
@@ -74,53 +56,66 @@ def create_jnb(path_to_hdlgen_file, output_filename=None):
             print("Line 91 NBG: Invalid Port")
 
 
-    
-    # Convert the test plan into a 2-D array of rows and columns
-    lines = TBNoteData.split("\n")
-    TBNoteDataArray = []
-    for line in lines:
-        TBNoteDataArray.append(line.split())
-    
-    # TB Design Assumptions I am going to make.
-    # We can learn the order of the input/output signals but it must be:
-    # All inputs, then all outputs
-    # We will then read the radix line and understand form for each signal
-    # From here, any line beginning with a number will go: Test Number; Delay; Inputs; Outputs; Note;
+    # Retrieve TB Data from HDLGen
+    testbench = root.getElementsByTagName("testbench")[0]
+    TBNote = testbench.getElementsByTagName("TBNote")[0]
+    TBNoteData = TBNote.firstChild.data
 
-    inputs = []
-    outputs = []
+    # Parsing TB data into variables
+    # Convert HTML entities into their coorresponding characters
+    decoded_string = html.unescape(TBNoteData)
+    # Replace &#x9; with actual tabs
+    tsv_string = decoded_string.replace("&#x9;", "\t")
+    # Read TSV string into a CSV reader
+    tsv_reader = csv.reader(StringIO(tsv_string), delimiter='\t')
+    
+    tsv_data_filtered = []
+    for row in tsv_reader:
+        if row == []:
+            pass
+        elif row and row[0] and row[0][0] == '#':
+            pass
+        else:
+            tsv_data_filtered.append(row)
+    # Convert CSV reader into a list of lists
+    tsv_data = [row for row in tsv_reader]
+
+    # for row in tsv_data_filtered:
+    #     print(row)
+
+    signals_line = ""
+    mode_line = ""
+    radix_line = ""
     test_cases = []
-    # Populate variables required 
-    # Inputs, Outputs, compName, test_cases (in form of 2D array)
-    for line in TBNoteDataArray:
-        if len(line) == 0:      # Skip blank lines
-            continue            
-        if line[0] == "Inputs":
-            for column in line:
-                if column == line[0]:
-                    continue
-                inputs.append(column)
-        elif line[0] == "Outputs":
-            for column in line:
-                if column == line[0]:
-                    continue
-                outputs.append(column)
-        elif (len(line) > 0):
-            if column == line[0]:
-                    continue
-            test_cases.append(line)
 
+    for row in tsv_data_filtered:
+        if row[0] == '#':
+            pass
+        elif row[0] == '=':
+            pass
+        elif row[0] == 'Signals':
+            signals_line = row
+        elif row[0] == 'Mode':
+            mode_line = row
+        elif row[0] == 'Radix':
+            radix_line = row
+        else:
+            test_cases.append(row)
 
-    # genFolder - VHDL Folders
-    genFolder = root.getElementsByTagName("genFolder")[0]
-    model_folder_path = genFolder.getElementsByTagName("vhdl_folder")[0].firstChild.data
-    testbench_folder_path = genFolder.getElementsByTagName("vhdl_folder")[1].firstChild.data
-    # ChatGPT_folder = genFolder.getElementsByTagName("vhdl_folder")[2]             # Commented as not needed
-    # ChatGPT_Backups_folder = genFolder.getElementsByTagName("vhdl_folder")[3]     # Commented as not needed
-    AMDproj_folder_path = genFolder.getElementsByTagName("vhdl_folder")[4].firstChild.data
-        
-    # print(testbench_cols)
+    print("Signals: ", signals_line)
+    print("Mode: ", mode_line)
+    print("Radix: ", radix_line)
 
+    signals_tb = []
+    for i in range(len(signals_line)):  # range(1, len(signals_line)-3)
+        signals_tb.append([signals_line[i], mode_line[i], radix_line[i]])
+    
+    print("Test Cases")
+    for t in test_cases:
+        print(t)
+
+    ####### Start of JNB Generation #######
+    
     # Create new Jupyter Notebook
     notebook = nbf.v4.new_notebook()
 
@@ -132,13 +127,10 @@ def create_jnb(path_to_hdlgen_file, output_filename=None):
     markdown_cell = nbf.v4.new_markdown_cell(f"## Component Description\n\n{description}")
     notebook.cells.append(markdown_cell) 
 
-
     # Entity IO
     markdown_cell_contents = f"## Entity I/O\n\n| Name | Mode | Type | Description |\n|:----:|:----:|:----:|:------------|"
-    for i in input_ports:
-        markdown_cell_contents += f"\n| {i[0]} | {i[1]} | {i[2]} | {i[3]} |"
-    for o in output_ports:
-        markdown_cell_contents += f"\n| {o[0]} | {o[1]} | {o[2]} | {o[3]} |"
+    for s in all_ports:
+        markdown_cell_contents += f"\n| {s[0]} | {s[1]} | {s[2]} | {s[3]} |"
     markdown_cell = nbf.v4.new_markdown_cell(markdown_cell_contents)
     notebook.cells.append(markdown_cell)
 
@@ -158,7 +150,7 @@ def create_jnb(path_to_hdlgen_file, output_filename=None):
         code_cell_contents += f"\n{o[0]} = {compName}.{o[0]}"
     code_cell_contents += "\n\n# Test Case Set Up"
     code_cell_contents += f"\n# Number Of Test Cases: {len(test_cases)}"
-    code_cell_contents += f"test_results = [None] * {len(test_cases)}"
+    code_cell_contents += f"\ntest_results = [None] * {len(test_cases)}"
 
     code_cell = nbf.v4.new_code_cell(code_cell_contents)
     notebook.cells.append(code_cell)
@@ -168,20 +160,27 @@ def create_jnb(path_to_hdlgen_file, output_filename=None):
     notebook.cells.append(markdown_cell) 
 
     # Testbench Plan Cell
-    markdown_cell_contents = "|"
-    for i in input_ports:
-        markdown_cell_contents += f" {i[0]} |"
-    for o in output_ports:
-        markdown_cell_contents += f" *{o[0]}* |"
-    number_of_io = len(input_ports) + len(output_ports)
+    markdown_cell_contents = ""
+    # Row 1 Signals:
+    markdown_cell_contents += "| "
+    for s in signals_line:
+        markdown_cell_contents += s + " | "
     markdown_cell_contents += "\n|"
-    for _ in range(number_of_io):
+    for s in signals_line:
         markdown_cell_contents += ":----:|"
-        
+    # Row 2 Mode:
+    markdown_cell_contents += "\n| "
+    for m in mode_line:
+        markdown_cell_contents += m + " | "
+    # Row 3 Radix:
+    markdown_cell_contents += "\n| "
+    for r in radix_line:
+        markdown_cell_contents += r + " | "
+    # Row 4+ Test Cases:
     for test in test_cases:
-        markdown_cell_contents += f"\n| "
-        for io in test:
-            markdown_cell_contents += f" {io} |"
+        markdown_cell_contents += "\n| "
+        for t in test:
+            markdown_cell_contents += t + " | "
 
     markdown_cell = nbf.v4.new_markdown_cell(markdown_cell_contents)
     notebook.cells.append(markdown_cell)
@@ -196,19 +195,20 @@ def create_jnb(path_to_hdlgen_file, output_filename=None):
         # Code Cell:
         # Generating Inputs:
         code_cell_contents = "# Asserting Inputs\n" 
-        for i in range(len(input_ports)):
-            code_cell_contents += f"{input_ports[i][0]}.write(0, {test[i]})\n"
+        # for i in range(len(input_ports)):
+        #     code_cell_contents += f"{input_ports[i][0]}.write(0, {test[i]})\n"
         
         # Break
         code_cell_contents += "\n\n# Recording Outputs\n"
         
         # Checking Output:
-        for o in range(len(output_ports)):
-            code_cell_contents += f"if {output_ports[o][0]}.read(0) == {test[len(input_ports)+o]}:\n\ttest_result[{test_number}] = True\nelse:\n\ttest_result[{test_number}] = False\n"
+        # for o in range(len(output_ports)):
+        #     code_cell_contents += f"if {output_ports[o][0]}.read(0) == {test[len(input_ports)+o]}:\n\ttest_result[{test_number}] = True\nelse:\n\ttest_result[{test_number}] = False\n"
 
         test_number += 1    # Increment Test Number after use.
         code_cell = nbf.v4.new_code_cell(code_cell_contents)
         notebook.cells.append(code_cell)
+
 
     # Finally, presenting the results in a presentable fashion:
     # Title Markdown Cell
@@ -231,13 +231,13 @@ def create_jnb(path_to_hdlgen_file, output_filename=None):
     notebook.cells.append(code_cell)
 
     output_file = 'generated.ipynb'
-    if output_filename is not None:
-        output_file = output_filename
+    # if output_filename is not None:
+    #     output_file = output_filename
 
-    with open(output_filename, 'w') as f:
+    with open(output_file, 'w') as f:
         nbf.write(notebook, f)
         
     print("Notebook Generated")
 
 
-
+create_jnb("E:\\HDLGEN\\RISCV_RB\\RISCV_RB\\HDLGenPrj\\RISCV_RB.hdlgen")
