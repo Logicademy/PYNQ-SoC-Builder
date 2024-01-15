@@ -28,8 +28,8 @@ def print_splash_return_choice():
     print("1) Generate Tcl Build Script")
     print("2) Run Vivado")
     print("3) Copy Bitstream Files")
-    # print("4) Generate Notebook with Test Plan")
-    # print("5) Generate Notebook without Test Plan")
+    print("4) Generate Notebook with Test Plan")
+    print("5) Generate Notebook without Test Plan")
     print("q) Quit")
     user_choice = input("Option: ")
     possible_options = ["1", "2", "3", "4", "5", "0", "q"]
@@ -93,6 +93,11 @@ def copy_out(pynq_manager):
     print(f"-> Copying output bitstream to {os.getcwd()}")
     pynq_manager.copy_to_dir(os.getcwd() + "\\output")
 
+def gen_jnb_with_tb(pynq_manager):
+    print("== Generating Jupyter Notebook with Test Plan ==")
+    pynq_manager.generate_jnb()
+    print("-> Created generated.ipynb")
+
 def run_all(pynq_manager):
     gen_tcl(pynq_manager)
     run_viv(pynq_manager)
@@ -111,6 +116,7 @@ def main():
 
     while True:
         choice = print_splash_return_choice()
+        
         if choice == "1":
             gen_tcl(pynq_manager)
         
@@ -121,11 +127,12 @@ def main():
             copy_out(pynq_manager)
 
         elif choice == "4":
-            print("Generate with test plan not implemented yet")
-            pass
+            gen_jnb_with_tb(pynq_manager)
+
         elif choice == "5":
-            print("Generate without test plan not implemented yet")
+            print("Generate Generic JNB not implemented yet")
             pass
+
         elif choice == "0":
             run_all(pynq_manager)
             pass

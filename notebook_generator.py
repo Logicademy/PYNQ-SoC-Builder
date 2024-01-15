@@ -4,6 +4,11 @@ import csv
 from io import StringIO
 import html
 
+# TODO: Generate Generic JNB
+def create_generic_jnb(path_to_hdlgen_file, output_filename=None):
+    pass
+
+
 # Function to generate JNB, takes HDLGen file path and notebook name as parameters
 def create_jnb(path_to_hdlgen_file, output_filename=None):
 
@@ -277,7 +282,7 @@ def create_jnb(path_to_hdlgen_file, output_filename=None):
     code_cell = nbf.v4.new_code_cell(code_cell_contents)
     notebook.cells.append(code_cell)
 
-    output_file = 'generated.ipynb'
+    output_file = 'output\generated.ipynb'
     # if output_filename is not None:
     #     output_file = output_filename
 
@@ -285,3 +290,5 @@ def create_jnb(path_to_hdlgen_file, output_filename=None):
         nbf.write(notebook, f)
         
     print("Notebook Generated")
+
+create_jnb("E:\\HDLGEN\\RISCV_RB\\RISCV_RB\\HDLGenPrj\\RISCV_RB.hdlgen")
