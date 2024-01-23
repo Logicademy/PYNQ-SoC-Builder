@@ -51,6 +51,12 @@ class Ftp_Manager:
         hwh_full_path = hwh_location + "/" + hwh_filename
         bit_full_path = bit_location + "/" + bit_filename
 
+        # TODO: Correct for \\ instead of / earlier in the program. This is a quick patch.
+        tcl_full_path = tcl_full_path.replace("\\", "/")
+        hwh_full_path = hwh_full_path.replace("\\", "/")
+        bit_full_path = bit_full_path.replace("\\", "/")
+
+
         shutil.copy(tcl_full_path, dest_path+"/"+self.name+".tcl")
         shutil.copy(hwh_full_path, dest_path+"/"+self.name+".hwh")
         shutil.copy(bit_full_path, dest_path+"/"+self.name+".bit")
