@@ -86,6 +86,7 @@ def generate_tcl(path_to_hdlgen_project, regenerate_bd=False):
         )
 
     # Derived Variables
+    location = location.replace('\\', '/')
     path_to_xpr = location + "/" + AMDproj_folder_rel_path + "/" + name + ".xpr"
     bd_filename = name + "_bd"
     module_source = name
