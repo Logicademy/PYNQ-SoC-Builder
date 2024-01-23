@@ -239,13 +239,14 @@ def create_jnb(path_to_hdlgen_file, output_filename=None):
             if sub_modes[i] == "in":
                 code_cell_contents += f"{sub_signals[i]}.write(0, {test_converted_to_decimal_from_radix[i]})\n"
 
-        if delay_total >= 1 and clock_enabled:
+        while delay_total >= 1 and clock_enabled:
             # run clock 
             code_cell_contents += "\nRunning Clock Pulse"
             code_cell_contents += "\ntime.sleep(0.05) # Sleep for 50 ms"
             code_cell_contents += "\nclk.write(1,0)"
             code_cell_contents += "\ntime.sleep(0.05) # Sleep for 50 ms"
             code_cell_contents += "\nclk.write(0,0)\n"
+            delay_total = delay_total - 1
         
         # Break
         code_cell_contents += "\n# Recording Outputs"
