@@ -283,13 +283,13 @@ def create_jnb(path_to_hdlgen_file, output_filename=None):
     code_cell = nbf.v4.new_code_cell(code_cell_contents)
     notebook.cells.append(code_cell)
 
-    output_file = 'output\generated.ipynb'
+    output_file = 'output\{name}.ipynb'
     # if output_filename is not None:
     #     output_file = output_filename
 
     with open(output_file, 'w') as f:
         nbf.write(notebook, f)
         
-    print("Notebook Generated")
+    print(f"Notebook Generated at: {output_file}")
 
-create_jnb("E:\\HDLGEN\\RISCV_RB\\RISCV_RB\\HDLGenPrj\\RISCV_RB.hdlgen")
+# create_jnb("E:\\HDLGEN\\RISCV_RB\\RISCV_RB\\HDLGenPrj\\RISCV_RB.hdlgen")
