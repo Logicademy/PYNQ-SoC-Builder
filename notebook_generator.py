@@ -230,7 +230,7 @@ def create_jnb(path_to_hdlgen_file, output_filename=None):
         code_cell_contents = "# Asserting Inputs\n" 
 
         
-        delay_total += int(test[-3])
+        delay_total += float(test[-3])
 
         sub_signals = signals_line[1:-3]
         sub_modes = mode_line[1:-3]
@@ -241,7 +241,7 @@ def create_jnb(path_to_hdlgen_file, output_filename=None):
 
         while delay_total >= 1 and clock_enabled:
             # run clock 
-            code_cell_contents += "\nRunning Clock Pulse"
+            code_cell_contents += "\n# Running Clock Pulse"
             code_cell_contents += "\ntime.sleep(0.05) # Sleep for 50 ms"
             code_cell_contents += "\nclk.write(1,0)"
             code_cell_contents += "\ntime.sleep(0.05) # Sleep for 50 ms"
@@ -283,7 +283,7 @@ def create_jnb(path_to_hdlgen_file, output_filename=None):
     code_cell = nbf.v4.new_code_cell(code_cell_contents)
     notebook.cells.append(code_cell)
 
-    output_file = 'output\{name}.ipynb'
+    output_file = f'output\{name}.ipynb'
     # if output_filename is not None:
     #     output_file = output_filename
 

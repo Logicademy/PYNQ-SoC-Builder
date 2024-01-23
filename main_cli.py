@@ -96,7 +96,7 @@ def copy_out(pynq_manager):
 def gen_jnb_with_tb(pynq_manager):
     print("== Generating Jupyter Notebook with Test Plan ==")
     pynq_manager.generate_jnb()
-    print("-> Created generated.ipynb")
+    print("-> Created .ipynb file")
 
 def run_all(pynq_manager):
     gen_tcl(pynq_manager)
