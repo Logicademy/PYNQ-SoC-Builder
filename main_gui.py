@@ -8,21 +8,22 @@ app = ctk.CTk()
 app.title("PYNQ SoC Builder")
 app.geometry("500x240")
 
-row_0_frame = ctk.CTkFrame(app, width=500, height=30)
+row_0_frame = ctk.CTkFrame(app, width=500, height=30, corner_radius=0)
 row_1_frame = ctk.CTkFrame(app, width=500, height=30)
 row_2_frame = ctk.CTkFrame(app, width=500, height=30)
 row_last_frame = ctk.CTkFrame(app, width=500, height=30)
 
-row_0_frame.grid(row=0)
-row_1_frame.grid(row=1)
-row_2_frame.grid(row=2)
+row_0_frame.grid(row=0, sticky="nsew")
+row_0_frame.columnconfigure(0, weight=1) # Centre the row
+row_1_frame.grid(row=1, pady=5, padx=10)
+row_2_frame.grid(row=2, )
 row_last_frame.grid(row=3)
 
 ## Row 0
 # Title Label
 title_font = ("Segoe UI", 20, "bold") # Title font
 title_label = ctk.CTkLabel(row_0_frame, text="PYNQ SoC Builder", font=title_font, padx=10)
-title_label.grid(row=0, column=0, columnspan=2, pady=5)
+title_label.grid(row=0, column=0, pady=5, sticky="nsew")
 
 ## Row 1
 # File path entry and browse button
@@ -32,8 +33,8 @@ def browse_files():
     entry_path.insert(0, file_path)
 entry_path = ctk.CTkEntry(row_1_frame, width=360)
 browse_button = ctk.CTkButton(row_1_frame, text="Browse", command=browse_files, width=100)
-entry_path.grid(row=1, column=0, padx=10, pady=5)
-browse_button.grid(row=1, column=1, padx=10, pady=5)
+entry_path.grid(row=1, column=0, padx=5, pady=5)
+browse_button.grid(row=1, column=1, padx=5, pady=5)
 
 ## Row 2
 # Select Mode
