@@ -1,5 +1,8 @@
 import customtkinter as ctk
 import os 
+import threading
+import time
+import pynq_manager as pm
 
 ctk.set_appearance_mode("System")
 ctk.set_default_color_theme("blue")
@@ -110,6 +113,9 @@ class Page1(ctk.CTkFrame):
                 self.app.open_alert()
                 return
             
+            # Run threaded program:
+            # self.run_pynq_manager()
+            self.app.page2.run_pynq_manager()
             # HDLGen file exists:
             # Move to page two:
             self.app.show_page(self.app.page2)
@@ -145,15 +151,15 @@ class Page2(ctk.CTkFrame):
         # row_1_scrollable_frame._scrollbar.configure(height=0)   
         # row_1_scrollable_frame.grid(row=1, column=0, sticky="e") #sticky="ew"
 
-        log_data = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\nINFO: Starting Vivado\nSample Data again\nyea\nyea\nyea\nyea\nyea\nyea\nyea\nyea\nyea\nyea\nyea\nyea\nyea\nyea\nyea\nyea\nyea\nyea\nyea\nyea\nyea\nyea\nyea\nyea\nyea\nyea\nyea\nyea\nyea\nyea\nyea\nyea\nyea\nyea\nyea\nyea\nyea\nyea\nyea\nyea\nyea\nyea\nyea\nyea\nyea\nyea\nyea\nyea\nyea\nyea\nyea\nyea\nyea\nyea"
+        self.log_data = ""
         # scrolling_label = ctk.CTkLabel(row_1_scrollable_frame, text=log_data, wraplength=480, anchor="e")
-        scrolling_entry_variable = ctk.StringVar()
-        scrolling_entry_variable.set(log_data)
+        self.scrolling_entry_variable = ctk.StringVar()
+        self.scrolling_entry_variable.set(self.log_data)
         
-        log_text_box = ctk.CTkTextbox(self, width=500, height=170, corner_radius=0)
-        log_text_box.insert("0.0", log_data)
-        log_text_box.configure(state="disabled")
-        log_text_box.grid(row=1, column=0)
+        self.log_text_box = ctk.CTkTextbox(self, width=500, height=170, corner_radius=0)
+        self.log_text_box.insert("0.0", self.log_data)
+        self.log_text_box.configure(state="disabled")
+        self.log_text_box.grid(row=1, column=0)
 
         row_2_frame = ctk.CTkFrame(self,width=500, height=30)
         row_2_frame.grid(row=2, column=0, sticky="nsew")
@@ -169,6 +175,29 @@ class Page2(ctk.CTkFrame):
         bottom_row_frame.columnconfigure(1,weight=1)
         copy_to_clip_button.grid(row=0, column=0)
         force_quit_button.grid(row=0, column=1,sticky="e")
+
+        
+
+    def add_to_log_box(self, text):
+        self.log_text_box.configure(state="normal")
+        self.log_data += text
+        self.log_text_box.delete("0.0", "end")  # delete all text
+        self.log_text_box.insert("0.0", self.log_data) # repost all text
+        self.log_text_box.configure(state="disabled")
+        
+
+    def run_pynq_manager(self):
+        self.add_to_log_box(f"\nRunning in mode {self.app.mode} commencing at {time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))}")    # time derivation could likely be easier.
+        self.add_to_log_box(f"\nHDLGen Project: {self.app.hdlgen_path}")
+        
+        self.add_to_log_box(f"\nGenerating Tcl Script")
+        thread = threading.Thread(target=self.generate_tcl)
+        thread.start()
+
+    def generate_tcl(self):
+        pm_obj = pm.Pynq_Manager(self.app.hdlgen_path)
+        pm_obj.generate_tcl()
+
 
     def show(self):
         self.pack()
@@ -201,7 +230,7 @@ class ToplevelWindow(ctk.CTkToplevel):
         self.left_frame.grid(column=0, row=0)
         self.right_frame.grid(column=1, row=0)
 
-    # Show and Hide needed by all page classes.
+    # Show and Hide needed by all page classes
     def show(self):
         self.pack()
     
