@@ -212,12 +212,12 @@ def create_jnb(path_to_hdlgen_file, output_filename=None):
                 # Convert for hexidecimal
                 # decimal_value = int(value, 16)
                 # test_converted_to_decimal_from_radix.append(str(decimal_value))
-                test_converted_to_decimal_from_radix.append(f"int({value}, 16)")
+                test_converted_to_decimal_from_radix.append(f"int(\"{value}\", 16)")
             elif radix_form == 'b':
                 # Convert for binary
                 # decimal_value = int(value, 2)
                 # test_converted_to_decimal_from_radix.append(str(decimal_value))
-                test_converted_to_decimal_from_radix.append(f"int({value}, 2)")
+                test_converted_to_decimal_from_radix.append(f"int(\"{value}\", 2)")
             else:
                 print(f"Warning: Could not detect radix form properly for: {radix_val}")
             
@@ -295,3 +295,4 @@ def create_jnb(path_to_hdlgen_file, output_filename=None):
     print(f"Notebook Generated at: {output_file}")
 
 # create_jnb("E:\\HDLGEN\\RISCV_RB\\RISCV_RB\\HDLGenPrj\\RISCV_RB.hdlgen")
+create_jnb("C:\\hdlgen\\RISCV_RB_Demo\\RISCV_RB\\HDLGenPrj\\RISCV_RB.hdlgen")
