@@ -52,7 +52,7 @@ class Application:
 class Page1(ctk.CTkFrame):
     def __init__(self, app):
         ctk.CTkFrame.__init__(self, app.root)
-        self.app = app
+        self.app = app       
 
         row_0_frame = ctk.CTkFrame(self, width=500, height=30, corner_radius=0)
         row_1_frame = ctk.CTkFrame(self, width=500, height=30)
@@ -69,7 +69,7 @@ class Page1(ctk.CTkFrame):
         # Title Label
         title_font = ("Segoe UI", 20, "bold") # Title font
         title_label = ctk.CTkLabel(row_0_frame, text="PYNQ SoC Builder", font=title_font, padx=10)
-        title_label.grid(row=0, column=0, pady=5, sticky="nsew")
+        title_label.grid(row=0, column=0, sticky="nsew")
 
         ## Row 1
         # File path entry and browse button
@@ -129,13 +129,41 @@ class Page2(ctk.CTkFrame):
         ctk.CTkFrame.__init__(self, app.root)
         self.app = app
 
+        # self.configure(["-width", "500"])
+        # self.configure(["-height", "240"])
+
+
         # Title Row
         row_0_frame = ctk.CTkFrame(self, width=500, height=30, corner_radius=0)
-        row_0_frame.grid(row=0, sticky="nsew")
+        row_0_frame.grid(row=0, column=0, sticky="nsew")
         title_font = ("Segoe UI", 20, "bold") # Title font
-        title_label = ctk.CTkLabel(row_0_frame, text="PYNQ SoC Builder", font=title_font, padx=10)
-        title_label.grid(row=0, column=0, pady=5, sticky="nsew")
-    
+        title_label = ctk.CTkLabel(row_0_frame, text="PYNQ SoC Builder", font=title_font, width=500)
+        title_label.grid(row=0, column=0, sticky="nsew")
+
+        # row_1_scrollable_frame = ctk.CTkScrollableFrame(self, height=100, width=480)
+        # # NB Do Not Delete: Scrollable frame has bug that without this line, frame cannot be less than 200 pixel
+        # row_1_scrollable_frame._scrollbar.configure(height=0)   
+        # row_1_scrollable_frame.grid(row=1, column=0, sticky="e") #sticky="ew"
+
+        log_data = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\nINFO: Starting Vivado\nSample Data again\nyea\nyea\nyea\nyea\nyea\nyea\nyea\nyea\nyea\nyea\nyea\nyea\nyea\nyea\nyea\nyea\nyea\nyea\nyea\nyea\nyea\nyea\nyea\nyea\nyea\nyea\nyea\nyea\nyea\nyea\nyea\nyea\nyea\nyea\nyea\nyea\nyea\nyea\nyea\nyea\nyea\nyea\nyea\nyea\nyea\nyea\nyea\nyea\nyea\nyea\nyea\nyea\nyea\nyea"
+        # scrolling_label = ctk.CTkLabel(row_1_scrollable_frame, text=log_data, wraplength=480, anchor="e")
+        scrolling_entry_variable = ctk.StringVar()
+        scrolling_entry_variable.set(log_data)
+        
+        log_text_box = ctk.CTkTextbox(self, width=500, height=150)
+        log_text_box.insert("0.0", log_data)
+        log_text_box.configure(state="disabled")
+        log_text_box.grid(row=1, column=0)
+
+        row_2_frame = ctk.CTkFrame(self,width=500, height=30)
+        row_2_frame.grid(row=2, column=0, sticky="nsew")
+
+        row_2_label = ctk.CTkLabel(row_2_frame, text="Sample Label")
+        row_2_label.pack()
+
+        # scrolling_label.pack(anchor="ne")
+
+
     def show(self):
         self.pack()
     
