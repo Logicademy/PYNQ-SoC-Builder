@@ -150,7 +150,7 @@ class Page2(ctk.CTkFrame):
         scrolling_entry_variable = ctk.StringVar()
         scrolling_entry_variable.set(log_data)
         
-        log_text_box = ctk.CTkTextbox(self, width=500, height=150)
+        log_text_box = ctk.CTkTextbox(self, width=500, height=170, corner_radius=0)
         log_text_box.insert("0.0", log_data)
         log_text_box.configure(state="disabled")
         log_text_box.grid(row=1, column=0)
@@ -158,11 +158,17 @@ class Page2(ctk.CTkFrame):
         row_2_frame = ctk.CTkFrame(self,width=500, height=30)
         row_2_frame.grid(row=2, column=0, sticky="nsew")
 
-        row_2_label = ctk.CTkLabel(row_2_frame, text="Sample Label")
-        row_2_label.pack()
+        self.progress_bar = ctk.CTkProgressBar(row_2_frame, progress_color="green", orientation="horizontal", width=500, height=10, corner_radius=0)
+        self.progress_bar.pack()
 
-        # scrolling_label.pack(anchor="ne")
+        bottom_row_frame = ctk.CTkFrame(self, width=500, height=20)
+        bottom_row_frame.grid(row=3, column=0, sticky="nsew")
 
+        copy_to_clip_button = ctk.CTkButton(bottom_row_frame, width=150, text="Copy Log to Clipboard")
+        force_quit_button = ctk.CTkButton(bottom_row_frame, width=150, text="Force Quit", fg_color="red3", hover_color="red4")
+        bottom_row_frame.columnconfigure(1,weight=1)
+        copy_to_clip_button.grid(row=0, column=0)
+        force_quit_button.grid(row=0, column=1,sticky="e")
 
     def show(self):
         self.pack()
