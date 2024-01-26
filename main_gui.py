@@ -1,70 +1,8 @@
 import customtkinter as ctk
-import time
+import os 
 
 ctk.set_appearance_mode("System")
 ctk.set_default_color_theme("blue")
-
-# # Create App
-# app = ctk.CTk()
-# app.title("PYNQ SoC Builder")
-# app.geometry("500x240")
-
-# row_0_frame = ctk.CTkFrame(app, width=500, height=30, corner_radius=0)
-# row_1_frame = ctk.CTkFrame(app, width=500, height=30)
-# row_2_frame = ctk.CTkFrame(app, width=500, height=30)
-# row_last_frame = ctk.CTkFrame(app, width=500, height=30)
-
-# row_0_frame.grid(row=0, sticky="nsew")
-# row_0_frame.columnconfigure(0, weight=1) # Centre the row
-# row_1_frame.grid(row=1, pady=5, padx=10)
-# row_2_frame.grid(row=2, )
-# row_last_frame.grid(row=3)
-
-# ## Row 0
-# # Title Label
-# title_font = ("Segoe UI", 20, "bold") # Title font
-# title_label = ctk.CTkLabel(row_0_frame, text="PYNQ SoC Builder", font=title_font, padx=10)
-# title_label.grid(row=0, column=0, pady=5, sticky="nsew")
-
-# ## Row 1
-# # File path entry and browse button
-# def browse_files():
-#     file_path = ctk.filedialog.askopenfilename(filetypes=[("HDLGen Files", "*.hdlgen")])
-#     entry_path.delete(0, ctk.END)
-#     entry_path.insert(0, file_path)
-# entry_path = ctk.CTkEntry(row_1_frame, width=360)
-# browse_button = ctk.CTkButton(row_1_frame, text="Browse", command=browse_files, width=100)
-# entry_path.grid(row=1, column=0, padx=5, pady=5)
-# browse_button.grid(row=1, column=1, padx=5, pady=5)
-
-# ## Row 2
-# # Select Mode
-# mode_font = ("Segoe UI", 16)
-# mode_label = ctk.CTkLabel(row_2_frame, text="Mode", font=mode_font, pady=5, width=20)
-
-# mode_menu_options = ["Run All", "Generate Tcl", "Run Vivado", "Copy Bitstream", "Gen JNB /w Testplan", "Gen JNB w/o Testplan"]
-# mode_menu_var = ctk.StringVar(app)
-# mode_menu_var.set(mode_menu_options[0])
-
-# def on_mode_dropdown(choice):
-#     print("Selected option: ", choice)
-
-# mode_dropdown = ctk.CTkOptionMenu(row_2_frame, variable=mode_menu_var, values=mode_menu_options, command=on_mode_dropdown, width=150)
-# mode_label.grid(row=2, column=0, pady=5, padx=10)
-# mode_dropdown.grid(row=2, column=1, pady=5, padx=10)
-
-# ## Last Row
-# def on_run_button():
-#     print(entry_path.get())
-#     print(mode_menu_var.get())
-
-# # Go Button
-# run_button = ctk.CTkButton(row_last_frame, text="Run", command=on_run_button)
-# run_button.grid(row=0, column=0, pady=5)
-
-# # Place
-
-# app.mainloop()
 
 class Application:
 
@@ -78,6 +16,12 @@ class Application:
         self.shared_var = ctk.StringVar()
         self.shared_mode_var = ctk.StringVar()
         self.shared_dir_var = ctk.StringVar()
+        ## Shared variable does not need to be a ctk.Variable()
+        self.mode = None
+        self.hdlgen_path = None
+
+        # Shared Variables for Messages
+        self.top_level_message = None
 
         # Initalise app pages
         self.page1 = Page1(self)        # Main Menu
@@ -87,6 +31,9 @@ class Application:
         # Show Inital Page
         self.show_page(self.page1)
 
+        # Initalise attribute toplevel_window
+        self.toplevel_window = None
+
     def show_page(self, page):
         # Hide all existing pages
         # Possible we should make this iterate thru all pages to hide (more dynamic)
@@ -94,9 +41,13 @@ class Application:
         self.page1.hide()
         #self.page2.hide()
         # self.page3.hide()
-
         page.show() # Show requested page.
 
+    def open_alert(self):
+        if self.toplevel_window is None or not self.toplevel_window.winfo_exists():
+            self.toplevel_window = ToplevelWindow(self) # Create window if None or destroyed
+        else:
+            self.toplevel_window.focus() # if window exists focus it.
 
 class Page1(ctk.CTkFrame):
     def __init__(self, app):
@@ -141,7 +92,9 @@ class Page1(ctk.CTkFrame):
         mode_menu_var.set(mode_menu_options[0])
 
         def on_mode_dropdown(choice):
-            print("Selected option: ", choice)
+            pass
+            # print("Selected option: ", choice)
+            # print(mode_dropdown.get())
 
         mode_dropdown = ctk.CTkOptionMenu(row_2_frame, variable=mode_menu_var, values=mode_menu_options, command=on_mode_dropdown, width=150)
         mode_label.grid(row=2, column=0, pady=5, padx=10)
@@ -149,6 +102,12 @@ class Page1(ctk.CTkFrame):
 
         ## Last Row
         def _on_run_button():
+            self.app.mode = mode_dropdown.get()
+            self.app.hdlgen_path = entry_path.get()
+            if not os.path.isfile(entry_path.get()):
+                self.app.top_level_message = "Error: Could not find HDLGen file at path specified"
+                self.app.open_alert()
+                return
             # Need to:
             #   1) Check the inputs are valid
             #   2) Change page to page 2 and pass information
@@ -158,6 +117,54 @@ class Page1(ctk.CTkFrame):
         run_button = ctk.CTkButton(row_last_frame, text="Run", command=_on_run_button)
         run_button.grid(row=0, column=0, pady=5)
 
+    
+
+    def show(self):
+        self.pack()
+    
+    def hide(self):
+        self.pack_forget()
+
+class Page2(ctk.CTkFrame):
+    def __init__(self, app):
+        ctk.CTkFrame.__init__(self, app.root)
+        self.app = app
+
+        # Title Row
+        row_0_frame = ctk.CTkFrame(self, width=500, height=30, corner_radius=0)
+        row_0_frame.grid(row=0, sticky="nsew")
+        title_font = ("Segoe UI", 20, "bold") # Title font
+        title_label = ctk.CTkLabel(row_0_frame, text="PYNQ SoC Builder", font=title_font, padx=10)
+        title_label.grid(row=0, column=0, pady=5, sticky="nsew")
+
+class ToplevelWindow(ctk.CTkToplevel):
+    def __init__(self, app):
+        ctk.CTkToplevel.__init__(self, app.root)
+        self.app = app
+        # self.attributes('-topmost', 'true')
+
+        self.grab_set() # This makes the pop-up the primary window and doesn't allow interaction with main menu
+        self.geometry("300x100")
+        icon_font = ("Segoe Fluent Icons Regular", 80)
+        self.resizable(False, False) # Dont let the window be resizable
+        
+        self.left_frame = ctk.CTkFrame(self, width=100, height=100)
+        self.right_frame = ctk.CTkFrame(self, width=200, height=100)
+
+        self.label = ctk.CTkLabel(self.left_frame, text="\uedae", font=icon_font, width=100, height=100)
+        self.label.pack()
+
+        self.error_text = "\n"+self.app.top_level_message
+        self.msglabel = ctk.CTkLabel(self.right_frame, text=self.error_text, width=200, height=100, wraplength=180, anchor="n")
+        self.msglabel.pack()
+        
+        self.left_frame.grid(column=0, row=0)
+        self.right_frame.grid(column=1, row=0)
+
+
+
+
+    # Show and Hide needed by all page classes.
     def show(self):
         self.pack()
     
