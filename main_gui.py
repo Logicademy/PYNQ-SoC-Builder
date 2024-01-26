@@ -90,21 +90,21 @@ class Page1(ctk.CTkFrame):
         mode_font = ("Segoe UI", 16)
         mode_label = ctk.CTkLabel(row_2_frame, text="Mode", font=mode_font, pady=5, width=20)
 
-        mode_menu_options = ["Run All", "Generate Tcl", "Run Vivado", "Copy Bitstream", "Gen JNB /w Testplan", "Gen JNB w/o Testplan"]
+        self.mode_menu_options = ["Run All", "Generate Tcl", "Run Vivado", "Copy Bitstream", "Gen JNB /w Testplan", "Gen JNB w/o Testplan"]
         mode_menu_var = ctk.StringVar(self)
-        mode_menu_var.set(mode_menu_options[0])
+        mode_menu_var.set(self.mode_menu_options[0])
 
         def on_mode_dropdown(choice):
             # callback - not currently used
             pass
 
-        mode_dropdown = ctk.CTkOptionMenu(row_2_frame, variable=mode_menu_var, values=mode_menu_options, command=on_mode_dropdown, width=150)
+        mode_dropdown = ctk.CTkOptionMenu(row_2_frame, variable=mode_menu_var, values=self.mode_menu_options, command=on_mode_dropdown, width=150)
         mode_label.grid(row=2, column=0, pady=5, padx=10)
         mode_dropdown.grid(row=2, column=1, pady=5, padx=10)
 
         ## Last Row
         def _on_run_button():
-            self.app.shared_mode_var = mode_dropdown.get()
+            self.app.mode = mode_dropdown.get()
             self.app.hdlgen_path = entry_path.get()
             
             # Check if HDLGen file exists - if not send message box and return from this func.
@@ -190,21 +190,54 @@ class Page2(ctk.CTkFrame):
         self.add_to_log_box(f"\nRunning in mode {self.app.mode} commencing at {time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))}")    # time derivation could likely be easier.
         self.add_to_log_box(f"\nHDLGen Project: {self.app.hdlgen_path}")
         
-        self.add_to_log_box(f"\nGenerating Tcl Script")
-        thread = threading.Thread(target=self.generate_tcl)
-        thread.start()
+        if self.app.mode == self.app.page1.mode_menu_options[0]:    # Run All
+            thread = threading.Thread(target=self.run_all)
+            thread.start()
+        elif self.app.mode == self.app.page1.mode_menu_options[1]:  # Generate Tcl
+            thread = threading.Thread(target=self.generate_tcl)
+            thread.start()
+        elif self.app.mode == self.app.page1.mode_menu_options[2]:  # Run Vivado
+            thread = threading.Thread(target=self.run_vivado)
+            thread.start()
+        elif self.app.mode == self.app.page1.mode_menu_options[3]:  # Copy Bitstream
+            thread = threading.Thread(target=self.copy_to_dir)
+            thread.start()
+        elif self.app.mode == self.app.page1.mode_menu_options[4]:  # Generate JNB
+            thread = threading.Thread(target=self.generate_jnb)
+            thread.start()
+        elif self.app.mode == self.app.page1.mode_menu_options[5]:  # Generate Generic JNB
+            # thread = threading.Thread(target=self.run_all)
+            # thread.start()
+            self.add_to_log_box("Not yet implemented in Pynq_Manager.py - API does not exist")
+            pass
+
+    def run_all(self):
+        self.generate_tcl()
+        self.run_vivado()
+        self.copy_to_dir()
+        self.generate_jnb()
 
     def generate_tcl(self):
         pm_obj = pm.Pynq_Manager(self.app.hdlgen_path)
         pm_obj.generate_tcl()
 
+    def run_vivado(self):
+        pm_obj = pm.Pynq_Manager(self.app.hdlgen_path)
+        pm_obj.run_vivado()
+
+    def copy_to_dir(self):
+        pm_obj = pm.Pynq_Manager(self.app.hdlgen_path)
+        pm_obj.copy_to_dir()
+
+    def generate_jnb(self):
+        pm_obj = pm.Pynq_Manager(self.app.hdlgen_path)
+        pm_obj.generate_jnb()
 
     def show(self):
         self.pack()
     
     def hide(self):
         self.pack_forget()
-
 
 class ToplevelWindow(ctk.CTkToplevel):
     def __init__(self, app):
