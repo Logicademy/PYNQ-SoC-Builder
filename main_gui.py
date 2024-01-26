@@ -25,7 +25,7 @@ class Application:
 
         # Initalise app pages
         self.page1 = Page1(self)        # Main Menu
-        #self.page2 = Page2(self)        # Page Showing progress
+        self.page2 = Page2(self)        # Page Showing progress
         # self.page3 = Page3(self)        # Possible we create a summary page later 
 
         # Show Inital Page
@@ -39,7 +39,7 @@ class Application:
         # Possible we should make this iterate thru all pages to hide (more dynamic)
         # Should be ok for this small application
         self.page1.hide()
-        #self.page2.hide()
+        self.page2.hide()
         # self.page3.hide()
         page.show() # Show requested page.
 
@@ -92,9 +92,8 @@ class Page1(ctk.CTkFrame):
         mode_menu_var.set(mode_menu_options[0])
 
         def on_mode_dropdown(choice):
+            # callback - not currently used
             pass
-            # print("Selected option: ", choice)
-            # print(mode_dropdown.get())
 
         mode_dropdown = ctk.CTkOptionMenu(row_2_frame, variable=mode_menu_var, values=mode_menu_options, command=on_mode_dropdown, width=150)
         mode_label.grid(row=2, column=0, pady=5, padx=10)
@@ -102,22 +101,22 @@ class Page1(ctk.CTkFrame):
 
         ## Last Row
         def _on_run_button():
-            self.app.mode = mode_dropdown.get()
+            self.app.shared_mode_var = mode_dropdown.get()
             self.app.hdlgen_path = entry_path.get()
+            
+            # Check if HDLGen file exists - if not send message box and return from this func.
             if not os.path.isfile(entry_path.get()):
                 self.app.top_level_message = "Error: Could not find HDLGen file at path specified"
                 self.app.open_alert()
                 return
-            # Need to:
-            #   1) Check the inputs are valid
-            #   2) Change page to page 2 and pass information
-            pass
+            
+            # HDLGen file exists:
+            # Move to page two:
+            self.app.show_page(self.app.page2)
 
         # Go Button
         run_button = ctk.CTkButton(row_last_frame, text="Run", command=_on_run_button)
         run_button.grid(row=0, column=0, pady=5)
-
-    
 
     def show(self):
         self.pack()
@@ -136,6 +135,13 @@ class Page2(ctk.CTkFrame):
         title_font = ("Segoe UI", 20, "bold") # Title font
         title_label = ctk.CTkLabel(row_0_frame, text="PYNQ SoC Builder", font=title_font, padx=10)
         title_label.grid(row=0, column=0, pady=5, sticky="nsew")
+    
+    def show(self):
+        self.pack()
+    
+    def hide(self):
+        self.pack_forget()
+
 
 class ToplevelWindow(ctk.CTkToplevel):
     def __init__(self, app):
@@ -160,9 +166,6 @@ class ToplevelWindow(ctk.CTkToplevel):
         
         self.left_frame.grid(column=0, row=0)
         self.right_frame.grid(column=1, row=0)
-
-
-
 
     # Show and Hide needed by all page classes.
     def show(self):
