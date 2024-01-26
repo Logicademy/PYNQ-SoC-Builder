@@ -150,13 +150,18 @@ def create_jnb(path_to_hdlgen_file, output_filename=None):
     code_cell_contents += "\nimport pandas as pd"
     code_cell_contents += "\nimport time"
     code_cell_contents += "\n\n# Import Overlay"
-    code_cell_contents += f"\n{compName} = Overlay(/path/to/overlay)"
+    code_cell_contents += f"\n{compName} = Overlay(\"{compName}.bit\")"
     code_cell_contents += "\n# Inputs:"
     for i in input_ports:
         code_cell_contents += f"\n{i[0]} = {compName}.{i[0]}"
     code_cell_contents += "\n# Outputs:"
     for o in output_ports: 
         code_cell_contents += f"\n{o[0]} = {compName}.{o[0]}"
+    if clock_enabled:
+        code_cell_contents += "\n\nSet-Up Clock Function\ndef run_clock_pulse():"
+        code_cell_contents += "\n\tclk.write(1,0)"
+        code_cell_contents += "\n\tclk.write(0,0)\n"
+
     code_cell_contents += "\n\n# Test Case Set Up"
     code_cell_contents += f"\n# Number Of Test Cases: {len(test_cases)}"
     code_cell_contents += f"\ntest_results = [None] * {len(test_cases)}"
@@ -243,15 +248,17 @@ def create_jnb(path_to_hdlgen_file, output_filename=None):
 
         while delay_total >= 1 and clock_enabled:
             # run clock 
-            code_cell_contents += "\n# Running Clock Pulse"
-            code_cell_contents += "\ntime.sleep(0.05) # Sleep for 50 ms"
-            code_cell_contents += "\nclk.write(1,0)"
-            code_cell_contents += "\ntime.sleep(0.05) # Sleep for 50 ms"
-            code_cell_contents += "\nclk.write(0,0)\n"
+            # code_cell_contents += "\n# Running Clock Pulse"
+            # code_cell_contents += "\ntime.sleep(0.05) # Sleep for 50 ms"
+            # code_cell_contents += "\nclk.write(1,0)"
+            # code_cell_contents += "\ntime.sleep(0.05) # Sleep for 50 ms"
+            # code_cell_contents += "\nclk.write(0,0)\n"
+            code_cell_contents += "\nrun_clock_pulse() # run clock pulse"
             delay_total = delay_total - 1
-        
+
+
         # Break
-        code_cell_contents += "\n# Recording Outputs"
+        code_cell_contents += "\n\n# Recording Outputs"
         code_cell_contents += "\ntst_res = []"
         # Checking Output:
         for i in range(len(sub_signals)):
@@ -295,4 +302,4 @@ def create_jnb(path_to_hdlgen_file, output_filename=None):
     print(f"Notebook Generated at: {output_file}")
 
 # create_jnb("E:\\HDLGEN\\RISCV_RB\\RISCV_RB\\HDLGenPrj\\RISCV_RB.hdlgen")
-create_jnb("C:\\hdlgen\\RISCV_RB_Demo\\RISCV_RB\\HDLGenPrj\\RISCV_RB.hdlgen")
+# create_jnb("C:\\hdlgen\\RISCV_RB_Demo\\RISCV_RB\\HDLGenPrj\\RISCV_RB.hdlgen")
