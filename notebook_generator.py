@@ -210,12 +210,14 @@ def create_jnb(path_to_hdlgen_file, output_filename=None):
             value = test[val]
             if radix_form == 'h':
                 # Convert for hexidecimal
-                decimal_value = int(value, 16)
-                test_converted_to_decimal_from_radix.append(str(decimal_value))
+                # decimal_value = int(value, 16)
+                # test_converted_to_decimal_from_radix.append(str(decimal_value))
+                test_converted_to_decimal_from_radix.append(f"int({value}, 16)")
             elif radix_form == 'b':
                 # Convert for binary
-                decimal_value = int(value, 2)
-                test_converted_to_decimal_from_radix.append(str(decimal_value))
+                # decimal_value = int(value, 2)
+                # test_converted_to_decimal_from_radix.append(str(decimal_value))
+                test_converted_to_decimal_from_radix.append(f"int({value}, 2)")
             else:
                 print(f"Warning: Could not detect radix form properly for: {radix_val}")
             
