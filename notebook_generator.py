@@ -158,7 +158,7 @@ def create_jnb(path_to_hdlgen_file, output_filename=None, generic=False):
     for o in output_ports: 
         code_cell_contents += f"\n{o[0]} = {compName}.{o[0]}"
     if clock_enabled:
-        code_cell_contents += "\n\nSet-Up Clock Function\ndef run_clock_pulse():"
+        code_cell_contents += "\n# Set-Up Clock Function\ndef run_clock_pulse():"
         code_cell_contents += "\n\tclk.write(1,0)"
         code_cell_contents += "\n\tclk.write(0,0)\n"
 
