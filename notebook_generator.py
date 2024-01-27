@@ -10,7 +10,7 @@ def create_generic_jnb(path_to_hdlgen_file, output_filename=None):
 
 
 # Function to generate JNB, takes HDLGen file path and notebook name as parameters
-def create_jnb(path_to_hdlgen_file, output_filename=None):
+def create_jnb(path_to_hdlgen_file, output_filename=None, generic=False):
 
     # Open HDLGen xml and get root node.
     hdlgen = xml.dom.minidom.parse(path_to_hdlgen_file)
@@ -162,135 +162,143 @@ def create_jnb(path_to_hdlgen_file, output_filename=None):
         code_cell_contents += "\n\tclk.write(1,0)"
         code_cell_contents += "\n\tclk.write(0,0)\n"
 
-    code_cell_contents += "\n\n# Test Case Set Up"
-    code_cell_contents += f"\n# Number Of Test Cases: {len(test_cases)}"
-    code_cell_contents += f"\ntest_results = [None] * {len(test_cases)}"
+    ##### Break here if only dealing with skeleton code.
 
-    code_cell = nbf.v4.new_code_cell(code_cell_contents)
-    notebook.cells.append(code_cell)
+    if not generic:
 
-    # Testbench Plan Title Cell
-    markdown_cell = nbf.v4.new_markdown_cell("# Test Plan")
-    notebook.cells.append(markdown_cell) 
+        code_cell_contents += "\n\n# Test Case Set Up"
+        code_cell_contents += f"\n# Number Of Test Cases: {len(test_cases)}"
+        code_cell_contents += f"\ntest_results = [None] * {len(test_cases)}"
 
-    # Testbench Plan Cell
-    markdown_cell_contents = ""
-    # Row 1 Signals:
-    markdown_cell_contents += "| "
-    for s in signals_line:
-        markdown_cell_contents += s + " | "
-    markdown_cell_contents += "\n|"
-    for s in signals_line:
-        markdown_cell_contents += ":----:|"
-    # Row 2 Mode:
-    markdown_cell_contents += "\n| "
-    for m in mode_line:
-        markdown_cell_contents += m + " | "
-    # Row 3 Radix:
-    markdown_cell_contents += "\n| "
-    for r in radix_line:
-        markdown_cell_contents += r + " | "
-    # Row 4+ Test Cases:
-    for test in test_cases:
-        markdown_cell_contents += "\n| "
-        for t in test:
-            markdown_cell_contents += t + " | "
-
-    markdown_cell = nbf.v4.new_markdown_cell(markdown_cell_contents)
-    notebook.cells.append(markdown_cell)
-
-    # Loop to Generate each test case
-    test_number = 0
-    delay_total = 0 
-
-    for test in test_cases:
-
-        # print(f"Generating for test case {test_number}")
-        # print(test)
-
-        test_converted_to_decimal_from_radix = []
-        for val in range(1, len(test)-3):
-            radix_val = radix_line[val]
-            radix_form = radix_val[-1]
-            value = test[val]
-            if radix_form == 'h':
-                # Convert for hexidecimal
-                # decimal_value = int(value, 16)
-                # test_converted_to_decimal_from_radix.append(str(decimal_value))
-                test_converted_to_decimal_from_radix.append(f"int(\"{value}\", 16)")
-            elif radix_form == 'b':
-                # Convert for binary
-                # decimal_value = int(value, 2)
-                # test_converted_to_decimal_from_radix.append(str(decimal_value))
-                test_converted_to_decimal_from_radix.append(f"int(\"{value}\", 2)")
-            else:
-                print(f"Warning: Could not detect radix form properly for: {radix_val}")
-            
-        # print(test_converted_to_decimal_from_radix)
-
-        # Create title cell.
-        markdown_cell = nbf.v4.new_markdown_cell(f"**Test Case: {test_number}**")
-        notebook.cells.append(markdown_cell)
-
-        # Code Cell:
-        # Generating Inputs:
-        code_cell_contents = "# Asserting Inputs\n" 
-
-        
-        delay_total += float(test[-3])
-
-        sub_signals = signals_line[1:-3]
-        sub_modes = mode_line[1:-3]
-
-        for i in range(len(sub_signals)):
-            if sub_modes[i] == "in":
-                code_cell_contents += f"{sub_signals[i]}.write(0, {test_converted_to_decimal_from_radix[i]})\n"
-
-        while delay_total >= 1 and clock_enabled:
-            # run clock 
-            # code_cell_contents += "\n# Running Clock Pulse"
-            # code_cell_contents += "\ntime.sleep(0.05) # Sleep for 50 ms"
-            # code_cell_contents += "\nclk.write(1,0)"
-            # code_cell_contents += "\ntime.sleep(0.05) # Sleep for 50 ms"
-            # code_cell_contents += "\nclk.write(0,0)\n"
-            code_cell_contents += "\nrun_clock_pulse() # run clock pulse"
-            delay_total = delay_total - 1
-
-
-        # Break
-        code_cell_contents += "\n\n# Recording Outputs"
-        code_cell_contents += "\ntst_res = []"
-        # Checking Output:
-        for i in range(len(sub_signals)):
-            if sub_modes[i] == "out":
-                code_cell_contents += f"\ntst_res.append(True if {sub_signals[i]}.read(0) == {test_converted_to_decimal_from_radix[i]} else False)"
-
-        code_cell_contents += f"\ntest_results[{test_number}] = all(tst_res)"
-
-        test_number += 1    # Increment Test Number after use.
         code_cell = nbf.v4.new_code_cell(code_cell_contents)
         notebook.cells.append(code_cell)
 
+        # Testbench Plan Title Cell
+        markdown_cell = nbf.v4.new_markdown_cell("# Test Plan")
+        notebook.cells.append(markdown_cell) 
 
-    # Finally, presenting the results in a presentable fashion:
-    # Title Markdown Cell
-    markdown_cell = nbf.v4.new_markdown_cell("# Test Results")
-    notebook.cells.append(markdown_cell)
+        # Testbench Plan Cell
+        markdown_cell_contents = ""
+        # Row 1 Signals:
+        markdown_cell_contents += "| "
+        for s in signals_line:
+            markdown_cell_contents += s + " | "
+        markdown_cell_contents += "\n|"
+        for s in signals_line:
+            markdown_cell_contents += ":----:|"
+        # Row 2 Mode:
+        markdown_cell_contents += "\n| "
+        for m in mode_line:
+            markdown_cell_contents += m + " | "
+        # Row 3 Radix:
+        markdown_cell_contents += "\n| "
+        for r in radix_line:
+            markdown_cell_contents += r + " | "
+        # Row 4+ Test Cases:
+        for test in test_cases:
+            markdown_cell_contents += "\n| "
+            for t in test:
+                markdown_cell_contents += t + " | "
 
-    code_cell_contents = "import pandas as pd\n"
-    code_cell_contents += "\ndf = pd.DataFrame({'Result': test_results})"
-    code_cell_contents += "\npd.set_option('display.notebook_repr_html', False)"
-    code_cell_contents += "\ndef highlight_cells(val):"
-    code_cell_contents += "\n\tif val == True:"
-    code_cell_contents += "\n\t\treturn 'background-color: green'"
-    code_cell_contents += "\n\telif val == False:"
-    code_cell_contents += "\n\t\treturn 'background-color: red'"
-    code_cell_contents += "\n\telse:"
-    code_cell_contents += "\n\t\treturn 'background-color: darkorange'"
-    code_cell_contents += "\nstyled_df = df.style.applymap(highlight_cells, subset=['Result'])"
-    code_cell_contents += "\nstyled_df"
-    code_cell = nbf.v4.new_code_cell(code_cell_contents)
-    notebook.cells.append(code_cell)
+        markdown_cell = nbf.v4.new_markdown_cell(markdown_cell_contents)
+        notebook.cells.append(markdown_cell)
+
+        # Loop to Generate each test case
+        test_number = 0
+        delay_total = 0 
+
+        for test in test_cases:
+
+            # print(f"Generating for test case {test_number}")
+            # print(test)
+
+            test_converted_to_decimal_from_radix = []
+            for val in range(1, len(test)-3):
+                radix_val = radix_line[val]
+                radix_form = radix_val[-1]
+                value = test[val]
+                if radix_form == 'h':
+                    # Convert for hexidecimal
+                    # decimal_value = int(value, 16)
+                    # test_converted_to_decimal_from_radix.append(str(decimal_value))
+                    test_converted_to_decimal_from_radix.append(f"int(\"{value}\", 16)")
+                elif radix_form == 'b':
+                    # Convert for binary
+                    # decimal_value = int(value, 2)
+                    # test_converted_to_decimal_from_radix.append(str(decimal_value))
+                    test_converted_to_decimal_from_radix.append(f"int(\"{value}\", 2)")
+                else:
+                    print(f"Warning: Could not detect radix form properly for: {radix_val}")
+                
+            # print(test_converted_to_decimal_from_radix)
+
+            # Create title cell.
+            markdown_cell = nbf.v4.new_markdown_cell(f"**Test Case: {test_number}**")
+            notebook.cells.append(markdown_cell)
+
+            # Code Cell:
+            # Generating Inputs:
+            code_cell_contents = "# Asserting Inputs\n" 
+
+            
+            delay_total += float(test[-3])
+
+            sub_signals = signals_line[1:-3]
+            sub_modes = mode_line[1:-3]
+
+            for i in range(len(sub_signals)):
+                if sub_modes[i] == "in":
+                    code_cell_contents += f"{sub_signals[i]}.write(0, {test_converted_to_decimal_from_radix[i]})\n"
+
+            while delay_total >= 1 and clock_enabled:
+                # run clock 
+                # code_cell_contents += "\n# Running Clock Pulse"
+                # code_cell_contents += "\ntime.sleep(0.05) # Sleep for 50 ms"
+                # code_cell_contents += "\nclk.write(1,0)"
+                # code_cell_contents += "\ntime.sleep(0.05) # Sleep for 50 ms"
+                # code_cell_contents += "\nclk.write(0,0)\n"
+                code_cell_contents += "\nrun_clock_pulse() # run clock pulse"
+                delay_total = delay_total - 1
+
+
+            # Break
+            code_cell_contents += "\n\n# Recording Outputs"
+            code_cell_contents += "\ntst_res = []"
+            # Checking Output:
+            for i in range(len(sub_signals)):
+                if sub_modes[i] == "out":
+                    code_cell_contents += f"\ntst_res.append(True if {sub_signals[i]}.read(0) == {test_converted_to_decimal_from_radix[i]} else False)"
+
+            code_cell_contents += f"\ntest_results[{test_number}] = all(tst_res)"
+
+            test_number += 1    # Increment Test Number after use.
+            code_cell = nbf.v4.new_code_cell(code_cell_contents)
+            notebook.cells.append(code_cell)
+
+
+        # Finally, presenting the results in a presentable fashion:
+        # Title Markdown Cell
+        markdown_cell = nbf.v4.new_markdown_cell("# Test Results")
+        notebook.cells.append(markdown_cell)
+
+        code_cell_contents = "import pandas as pd\n"
+        code_cell_contents += "\ndf = pd.DataFrame({'Result': test_results})"
+        code_cell_contents += "\npd.set_option('display.notebook_repr_html', False)"
+        code_cell_contents += "\ndef highlight_cells(val):"
+        code_cell_contents += "\n\tif val == True:"
+        code_cell_contents += "\n\t\treturn 'background-color: green'"
+        code_cell_contents += "\n\telif val == False:"
+        code_cell_contents += "\n\t\treturn 'background-color: red'"
+        code_cell_contents += "\n\telse:"
+        code_cell_contents += "\n\t\treturn 'background-color: darkorange'"
+        code_cell_contents += "\nstyled_df = df.style.applymap(highlight_cells, subset=['Result'])"
+        code_cell_contents += "\nstyled_df"
+        code_cell = nbf.v4.new_code_cell(code_cell_contents)
+        notebook.cells.append(code_cell)
+
+    else: 
+        code_cell = nbf.v4.new_code_cell(code_cell_contents)
+        notebook.cells.append(code_cell)
 
     output_file = f'output\{name}.ipynb'
     # if output_filename is not None:
