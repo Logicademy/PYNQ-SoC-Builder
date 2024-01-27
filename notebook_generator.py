@@ -4,11 +4,6 @@ import csv
 from io import StringIO
 import html
 
-# TODO: Generate Generic JNB
-def create_generic_jnb(path_to_hdlgen_file, output_filename=None):
-    pass
-
-
 # Function to generate JNB, takes HDLGen file path and notebook name as parameters
 def create_jnb(path_to_hdlgen_file, output_filename=None, generic=False):
 
