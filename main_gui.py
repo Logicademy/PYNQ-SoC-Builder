@@ -60,13 +60,15 @@ class Page1(ctk.CTkFrame):
         row_0_frame = ctk.CTkFrame(self, width=500, height=30, corner_radius=0)
         row_1_frame = ctk.CTkFrame(self, width=500, height=30)
         row_2_frame = ctk.CTkFrame(self, width=500, height=30)
+        row_3_frame = ctk.CTkFrame(self, width=500, height=30)
         row_last_frame = ctk.CTkFrame(self, width=500, height=30)
 
         row_0_frame.grid(row=0, sticky="nsew")
         row_0_frame.columnconfigure(0, weight=1) # Centre the row
         row_1_frame.grid(row=1, pady=5, padx=10)
-        row_2_frame.grid(row=2, )
-        row_last_frame.grid(row=3)
+        row_2_frame.grid(row=2)
+        row_3_frame.grid(row=3)
+        row_last_frame.grid(row=10)
 
         ## Row 0
         # Title Label
@@ -101,6 +103,17 @@ class Page1(ctk.CTkFrame):
         mode_dropdown = ctk.CTkOptionMenu(row_2_frame, variable=mode_menu_var, values=self.mode_menu_options, command=on_mode_dropdown, width=150)
         mode_label.grid(row=2, column=0, pady=5, padx=10)
         mode_dropdown.grid(row=2, column=1, pady=5, padx=10)
+
+        # Row 3
+        ## Checkbox buttons and labels
+
+        def checkbox_event():
+            print("Checkbox toggled, current value: ", check_var.get())
+
+        check_var = ctk.StringVar(value="on")
+        check_box = ctk.CTkCheckBox(row_3_frame, text="Keep Vivado Open", command=checkbox_event,
+                                    variable=check_var, onvalue="on", offvalue="off")
+        check_box.pack()
 
         ## Last Row
         def _on_run_button():
