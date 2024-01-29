@@ -115,6 +115,11 @@ class Page1(ctk.CTkFrame):
                                     variable=check_var, onvalue="on", offvalue="off")
         check_box.pack()
 
+        check_var2 = ctk.StringVar(value="on")
+        check_box2 = ctk.CTkCheckBox(row_3_frame, text="Show Vivado GUI", command=checkbox_event,
+                                    variable=check_var2, onvalue="on", offvalue="off")
+        check_box2.pack()
+
         ## Last Row
         def _on_run_button():
             self.app.mode = mode_dropdown.get()
