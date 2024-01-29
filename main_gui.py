@@ -67,7 +67,7 @@ class Page1(ctk.CTkFrame):
         row_0_frame.columnconfigure(0, weight=1) # Centre the row
         row_1_frame.grid(row=1, pady=5, padx=10)
         row_2_frame.grid(row=2)
-        row_3_frame.grid(row=3)
+        row_3_frame.grid(row=3, padx=5, pady=5)
         row_last_frame.grid(row=10)
 
         ## Row 0
@@ -113,12 +113,18 @@ class Page1(ctk.CTkFrame):
         check_var = ctk.StringVar(value="on")
         check_box = ctk.CTkCheckBox(row_3_frame, text="Keep Vivado Open", command=checkbox_event,
                                     variable=check_var, onvalue="on", offvalue="off")
-        check_box.pack()
+        check_box.grid(row=0, column=0, sticky="w", pady=5, padx=5)
 
         check_var2 = ctk.StringVar(value="on")
         check_box2 = ctk.CTkCheckBox(row_3_frame, text="Show Vivado GUI", command=checkbox_event,
                                     variable=check_var2, onvalue="on", offvalue="off")
-        check_box2.pack()
+        check_box2.grid(row=0, column=1, pady=5, padx=5)
+
+        check_var3 = ctk.StringVar(value="on")
+        check_box3 = ctk.CTkCheckBox(row_3_frame, text="Show Vivado GUI", command=checkbox_event,
+                                    variable=check_var3, onvalue="on", offvalue="off")
+        check_box3.grid(row=0, column=2, pady=5, padx=5)
+
 
         ## Last Row
         def _on_run_button():
