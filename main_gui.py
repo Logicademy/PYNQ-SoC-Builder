@@ -215,10 +215,14 @@ class Page2(ctk.CTkFrame):
         bottom_row_frame.grid(row=3, column=0, sticky="nsew")
 
         copy_to_clip_button = ctk.CTkButton(bottom_row_frame, width=150, text="Copy Log to Clipboard")
-        force_quit_button = ctk.CTkButton(bottom_row_frame, width=150, text="Force Quit", fg_color="red3", hover_color="red4")
+        self.force_quit_button = ctk.CTkButton(bottom_row_frame, width=150, text="Force Quit", fg_color="red3", hover_color="red4")
+        self.go_back_complete_button = ctk.CTkButton(bottom_row_frame, width=150, text="Return", fg_color="green3", hover_color="green4")
+        
         bottom_row_frame.columnconfigure(1,weight=1)
         copy_to_clip_button.grid(row=0, column=0)
-        force_quit_button.grid(row=0, column=1,sticky="e")
+        self.force_quit_button.grid(row=0, column=1,sticky="e")
+
+        # go_back_complete_button.grid(row=0, column=1,sticky="e")
 
         
     def add_to_log_box(self, text):
@@ -229,7 +233,7 @@ class Page2(ctk.CTkFrame):
         self.log_text_box.configure(state="disabled")
 
     def run_pynq_manager(self):
-        self.add_to_log_box(f"\nRunning in mode {self.app.mode} commencing at {time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))}")    # time derivation could likely be easier.
+        self.add_to_log_box(f"\nRunning in mode {self.app.mode} commencing at {time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))}")
         self.add_to_log_box(f"\nHDLGen Project: {self.app.hdlgen_path}")
         
         if self.app.mode == self.app.page1.mode_menu_options[0]:    # Run All
@@ -281,24 +285,34 @@ class Page2(ctk.CTkFrame):
                 print("Invalid response from Dialog, regenerate_bd = False (default)")
         
         pm_obj.generate_tcl(regenerate_bd=regenerate_bd)
+        self.operation_completed()
 
     def run_vivado(self):
         pm_obj = pm.Pynq_Manager(self.app.hdlgen_path)
         pm_obj.run_vivado()
+        self.operation_completed()
 
     def copy_to_dir(self):
         pm_obj = pm.Pynq_Manager(self.app.hdlgen_path)
         pm_obj.copy_to_dir()
+        self.operation_completed()
 
     def generate_jnb(self):
         pm_obj = pm.Pynq_Manager(self.app.hdlgen_path)
         pm_obj.generate_jnb()
+        self.operation_completed()
 
+    def operation_completed(self):
+        self.force_quit_button.destroy()
+        self.go_back_complete_button.grid(row=0, column=1,sticky="e")
+    
     def show(self):
         self.pack()
     
     def hide(self):
         self.pack_forget()
+
+    
 
 class Alert_Window(ctk.CTkToplevel):
     def __init__(self, app):
@@ -324,14 +338,7 @@ class Alert_Window(ctk.CTkToplevel):
         self.left_frame.grid(column=0, row=0)
         self.right_frame.grid(column=1, row=0)
 
-    # TODO: Check if these functions are actually needed.
-    # Show and Hide needed by all page classes
-    def show(self):
-        self.pack()
-    
-    def hide(self):
-        self.pack_forget()
-        
+
 class Dialog_Window(ctk.CTkToplevel):
     def __init__(self, app):
         ctk.CTkToplevel.__init__(self, app.root)
@@ -375,14 +382,6 @@ class Dialog_Window(ctk.CTkToplevel):
         self.left_frame.grid(column=0, row=0)
         self.right_frame.grid(column=1, row=0)
         self.button_frame.grid(column=0, row=1, columnspan=2)
-
-
-    # # Show and Hide needed by all page classes
-    # def show(self):
-    #     self.pack()
-    
-    # def hide(self):
-    #     self.pack_forget()
 
 
 
