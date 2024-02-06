@@ -106,24 +106,28 @@ class Page1(ctk.CTkFrame):
 
         # Row 3
         ## Checkbox buttons and labels
-
         def checkbox_event():
-            print("Checkbox toggled, current value: ", check_var.get())
+            print("Checkbox toggled\topen GUI: ", open_gui_var.get())
+            print("\t\t\topen GUI: ", keep_gui_open_var.get())
+            if open_gui_var.get() == "on":
+                keep_gui_open_check_box.configure(state="normal")
+            else:
+                keep_gui_open_check_box.configure(state="disabled")
 
-        check_var = ctk.StringVar(value="on")
-        check_box = ctk.CTkCheckBox(row_3_frame, text="Keep Vivado Open", command=checkbox_event,
-                                    variable=check_var, onvalue="on", offvalue="off")
-        check_box.grid(row=0, column=0, sticky="w", pady=5, padx=5)
+        open_gui_var = ctk.StringVar(value="on")
+        open_gui_check_box = ctk.CTkCheckBox(row_3_frame, text="Open Vivado GUI", command=checkbox_event,
+                                    variable=open_gui_var, onvalue="on", offvalue="off")
+        open_gui_check_box.grid(row=0, column=0, sticky="w", pady=5, padx=5)
 
-        check_var2 = ctk.StringVar(value="on")
-        check_box2 = ctk.CTkCheckBox(row_3_frame, text="Show Vivado GUI", command=checkbox_event,
-                                    variable=check_var2, onvalue="on", offvalue="off")
-        check_box2.grid(row=0, column=1, pady=5, padx=5)
+        keep_gui_open_var = ctk.StringVar(value="off")
+        keep_gui_open_check_box = ctk.CTkCheckBox(row_3_frame, text="Keep Vivado Open", command=checkbox_event,
+                                    variable=keep_gui_open_var, onvalue="on", offvalue="off")
+        keep_gui_open_check_box.grid(row=0, column=1, pady=5, padx=5)
 
-        check_var3 = ctk.StringVar(value="on")
-        check_box3 = ctk.CTkCheckBox(row_3_frame, text="Show Vivado GUI", command=checkbox_event,
-                                    variable=check_var3, onvalue="on", offvalue="off")
-        check_box3.grid(row=0, column=2, pady=5, padx=5)
+        # check_var3 = ctk.StringVar(value="on")
+        # check_box3 = ctk.CTkCheckBox(row_3_frame, text="Show Vivado GUI", command=checkbox_event,
+        #                             variable=check_var3, onvalue="on", offvalue="off")
+        # check_box3.grid(row=0, column=2, pady=5, padx=5)
 
 
         ## Last Row
@@ -146,7 +150,7 @@ class Page1(ctk.CTkFrame):
 
         # Go Button
         run_button = ctk.CTkButton(row_last_frame, text="Run", command=_on_run_button)
-        run_button.grid(row=0, column=0, pady=5)
+        run_button.grid(row=0, column=0, pady=5, padx=5)
 
     def show(self):
         self.pack()
