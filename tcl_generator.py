@@ -15,7 +15,6 @@ import xml.dom.minidom
 import os
 
 # Configurable Variables
-start_gui = True
 verbose_prints = False # Not implemented yet.
 
 ########## Start of Tcl Script Generation ##########
@@ -44,7 +43,7 @@ verbose_prints = False # Not implemented yet.
 # 12. Run Synthesis, Implementation and Generate Bitstream
 
 
-def generate_tcl(path_to_hdlgen_project, regenerate_bd=False):
+def generate_tcl(path_to_hdlgen_project, regenerate_bd=False, start_gui=True, keep_vivado_open=False):
 
     ########## Options ########## 
     experimental_board_config = True
@@ -299,9 +298,21 @@ def generate_tcl(path_to_hdlgen_project, regenerate_bd=False):
     
     # (13) Save and Quit
     file_contents += "\nwait_on_run impl_1"
-    file_contents += "\nstop_gui"
-    file_contents += "\nclose_design"
-    file_contents += "\nexit"
+
+    if start_gui:
+        if not keep_vivado_open:
+            file_contents += "\nstop_gui"
+            file_contents += "\nclose_design"
+            file_contents += "\nexit"
+        else:
+            # GUI started, and user wishes to close Vivado themselves.
+            # Do nothing.
+            pass
+    else: # GUI not started, close project, don't run stop_gui command.
+        # file_contents += "\nstop_gui"
+        file_contents += "\nclose_design"
+        file_contents += "\nexit"
+
     
     ########## Writing to generate_script.tcl ##########
     with open('generate_script.tcl', 'w') as file:

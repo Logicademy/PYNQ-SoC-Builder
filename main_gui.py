@@ -10,6 +10,7 @@ ctk.set_default_color_theme("blue")
 class Application:
 
     def __init__(self, root):
+
         # Set root and title
         self.root = root
         self.root.title("PYNQ SoC Builder")
@@ -19,12 +20,15 @@ class Application:
         self.shared_var = ctk.StringVar()
         self.shared_mode_var = ctk.StringVar()
         self.shared_dir_var = ctk.StringVar()
+
         ## Shared variable does not need to be a ctk.Variable()
         self.mode = None
         self.hdlgen_path = None
+        self.checkbox_values = None
 
         # Shared Variables for Messages
         self.top_level_message = None
+        self.dialog_response = None
 
         # Initalise app pages
         self.page1 = Page1(self)        # Main Menu
@@ -48,9 +52,18 @@ class Application:
 
     def open_alert(self):
         if self.toplevel_window is None or not self.toplevel_window.winfo_exists():
-            self.toplevel_window = ToplevelWindow(self) # Create window if None or destroyed
+            self.toplevel_window = Alert_Window(self) # Create window if None or destroyed
         else:
             self.toplevel_window.focus() # if window exists focus it.
+    
+    def open_dialog(self):
+        if self.toplevel_window is None or not self.toplevel_window.winfo_exists():
+            self.toplevel_window = Dialog_Window(self) # Create window if None or destroyed
+        else:
+            self.toplevel_window.focus() # if window exists focus it.
+        
+
+        
 
 class Page1(ctk.CTkFrame):
     def __init__(self, app):
@@ -60,13 +73,15 @@ class Page1(ctk.CTkFrame):
         row_0_frame = ctk.CTkFrame(self, width=500, height=30, corner_radius=0)
         row_1_frame = ctk.CTkFrame(self, width=500, height=30)
         row_2_frame = ctk.CTkFrame(self, width=500, height=30)
+        row_3_frame = ctk.CTkFrame(self, width=500, height=30)
         row_last_frame = ctk.CTkFrame(self, width=500, height=30)
 
         row_0_frame.grid(row=0, sticky="nsew")
         row_0_frame.columnconfigure(0, weight=1) # Centre the row
         row_1_frame.grid(row=1, pady=5, padx=10)
-        row_2_frame.grid(row=2, )
-        row_last_frame.grid(row=3)
+        row_2_frame.grid(row=2,pady=10)
+        row_3_frame.grid(row=3, padx=5, pady=15)
+        row_last_frame.grid(row=10)
 
         ## Row 0
         # Title Label
@@ -96,11 +111,48 @@ class Page1(ctk.CTkFrame):
 
         def on_mode_dropdown(choice):
             # callback - not currently used
+            # self.app.top_level_message = "We wanna ask a question"
+            # self.app.open_dialog()
             pass
 
         mode_dropdown = ctk.CTkOptionMenu(row_2_frame, variable=mode_menu_var, values=self.mode_menu_options, command=on_mode_dropdown, width=150)
         mode_label.grid(row=2, column=0, pady=5, padx=10)
         mode_dropdown.grid(row=2, column=1, pady=5, padx=10)
+
+        # Row 3
+        ## Checkbox buttons and labels
+        def checkbox_event():
+            print("Checkbox toggled\topen GUI: ", open_gui_var.get())
+            print("\t\t\topen GUI: ", keep_gui_open_var.get())
+            if open_gui_var.get() == "on":
+                keep_gui_open_check_box.configure(state="normal")
+            else:
+                keep_gui_open_check_box.configure(state="disabled")
+
+            # self.app.checkbox_values = [open_gui_var.get(), keep_gui_open_var.get()]
+            
+            # Convert to true/false
+            self.app.checkbox_values = [open_gui_var.get() == "on", keep_gui_open_var.get() == "on"]
+        
+        
+
+        open_gui_var = ctk.StringVar(value="on")
+        open_gui_check_box = ctk.CTkCheckBox(row_3_frame, text="Open Vivado GUI", command=checkbox_event,
+                                    variable=open_gui_var, onvalue="on", offvalue="off")
+        open_gui_check_box.grid(row=0, column=0, sticky="w", pady=5, padx=5)
+
+        keep_gui_open_var = ctk.StringVar(value="off")
+        keep_gui_open_check_box = ctk.CTkCheckBox(row_3_frame, text="Keep Vivado Open", command=checkbox_event,
+                                    variable=keep_gui_open_var, onvalue="on", offvalue="off")
+        keep_gui_open_check_box.grid(row=0, column=1, pady=5, padx=5)
+
+        checkbox_event() # Calling to set default values
+
+        # check_var3 = ctk.StringVar(value="on")
+        # check_box3 = ctk.CTkCheckBox(row_3_frame, text="Show Vivado GUI", command=checkbox_event,
+        #                             variable=check_var3, onvalue="on", offvalue="off")
+        # check_box3.grid(row=0, column=2, pady=5, padx=5)
+
 
         ## Last Row
         def _on_run_button():
@@ -122,7 +174,7 @@ class Page1(ctk.CTkFrame):
 
         # Go Button
         run_button = ctk.CTkButton(row_last_frame, text="Run", command=_on_run_button)
-        run_button.grid(row=0, column=0, pady=5)
+        run_button.grid(row=0, column=0, pady=5, padx=5)
 
     def show(self):
         self.pack()
@@ -171,23 +223,25 @@ class Page2(ctk.CTkFrame):
         bottom_row_frame.grid(row=3, column=0, sticky="nsew")
 
         copy_to_clip_button = ctk.CTkButton(bottom_row_frame, width=150, text="Copy Log to Clipboard")
-        force_quit_button = ctk.CTkButton(bottom_row_frame, width=150, text="Force Quit", fg_color="red3", hover_color="red4")
+        self.force_quit_button = ctk.CTkButton(bottom_row_frame, width=150, text="Force Quit", fg_color="red3", hover_color="red4")
+        self.go_back_complete_button = ctk.CTkButton(bottom_row_frame, width=150, text="Return", fg_color="green3", hover_color="green4")
+        
         bottom_row_frame.columnconfigure(1,weight=1)
         copy_to_clip_button.grid(row=0, column=0)
-        force_quit_button.grid(row=0, column=1,sticky="e")
+        self.force_quit_button.grid(row=0, column=1,sticky="e")
+
+        # go_back_complete_button.grid(row=0, column=1,sticky="e")
 
         
-
     def add_to_log_box(self, text):
         self.log_text_box.configure(state="normal")
         self.log_data += text
         self.log_text_box.delete("0.0", "end")  # delete all text
         self.log_text_box.insert("0.0", self.log_data) # repost all text
         self.log_text_box.configure(state="disabled")
-        
 
     def run_pynq_manager(self):
-        self.add_to_log_box(f"\nRunning in mode {self.app.mode} commencing at {time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))}")    # time derivation could likely be easier.
+        self.add_to_log_box(f"\nRunning in mode {self.app.mode} commencing at {time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))}")
         self.add_to_log_box(f"\nHDLGen Project: {self.app.hdlgen_path}")
         
         if self.app.mode == self.app.page1.mode_menu_options[0]:    # Run All
@@ -218,28 +272,66 @@ class Page2(ctk.CTkFrame):
         self.generate_jnb()
 
     def generate_tcl(self):
+        regenerate_bd = False # Default
+        # start_gui = True 
+        # keep_vivado_open = False
+
+        # Checkbox_values shared variable is mapped as open_gui_var/keep_gui_open_var
+        # self.app.checkbox_values = [open_gui_var.get(), keep_gui_open_var.get()]
+        start_gui = self.app.checkbox_values[0]
+        keep_vivado_open = self.app.checkbox_values[1]
+
+        # Run check here, and run dialog:
         pm_obj = pm.Pynq_Manager(self.app.hdlgen_path)
-        pm_obj.generate_tcl()
+        response = None
+        if pm_obj.get_bd_exists:
+            self.app.top_level_message = "A block diagram already exists, would you like to regenerate a fresh BD?"
+            self.app.open_dialog()
+            
+            # Wait for the user to click their response
+            self.app.toplevel_window.wait_window()
+
+            print(self.app.dialog_response)
+            response = self.app.dialog_response
+            if response == "yes":
+                regenerate_bd = True
+            elif response == "no":
+                regenerate_bd = False
+            else:
+                print("Invalid response from Dialog, regenerate_bd = False (default)")
+        
+        pm_obj.generate_tcl(regenerate_bd=regenerate_bd, start_gui=start_gui, keep_vivado_open=keep_vivado_open)
+
+        self.operation_completed()
 
     def run_vivado(self):
         pm_obj = pm.Pynq_Manager(self.app.hdlgen_path)
         pm_obj.run_vivado()
+        self.operation_completed()
 
     def copy_to_dir(self):
         pm_obj = pm.Pynq_Manager(self.app.hdlgen_path)
         pm_obj.copy_to_dir()
+        self.operation_completed()
 
     def generate_jnb(self):
         pm_obj = pm.Pynq_Manager(self.app.hdlgen_path)
         pm_obj.generate_jnb()
+        self.operation_completed()
 
+    def operation_completed(self):
+        self.force_quit_button.destroy()
+        self.go_back_complete_button.grid(row=0, column=1,sticky="e")
+    
     def show(self):
         self.pack()
     
     def hide(self):
         self.pack_forget()
 
-class ToplevelWindow(ctk.CTkToplevel):
+    
+
+class Alert_Window(ctk.CTkToplevel):
     def __init__(self, app):
         ctk.CTkToplevel.__init__(self, app.root)
         self.app = app
@@ -263,12 +355,52 @@ class ToplevelWindow(ctk.CTkToplevel):
         self.left_frame.grid(column=0, row=0)
         self.right_frame.grid(column=1, row=0)
 
-    # Show and Hide needed by all page classes
-    def show(self):
-        self.pack()
-    
-    def hide(self):
-        self.pack_forget()
+
+class Dialog_Window(ctk.CTkToplevel):
+    def __init__(self, app):
+        ctk.CTkToplevel.__init__(self, app.root)
+        self.app = app
+        
+        self.grab_set() # This makes the pop-up the primary window and doesn't allow interaction with main menu
+        self.geometry("300x140")
+        icon_font = ("Segoe Fluent Icons Regular", 80)
+        self.resizable(False, False) # Dont let the window be resizable
+        
+        self.left_frame = ctk.CTkFrame(self, width=100, height=100)
+        self.right_frame = ctk.CTkFrame(self, width=200, height=100)
+        self.button_frame = ctk.CTkFrame(self, width=300, height=50)
+
+        self.label = ctk.CTkLabel(self.left_frame, text="\uf142", font=icon_font, width=100, height=100)
+        self.label.pack()
+
+        self.question = "\n"+self.app.top_level_message
+        self.msglabel = ctk.CTkLabel(self.right_frame, text=self.question, width=200, height=100, wraplength=180, anchor="n")
+        self.msglabel.pack()
+        
+
+        def _on_yes_button():
+            # set var
+            # close window
+            self.app.dialog_response = "yes"
+            self.destroy()
+
+        def _on_no_button():
+            # set var
+            # close window
+            self.app.dialog_response = "no"
+            self.destroy()  
+
+        self.button_frame = ctk.CTkFrame(self, width=300, height=50)
+        self.yes_button = ctk.CTkButton(self.button_frame, text="Yes", command=_on_yes_button)
+        self.yes_button.grid(row=0, column=0, pady=5, padx=5)
+        self.no_button = ctk.CTkButton(self.button_frame, text="No", command=_on_no_button)
+        self.no_button.grid(row=0, column=1, pady=5, padx=5)
+
+        self.left_frame.grid(column=0, row=0)
+        self.right_frame.grid(column=1, row=0)
+        self.button_frame.grid(column=0, row=1, columnspan=2)
+
+
 
 if __name__ == "__main__":
     root = ctk.CTk()
