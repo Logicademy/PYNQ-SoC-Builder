@@ -72,22 +72,29 @@ class Page1(ctk.CTkFrame):
 
         row_0_frame = ctk.CTkFrame(self, width=500, height=30, corner_radius=0)
         row_1_frame = ctk.CTkFrame(self, width=500, height=30)
-        row_2_frame = ctk.CTkFrame(self, width=500, height=30)
+        self.row_2_frame = ctk.CTkFrame(self, width=500, height=30)
         row_3_frame = ctk.CTkFrame(self, width=500, height=30)
+        row_4_frame = ctk.CTkFrame(self, width=500, height=30)
         row_last_frame = ctk.CTkFrame(self, width=500, height=30)
 
         row_0_frame.grid(row=0, sticky="nsew")
         row_0_frame.columnconfigure(0, weight=1) # Centre the row
         row_1_frame.grid(row=1, pady=5, padx=10)
-        row_2_frame.grid(row=2,pady=10)
+        # self.row_2_frame.grid(row=2,pady=10)
         row_3_frame.grid(row=3, padx=5, pady=15)
-        row_last_frame.grid(row=10)
+        row_4_frame.grid(row=4, padx=5, pady=5)
+
+
+        row_last_frame.grid(row=10, pady=15)
 
         ## Row 0
         # Title Label
         title_font = ("Segoe UI", 20, "bold") # Title font
         title_label = ctk.CTkLabel(row_0_frame, text="PYNQ SoC Builder", font=title_font, padx=10)
         title_label.grid(row=0, column=0, sticky="nsew")
+
+        title_label.bind("<Button-3>", self.on_right_button_title_label)
+
 
         ## Row 1
         # File path entry and browse button
@@ -103,7 +110,7 @@ class Page1(ctk.CTkFrame):
         ## Row 2
         # Select Mode
         mode_font = ("Segoe UI", 16)
-        mode_label = ctk.CTkLabel(row_2_frame, text="Mode", font=mode_font, pady=5, width=20)
+        mode_label = ctk.CTkLabel(self.row_2_frame, text="Mode", font=mode_font, pady=5, width=20)
 
         self.mode_menu_options = ["Run All", "Generate Tcl", "Run Vivado", "Copy Bitstream", "Gen JNB /w Testplan", "Gen JNB w/o Testplan"]
         mode_menu_var = ctk.StringVar(self)
@@ -115,26 +122,28 @@ class Page1(ctk.CTkFrame):
             # self.app.open_dialog()
             pass
 
-        mode_dropdown = ctk.CTkOptionMenu(row_2_frame, variable=mode_menu_var, values=self.mode_menu_options, command=on_mode_dropdown, width=150)
+        mode_dropdown = ctk.CTkOptionMenu(self.row_2_frame, variable=mode_menu_var, values=self.mode_menu_options, command=on_mode_dropdown, width=150)
         mode_label.grid(row=2, column=0, pady=5, padx=10)
         mode_dropdown.grid(row=2, column=1, pady=5, padx=10)
 
         # Row 3
         ## Checkbox buttons and labels
         def checkbox_event():
-            print("Checkbox toggled\topen GUI: ", open_gui_var.get())
-            print("\t\t\topen GUI: ", keep_gui_open_var.get())
+            # print("Checkbox toggled\topen GUI: ", open_gui_var.get())
+            # print("\t\t\topen GUI: ", keep_gui_open_var.get())
             if open_gui_var.get() == "on":
                 keep_gui_open_check_box.configure(state="normal")
             else:
                 keep_gui_open_check_box.configure(state="disabled")
 
+            if gen_jnb_var.get() == "on":
+                use_testbench_check_box.configure(state="normal")
+            else:
+                use_testbench_check_box.configure(state="disabled")
             # self.app.checkbox_values = [open_gui_var.get(), keep_gui_open_var.get()]
             
             # Convert to true/false
-            self.app.checkbox_values = [open_gui_var.get() == "on", keep_gui_open_var.get() == "on"]
-        
-        
+            self.app.checkbox_values = [open_gui_var.get() == "on", keep_gui_open_var.get() == "on", gen_jnb_var.get() == "on", use_testbench_var.get() == "on"]
 
         open_gui_var = ctk.StringVar(value="on")
         open_gui_check_box = ctk.CTkCheckBox(row_3_frame, text="Open Vivado GUI", command=checkbox_event,
@@ -145,6 +154,16 @@ class Page1(ctk.CTkFrame):
         keep_gui_open_check_box = ctk.CTkCheckBox(row_3_frame, text="Keep Vivado Open", command=checkbox_event,
                                     variable=keep_gui_open_var, onvalue="on", offvalue="off")
         keep_gui_open_check_box.grid(row=0, column=1, pady=5, padx=5)
+
+        gen_jnb_var = ctk.StringVar(value="on")
+        gen_jnb_check_box = ctk.CTkCheckBox(row_4_frame, text="Generate JNB", command=checkbox_event,
+                                    variable=gen_jnb_var, onvalue="on", offvalue="off")
+        gen_jnb_check_box.grid(row=0, column=0, sticky="w", pady=5, padx=5)
+
+        use_testbench_var = ctk.StringVar(value="on")
+        use_testbench_check_box = ctk.CTkCheckBox(row_4_frame, text="Use Testbench", command=checkbox_event,
+                                    variable=use_testbench_var, onvalue="on", offvalue="off")
+        use_testbench_check_box.grid(row=0, column=1, pady=5, padx=5)
 
         checkbox_event() # Calling to set default values
 
@@ -175,6 +194,16 @@ class Page1(ctk.CTkFrame):
         # Go Button
         run_button = ctk.CTkButton(row_last_frame, text="Run", command=_on_run_button)
         run_button.grid(row=0, column=0, pady=5, padx=5)
+
+    def on_right_button_title_label(self, arg):
+        print(arg)
+        if self.row_2_frame.winfo_ismapped():
+            self.row_2_frame.grid_forget()
+            self.app.root.geometry("500x240")
+        else:
+            self.row_2_frame.grid(row=2)
+            self.app.root.geometry("500x280")
+
 
     def show(self):
         self.pack()
