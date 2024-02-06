@@ -296,12 +296,13 @@ class Page2(ctk.CTkFrame):
             pass
 
     def run_all(self):
-        self.generate_tcl()
-        self.run_vivado()
-        self.copy_to_dir()
-        self.generate_jnb()
+        self.generate_tcl(False)
+        self.run_vivado(False)
+        self.copy_to_dir(False)
+        self.generate_jnb(False)
+        self.operation_completed()
 
-    def generate_tcl(self):
+    def generate_tcl(self, assert_complete=True):
         regenerate_bd = False # Default
         # start_gui = True 
         # keep_vivado_open = False
@@ -331,23 +332,31 @@ class Page2(ctk.CTkFrame):
                 print("Invalid response from Dialog, regenerate_bd = False (default)")
         
         pm_obj.generate_tcl(regenerate_bd=regenerate_bd, start_gui=start_gui, keep_vivado_open=keep_vivado_open)
+        if assert_complete:
+            self.operation_completed()
 
-        self.operation_completed()
-
-    def run_vivado(self):
+    def run_vivado(self, assert_complete=True):
         pm_obj = pm.Pynq_Manager(self.app.hdlgen_path)
         pm_obj.run_vivado()
         self.operation_completed()
 
-    def copy_to_dir(self):
+    def copy_to_dir(self, assert_complete=True):
         pm_obj = pm.Pynq_Manager(self.app.hdlgen_path)
         pm_obj.copy_to_dir()
-        self.operation_completed()
+        if assert_complete:
+            self.operation_completed()
 
-    def generate_jnb(self):
-        pm_obj = pm.Pynq_Manager(self.app.hdlgen_path)
-        pm_obj.generate_jnb()
-        self.operation_completed()
+    def generate_jnb(self, assert_complete=True):
+        generate_jnb = self.app.checkbox_values[2]
+        use_testbench = self.app.checkbox_values[3]
+        generic = not use_testbench
+
+        if not generate_jnb:
+            pm_obj = pm.Pynq_Manager(self.app.hdlgen_path)
+            pm_obj.generate_jnb(generic=generic)
+        
+        if assert_complete:
+            self.operation_completed()
 
     def operation_completed(self):
         self.force_quit_button.destroy()
@@ -366,7 +375,7 @@ class Alert_Window(ctk.CTkToplevel):
         ctk.CTkToplevel.__init__(self, app.root)
         self.app = app
         # self.attributes('-topmost', 'true')
-
+        self.title("Alert")
         self.grab_set() # This makes the pop-up the primary window and doesn't allow interaction with main menu
         self.geometry("300x100")
         icon_font = ("Segoe Fluent Icons Regular", 80)
@@ -390,7 +399,7 @@ class Dialog_Window(ctk.CTkToplevel):
     def __init__(self, app):
         ctk.CTkToplevel.__init__(self, app.root)
         self.app = app
-        
+        self.title("Dialog")
         self.grab_set() # This makes the pop-up the primary window and doesn't allow interaction with main menu
         self.geometry("300x140")
         icon_font = ("Segoe Fluent Icons Regular", 80)
