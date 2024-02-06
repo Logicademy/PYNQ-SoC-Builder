@@ -24,6 +24,7 @@ class Application:
         ## Shared variable does not need to be a ctk.Variable()
         self.mode = None
         self.hdlgen_path = None
+        self.checkbox_values = None
 
         # Shared Variables for Messages
         self.top_level_message = None
@@ -39,8 +40,6 @@ class Application:
 
         # Initalise attribute toplevel_window
         self.toplevel_window = None
-
-        
 
     def show_page(self, page):
         # Hide all existing pages
@@ -130,6 +129,13 @@ class Page1(ctk.CTkFrame):
             else:
                 keep_gui_open_check_box.configure(state="disabled")
 
+            # self.app.checkbox_values = [open_gui_var.get(), keep_gui_open_var.get()]
+            
+            # Convert to true/false
+            self.app.checkbox_values = [open_gui_var.get() == "on", keep_gui_open_var.get() == "on"]
+        
+        
+
         open_gui_var = ctk.StringVar(value="on")
         open_gui_check_box = ctk.CTkCheckBox(row_3_frame, text="Open Vivado GUI", command=checkbox_event,
                                     variable=open_gui_var, onvalue="on", offvalue="off")
@@ -139,6 +145,8 @@ class Page1(ctk.CTkFrame):
         keep_gui_open_check_box = ctk.CTkCheckBox(row_3_frame, text="Keep Vivado Open", command=checkbox_event,
                                     variable=keep_gui_open_var, onvalue="on", offvalue="off")
         keep_gui_open_check_box.grid(row=0, column=1, pady=5, padx=5)
+
+        checkbox_event() # Calling to set default values
 
         # check_var3 = ctk.StringVar(value="on")
         # check_box3 = ctk.CTkCheckBox(row_3_frame, text="Show Vivado GUI", command=checkbox_event,
@@ -265,6 +273,14 @@ class Page2(ctk.CTkFrame):
 
     def generate_tcl(self):
         regenerate_bd = False # Default
+        # start_gui = True 
+        # keep_vivado_open = False
+
+        # Checkbox_values shared variable is mapped as open_gui_var/keep_gui_open_var
+        # self.app.checkbox_values = [open_gui_var.get(), keep_gui_open_var.get()]
+        start_gui = self.app.checkbox_values[0]
+        keep_vivado_open = self.app.checkbox_values[1]
+
         # Run check here, and run dialog:
         pm_obj = pm.Pynq_Manager(self.app.hdlgen_path)
         response = None
@@ -284,7 +300,8 @@ class Page2(ctk.CTkFrame):
             else:
                 print("Invalid response from Dialog, regenerate_bd = False (default)")
         
-        pm_obj.generate_tcl(regenerate_bd=regenerate_bd)
+        pm_obj.generate_tcl(regenerate_bd=regenerate_bd, start_gui=start_gui, keep_vivado_open=keep_vivado_open)
+
         self.operation_completed()
 
     def run_vivado(self):
