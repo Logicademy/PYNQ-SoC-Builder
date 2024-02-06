@@ -79,8 +79,10 @@ class Pynq_Manager:
     def upload_to_pynq(self):
         pass
 
-    def copy_to_dir(self, destination):
+    def copy_to_dir(self, destination=None):
         ftp = ftp_manager.Ftp_Manager(self.hdlgen_project_path)
+        if destination == None:
+            destination = os.getcwd() + "\\output"
         ftp.copy_bitstream_to_dir(destination)
         print(f"Copied Bitsteam Output to: {destination}")
         # this function is responsible for moving the output in the event that direct upload isn't available.
@@ -88,8 +90,8 @@ class Pynq_Manager:
     def test_connection(self):
         ftp_manager.pwd()
 
-    def generate_jnb(self):
-        nbg.create_jnb(self.hdlgen_project_path)
+    def generate_jnb(self, generic=False):
+        nbg.create_jnb(self.hdlgen_project_path, generic=generic)
 
 
 ## Read the docs : https://pysftp.readthedocs.io/en/release_0.2.9/cookbook.html#pysftp-connection-get
