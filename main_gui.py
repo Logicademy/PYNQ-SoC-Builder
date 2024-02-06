@@ -15,6 +15,7 @@ class Application:
         self.root = root
         self.root.title("PYNQ SoC Builder")
         self.root.geometry("500x240")
+        self.root.resizable(False, False) # Dont let the window be resizable
 
         # Shared Data Variable
         self.shared_var = ctk.StringVar()
