@@ -27,6 +27,7 @@ class Application:
 
         # Shared Variables for Messages
         self.top_level_message = None
+        self.dialog_response = None
 
         # Initalise app pages
         self.page1 = Page1(self)        # Main Menu
@@ -61,6 +62,7 @@ class Application:
             self.toplevel_window = Dialog_Window(self) # Create window if None or destroyed
         else:
             self.toplevel_window.focus() # if window exists focus it.
+        
 
         
 
@@ -78,8 +80,8 @@ class Page1(ctk.CTkFrame):
         row_0_frame.grid(row=0, sticky="nsew")
         row_0_frame.columnconfigure(0, weight=1) # Centre the row
         row_1_frame.grid(row=1, pady=5, padx=10)
-        row_2_frame.grid(row=2)
-        row_3_frame.grid(row=3, padx=5, pady=5)
+        row_2_frame.grid(row=2,pady=10)
+        row_3_frame.grid(row=3, padx=5, pady=15)
         row_last_frame.grid(row=10)
 
         ## Row 0
@@ -258,8 +260,27 @@ class Page2(ctk.CTkFrame):
         self.generate_jnb()
 
     def generate_tcl(self):
+        regenerate_bd = False # Default
+        # Run check here, and run dialog:
         pm_obj = pm.Pynq_Manager(self.app.hdlgen_path)
-        pm_obj.generate_tcl()
+        response = None
+        if pm_obj.get_bd_exists:
+            self.app.top_level_message = "A block diagram already exists, would you like to regenerate a fresh BD?"
+            self.app.open_dialog()
+            
+            # Wait for the user to click their response
+            self.app.toplevel_window.wait_window()
+
+            print(self.app.dialog_response)
+            response = self.app.dialog_response
+            if response == "yes":
+                regenerate_bd = True
+            elif response == "no":
+                regenerate_bd = False
+            else:
+                print("Invalid response from Dialog, regenerate_bd = False (default)")
+        
+        pm_obj.generate_tcl(regenerate_bd=regenerate_bd)
 
     def run_vivado(self):
         pm_obj = pm.Pynq_Manager(self.app.hdlgen_path)
@@ -333,13 +354,22 @@ class Dialog_Window(ctk.CTkToplevel):
         self.msglabel.pack()
         
 
-        def _on_dialog_window():
-            pass
+        def _on_yes_button():
+            # set var
+            # close window
+            self.app.dialog_response = "yes"
+            self.destroy()
+
+        def _on_no_button():
+            # set var
+            # close window
+            self.app.dialog_response = "no"
+            self.destroy()  
 
         self.button_frame = ctk.CTkFrame(self, width=300, height=50)
-        self.yes_button = ctk.CTkButton(self.button_frame, text="Yes", command=_on_dialog_window)
+        self.yes_button = ctk.CTkButton(self.button_frame, text="Yes", command=_on_yes_button)
         self.yes_button.grid(row=0, column=0, pady=5, padx=5)
-        self.no_button = ctk.CTkButton(self.button_frame, text="No", command=_on_dialog_window)
+        self.no_button = ctk.CTkButton(self.button_frame, text="No", command=_on_no_button)
         self.no_button.grid(row=0, column=1, pady=5, padx=5)
 
         self.left_frame.grid(column=0, row=0)
