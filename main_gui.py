@@ -10,6 +10,7 @@ ctk.set_default_color_theme("blue")
 class Application:
 
     def __init__(self, root):
+
         # Set root and title
         self.root = root
         self.root.title("PYNQ SoC Builder")
@@ -19,6 +20,7 @@ class Application:
         self.shared_var = ctk.StringVar()
         self.shared_mode_var = ctk.StringVar()
         self.shared_dir_var = ctk.StringVar()
+
         ## Shared variable does not need to be a ctk.Variable()
         self.mode = None
         self.hdlgen_path = None
@@ -37,6 +39,8 @@ class Application:
         # Initalise attribute toplevel_window
         self.toplevel_window = None
 
+        
+
     def show_page(self, page):
         # Hide all existing pages
         # Possible we should make this iterate thru all pages to hide (more dynamic)
@@ -48,9 +52,17 @@ class Application:
 
     def open_alert(self):
         if self.toplevel_window is None or not self.toplevel_window.winfo_exists():
-            self.toplevel_window = ToplevelWindow(self) # Create window if None or destroyed
+            self.toplevel_window = Alert_Window(self) # Create window if None or destroyed
         else:
             self.toplevel_window.focus() # if window exists focus it.
+    
+    def open_dialog(self):
+        if self.toplevel_window is None or not self.toplevel_window.winfo_exists():
+            self.toplevel_window = Dialog_Window(self) # Create window if None or destroyed
+        else:
+            self.toplevel_window.focus() # if window exists focus it.
+
+        
 
 class Page1(ctk.CTkFrame):
     def __init__(self, app):
@@ -98,6 +110,8 @@ class Page1(ctk.CTkFrame):
 
         def on_mode_dropdown(choice):
             # callback - not currently used
+            # self.app.top_level_message = "We wanna ask a question"
+            # self.app.open_dialog()
             pass
 
         mode_dropdown = ctk.CTkOptionMenu(row_2_frame, variable=mode_menu_var, values=self.mode_menu_options, command=on_mode_dropdown, width=150)
@@ -205,14 +219,12 @@ class Page2(ctk.CTkFrame):
         force_quit_button.grid(row=0, column=1,sticky="e")
 
         
-
     def add_to_log_box(self, text):
         self.log_text_box.configure(state="normal")
         self.log_data += text
         self.log_text_box.delete("0.0", "end")  # delete all text
         self.log_text_box.insert("0.0", self.log_data) # repost all text
         self.log_text_box.configure(state="disabled")
-        
 
     def run_pynq_manager(self):
         self.add_to_log_box(f"\nRunning in mode {self.app.mode} commencing at {time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))}")    # time derivation could likely be easier.
@@ -267,7 +279,7 @@ class Page2(ctk.CTkFrame):
     def hide(self):
         self.pack_forget()
 
-class ToplevelWindow(ctk.CTkToplevel):
+class Alert_Window(ctk.CTkToplevel):
     def __init__(self, app):
         ctk.CTkToplevel.__init__(self, app.root)
         self.app = app
@@ -291,12 +303,58 @@ class ToplevelWindow(ctk.CTkToplevel):
         self.left_frame.grid(column=0, row=0)
         self.right_frame.grid(column=1, row=0)
 
+    # TODO: Check if these functions are actually needed.
     # Show and Hide needed by all page classes
     def show(self):
         self.pack()
     
     def hide(self):
         self.pack_forget()
+        
+class Dialog_Window(ctk.CTkToplevel):
+    def __init__(self, app):
+        ctk.CTkToplevel.__init__(self, app.root)
+        self.app = app
+        
+        self.grab_set() # This makes the pop-up the primary window and doesn't allow interaction with main menu
+        self.geometry("300x140")
+        icon_font = ("Segoe Fluent Icons Regular", 80)
+        self.resizable(False, False) # Dont let the window be resizable
+        
+        self.left_frame = ctk.CTkFrame(self, width=100, height=100)
+        self.right_frame = ctk.CTkFrame(self, width=200, height=100)
+        self.button_frame = ctk.CTkFrame(self, width=300, height=50)
+
+        self.label = ctk.CTkLabel(self.left_frame, text="\uf142", font=icon_font, width=100, height=100)
+        self.label.pack()
+
+        self.question = "\n"+self.app.top_level_message
+        self.msglabel = ctk.CTkLabel(self.right_frame, text=self.question, width=200, height=100, wraplength=180, anchor="n")
+        self.msglabel.pack()
+        
+
+        def _on_dialog_window():
+            pass
+
+        self.button_frame = ctk.CTkFrame(self, width=300, height=50)
+        self.yes_button = ctk.CTkButton(self.button_frame, text="Yes", command=_on_dialog_window)
+        self.yes_button.grid(row=0, column=0, pady=5, padx=5)
+        self.no_button = ctk.CTkButton(self.button_frame, text="No", command=_on_dialog_window)
+        self.no_button.grid(row=0, column=1, pady=5, padx=5)
+
+        self.left_frame.grid(column=0, row=0)
+        self.right_frame.grid(column=1, row=0)
+        self.button_frame.grid(column=0, row=1, columnspan=2)
+
+
+    # # Show and Hide needed by all page classes
+    # def show(self):
+    #     self.pack()
+    
+    # def hide(self):
+    #     self.pack_forget()
+
+
 
 if __name__ == "__main__":
     root = ctk.CTk()
