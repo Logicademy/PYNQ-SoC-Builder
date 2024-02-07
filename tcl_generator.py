@@ -148,7 +148,7 @@ def generate_tcl(path_to_hdlgen_project, regenerate_bd=False, start_gui=True, ke
     
     ################### Experimental Check if Block Design Exists (and a Wrapper Exists) ####################
 
-    generate_new_bd_design = True   # Default Consignment
+    generate_new_bd_design = regenerate_bd   # Default Consignment
     delete_old_bd_design = False    # Default Consignment
 
     # Need to check if block design actually exists already,
@@ -182,7 +182,12 @@ def generate_tcl(path_to_hdlgen_project, regenerate_bd=False, start_gui=True, ke
             generate_new_bd_design = False
 
     elif (not wrapper_exists and bd_exists):
-        print("-> WARNING: Wrapper does not exist, BD does exist, application cannot handle this situation")
+        print("-> WARNING: Wrapper does not exist, BD does exist")
+        if regenerate_bd:
+            file_contents += f"\ndelete_file {path_to_bd_file_check}"  # then the BD design
+            delete_old_bd_design = False
+            # This section of code could be re-done much better, new workflow later generates wrapper always, therefore
+            # we can now handle this situation with no problem.
     elif (wrapper_exists and not bd_exists):
         print("-> Wrapper exists but BD doesn't, application cannot handle this situation.")
     elif (not wrapper_exists and not bd_exists):
@@ -279,11 +284,33 @@ def generate_tcl(path_to_hdlgen_project, regenerate_bd=False, start_gui=True, ke
         # (10) Validate the Block Diagram
         file_contents += "\nvalidate_bd"
         
-        # (11) Create HDL Wrapper and set created wrapper as top
-        file_contents += f"\ncreate_hdl_wrapper {path_to_bd} {bd_filename}"
-        file_contents += f"\nset_wrapper_top {bd_filename}_wrapper"
-    
         ## IF BLOCK ENDS
+
+    # Updated workflow: Check if HDLWrapper exists:
+    # If so: Delete and regenerate, if not, generate.
+    # Previous workflow only regenerated if BD was generated 
+    # Method does not allow user to manually change BD and regenerate using PYNQ SoC Builder
+    
+    # (11) Create HDL Wrapper and set created wrapper as top
+    # file_contents += f"\ncreate_hdl_wrapper {path_to_bd} {bd_filename}"
+    # file_contents += f"\nset_wrapper_top {bd_filename}_wrapper"
+
+    # Example Tcl Sequence:
+        # export_ip_user_files -of_objects  [get_files C:/repo/HDLGen-ChatGPT/User_Projects/CB4CLED/VHDL/AMDprj/CB4CLED.srcs/sources_1/bd/CB4CLED_bd/hdl/CB4CLED_bd_wrapper.vhd] -no_script -reset -force -quiet
+        # remove_files  C:/repo/HDLGen-ChatGPT/User_Projects/CB4CLED/VHDL/AMDprj/CB4CLED.srcs/sources_1/bd/CB4CLED_bd/hdl/CB4CLED_bd_wrapper.vhd
+        # file delete -force C:/repo/HDLGen-ChatGPT/User_Projects/CB4CLED/VHDL/AMDprj/CB4CLED.srcs/sources_1/bd/CB4CLED_bd/hdl/CB4CLED_bd_wrapper.vhd
+        # update_compile_order -fileset sources_1
+
+    file_contents += f"\nset wrapper_exists [file exists {path_to_bd}/{bd_filename}_wrapper.vhd]"
+    file_contents += "\nif {$wrapper_exists} {"
+    file_contents += f"\n    export_ip_user_files -of_objects  [get_files {path_to_bd}/{bd_filename}_wrapper.vhd] -no_script -reset -force -quiet"
+    file_contents += f"\n    remove_files  {path_to_bd}/{bd_filename}_wrapper.vhd"
+    file_contents += f"\n    file delete -force {path_to_bd}/{bd_filename}_wrapper.vhd"
+    file_contents += f"\n    update_compile_order -fileset sources_1"
+    file_contents += "\n} else {"
+    file_contents += f"\n    create_hdl_wrapper {path_to_bd} {bd_filename}"
+    file_contents += f"\n    set_wrapper_top {bd_filename}_wrapper"
+    file_contents += "\n}"
 
     ########### END OF BLOCK DIAGRAM / WRAPPER CREATION ########### 
 
@@ -294,6 +321,8 @@ def generate_tcl(path_to_hdlgen_project, regenerate_bd=False, start_gui=True, ke
 
     path_to_bd_export = location + "/" + AMDproj_folder_rel_path + "/" + bd_filename + ".tcl"
 
+    # If BD isn't open, export will fail.
+    file_contents += f"\nopen_bd_design {path_to_bd}/{bd_filename}/{bd_filename}.bd"
     file_contents += f"\nexport_bd {path_to_bd_export}"
     
     # (13) Save and Quit
