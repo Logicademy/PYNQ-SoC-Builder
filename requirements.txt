@@ -1,3 +1,4 @@
 pysftp
 nbformat
 customtkinter
+pyperclip
