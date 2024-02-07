@@ -219,6 +219,7 @@ class Page1(ctk.CTkFrame):
             # HDLGen file exists:
             # Move to page two:
             self.app.show_page(self.app.page2)
+            self.app.root.geometry("500x240")
 
         # Go Button
         run_button = ctk.CTkButton(row_last_frame, text="Run", command=_on_run_button)
@@ -245,7 +246,6 @@ class Page2(ctk.CTkFrame):
     def __init__(self, app):
         ctk.CTkFrame.__init__(self, app.root)
         self.app = app
-        self.app.root.geometry("500x240")
         # self.configure(["-width", "500"])
         # self.configure(["-height", "240"])
 
@@ -282,8 +282,8 @@ class Page2(ctk.CTkFrame):
         bottom_row_frame.grid(row=3, column=0, sticky="nsew")
 
         copy_to_clip_button = ctk.CTkButton(bottom_row_frame, width=150, text="Copy Log to Clipboard")
-        self.force_quit_button = ctk.CTkButton(bottom_row_frame, width=150, text="Force Quit", fg_color="red3", hover_color="red4")
-        self.go_back_complete_button = ctk.CTkButton(bottom_row_frame, width=150, text="Return", fg_color="green3", hover_color="green4")
+        self.force_quit_button = ctk.CTkButton(bottom_row_frame, width=150, text="Force Quit", fg_color="red3", hover_color="red4", command=self.app.on_close)
+        self.go_back_complete_button = ctk.CTkButton(bottom_row_frame, width=150, text="Return", fg_color="green3", hover_color="green4", command=self.on_return_button)
         
         bottom_row_frame.columnconfigure(1,weight=1)
         copy_to_clip_button.grid(row=0, column=0)
@@ -393,6 +393,11 @@ class Page2(ctk.CTkFrame):
         self.app.build_running = False
         self.go_back_complete_button.grid(row=0, column=1,sticky="e")
     
+    def on_return_button(self):
+        # HDLGen file exists:
+        # Move to page two:
+        self.app.show_page(self.app.page1)
+
     def show(self):
         self.pack()
     
