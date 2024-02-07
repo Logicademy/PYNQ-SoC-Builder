@@ -132,7 +132,7 @@ class Page1(ctk.CTkFrame):
             file_path = ctk.filedialog.askopenfilename(filetypes=[("HDLGen Files", "*.hdlgen")])
             entry_path.delete(0, ctk.END)
             entry_path.insert(0, file_path)
-        entry_path = ctk.CTkEntry(row_1_frame, width=360)
+        entry_path = ctk.CTkEntry(row_1_frame, width=360, placeholder_text="To get started, browse for a .hdlgen project file")
         browse_button = ctk.CTkButton(row_1_frame, text="Browse", command=browse_files, width=100)
         entry_path.grid(row=1, column=0, padx=5, pady=5)
         browse_button.grid(row=1, column=1, padx=5, pady=5)
