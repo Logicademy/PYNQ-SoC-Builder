@@ -278,6 +278,9 @@ class Page2(ctk.CTkFrame):
 
         self.progress_bar = ctk.CTkProgressBar(row_2_frame, progress_color="green", orientation="horizontal", width=500, height=10, corner_radius=0)
         self.progress_bar.pack()
+        self.progress_bar.configure(mode="indeterminate", indeterminate_speed=0.4)
+        self.progress_bar.stop()
+
 
         bottom_row_frame = ctk.CTkFrame(self, width=500, height=20)
         bottom_row_frame.grid(row=3, column=0, sticky="nsew")
@@ -305,7 +308,7 @@ class Page2(ctk.CTkFrame):
     def run_pynq_manager(self):
         self.add_to_log_box(f"\nRunning in mode {self.app.mode} commencing at {time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))}")
         self.add_to_log_box(f"\nHDLGen Project: {self.app.hdlgen_path}")
-        
+        self.progress_bar.start()
         if self.app.mode == self.app.page1.mode_menu_options[0]:    # Run All
             thread = threading.Thread(target=self.run_all)
             thread.start()
@@ -329,6 +332,7 @@ class Page2(ctk.CTkFrame):
 
 
     def run_all(self):
+        self.progress_bar.start()
         self.generate_tcl(False)
         self.run_vivado(False)
         self.copy_to_dir(False)
@@ -395,6 +399,9 @@ class Page2(ctk.CTkFrame):
         self.force_quit_button.destroy()
         self.app.build_running = False
         self.go_back_complete_button.grid(row=0, column=1,sticky="e")
+        self.progress_bar.configure(mode="determinate")
+        self.progress_bar.stop()    # Stop the progress bar from moving more
+        self.progress_bar.set(1)    # Set progress bar to full
     
     def on_return_button(self):
         # HDLGen file exists:
