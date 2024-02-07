@@ -16,13 +16,9 @@ class Application:
         self.root.title("PYNQ SoC Builder")
         self.root.geometry("500x240")
         self.root.resizable(False, False) # Dont let the window be resizable
+        self.root.protocol("WM_DELETE_WINDOW", self.on_close) # Set function to handle close
 
-        # Shared Data Variable
-        self.shared_var = ctk.StringVar()
-        self.shared_mode_var = ctk.StringVar()
-        self.shared_dir_var = ctk.StringVar()
-
-        ## Shared variable does not need to be a ctk.Variable()
+        ## Shared variables (shared between pages)
         self.mode = None
         self.hdlgen_path = None
         self.checkbox_values = None
@@ -30,6 +26,10 @@ class Application:
         # Shared Variables for Messages
         self.top_level_message = None
         self.dialog_response = None
+
+        # Shared flags
+        self.build_running = False              # If build process is running, this flag will be True
+        self.subprocess_exit_signal = threading.Event()    # If force closed, threading.Event() used to signal close to running threads.
 
         # Initalise app pages
         self.page1 = Page1(self)        # Main Menu
@@ -63,6 +63,34 @@ class Application:
         else:
             self.toplevel_window.focus() # if window exists focus it.
         
+
+    
+    def on_close(self):
+        # find a way to check if there are any threads running...should we set a flag??
+        # build_running
+        if self.build_running:
+            # Prompt user if they are sure:
+            self.top_level_message = "A build is currently running, quitting now might cause unexpected results or behaviour. Are you sure?"
+            self.open_dialog()
+
+            # Wait for the user to click their response
+            self.toplevel_window.wait_window()
+
+            print(self.dialog_response)
+            response = self.dialog_response
+            if response == "yes":
+                # terminate process, by continuing past this if block
+                pass
+            elif response == "no":
+                # leave and take no action
+                return
+            else:
+                print("Invalid response from Dialog, not quitting (default)")
+                return
+        # Quit behaviour:
+        print("Quitting application")
+        self.root.destroy() # kill tkinter window
+        exit()              # quit app
 
         
 
@@ -197,7 +225,8 @@ class Page1(ctk.CTkFrame):
         run_button.grid(row=0, column=0, pady=5, padx=5)
 
     def on_right_button_title_label(self, arg):
-        print(arg)
+        # Second argument provided is the button press event, eg: <ButtonPress event state=Mod1 num=3 x=141 y=12>
+        # print(arg)
         if self.row_2_frame.winfo_ismapped():
             self.row_2_frame.grid_forget()
             self.app.root.geometry("500x240")
@@ -216,7 +245,7 @@ class Page2(ctk.CTkFrame):
     def __init__(self, app):
         ctk.CTkFrame.__init__(self, app.root)
         self.app = app
-
+        self.app.root.geometry("500x240")
         # self.configure(["-width", "500"])
         # self.configure(["-height", "240"])
 
@@ -292,8 +321,9 @@ class Page2(ctk.CTkFrame):
         elif self.app.mode == self.app.page1.mode_menu_options[5]:  # Generate Generic JNB
             # thread = threading.Thread(target=self.run_all)
             # thread.start()
-            self.add_to_log_box("Not yet implemented in Pynq_Manager.py - API does not exist")
-            pass
+            self.add_to_log_box("Not yet implemented in Pynq_Manager.py")
+        self.app.build_running = True
+
 
     def run_all(self):
         self.generate_tcl(False)
@@ -360,6 +390,7 @@ class Page2(ctk.CTkFrame):
 
     def operation_completed(self):
         self.force_quit_button.destroy()
+        self.app.build_running = False
         self.go_back_complete_button.grid(row=0, column=1,sticky="e")
     
     def show(self):
