@@ -11,6 +11,17 @@
 # D:\Xilinx\Vivado\2019.1\bin\vivado.bat -mode tcl -source C:/masters/masters_automation/generate_script.tcl
 # /path/to/vivado/bat -mode tcl -source /path/to/generate_script.tcl
 
+
+# New Notes for New Feature:
+# Tcl commands to create external connection and to rename the connection
+# startgroup
+# make_bd_pins_external  [get_bd_pins CB4CLED_0/count]
+# endgroup
+# connect_bd_net [get_bd_pins count/gpio_io_i] [get_bd_pins CB4CLED_0/count]
+# set_property name NEWNAME [get_bd_ports count_0]
+# dunno what makegroup does but no need worry about it
+
+
 import xml.dom.minidom
 import os
 
