@@ -3,6 +3,7 @@ import os
 import threading
 import time
 import pynq_manager as pm
+import pyperclip
 
 ctk.set_appearance_mode("System")
 ctk.set_default_color_theme("blue")
@@ -281,7 +282,7 @@ class Page2(ctk.CTkFrame):
         bottom_row_frame = ctk.CTkFrame(self, width=500, height=20)
         bottom_row_frame.grid(row=3, column=0, sticky="nsew")
 
-        copy_to_clip_button = ctk.CTkButton(bottom_row_frame, width=150, text="Copy Log to Clipboard")
+        copy_to_clip_button = ctk.CTkButton(bottom_row_frame, width=150, text="Copy Log to Clipboard", command=self.copy_logs_to_clip)
         self.force_quit_button = ctk.CTkButton(bottom_row_frame, width=150, text="Force Quit", fg_color="red3", hover_color="red4", command=self.app.on_close)
         self.go_back_complete_button = ctk.CTkButton(bottom_row_frame, width=150, text="Return", fg_color="green3", hover_color="green4", command=self.on_return_button)
         
@@ -291,7 +292,9 @@ class Page2(ctk.CTkFrame):
 
         # go_back_complete_button.grid(row=0, column=1,sticky="e")
 
-        
+    def copy_logs_to_clip(self):
+        pyperclip.copy(self.log_data)
+
     def add_to_log_box(self, text):
         self.log_text_box.configure(state="normal")
         self.log_data += text
