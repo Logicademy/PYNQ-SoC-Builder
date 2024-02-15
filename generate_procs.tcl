@@ -202,10 +202,11 @@ proc delete_file {path_to_file} {
 	update_compile_order -fileset sources_1 
 }
 
-proc make_external_connection {component bd_pin external_pin_name} { 
+proc make_external_connection {component bd_pin external_pin_name} {
 	startgroup
-	make_bd_pins_external [get_bd_pins {component}/{port}]
+	make_bd_pins_external [ get_bd_pins $component/$bd_pin ]
 	endgroup
-	connect_bd_net [get_bd_pins {port}]
-	set_property name {external_pin_name} [get_bd_ports count_0]
+	# connect_bd_net [get_bd_pins $bd_pin]
+	set ext_connector "$bd_pin" "_0"
+	set_property name $external_pin_name [get_bd_ports ext_connector]
 }

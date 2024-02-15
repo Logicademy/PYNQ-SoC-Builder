@@ -360,7 +360,7 @@ def generate_tcl(path_to_hdlgen_project, regenerate_bd=False, start_gui=True, ke
                             print(f"The GPIO signal is greater the # of LED pins available - Assigning {count} LSBs.")
                         
                         external_connection = gpio_name + "_ext"
-                        file_contents += "\nmake_external_connection {module_source} {gpio_name} {external_connection}"
+                        file_contents += f"\nmake_external_connection {module_source}_0 {gpio_name} {external_connection}"
 
                         connections_made = 0
                         for key in io_dictionary.keys():    # Cycle thru each key in io dictionary
