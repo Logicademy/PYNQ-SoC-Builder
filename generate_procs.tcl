@@ -207,6 +207,6 @@ proc make_external_connection {component bd_pin external_pin_name} {
 	make_bd_pins_external [ get_bd_pins $component/$bd_pin ]
 	endgroup
 	# connect_bd_net [get_bd_pins $bd_pin]
-	set ext_connector "$bd_pin" "_0"
-	set_property name $external_pin_name [get_bd_ports ext_connector]
+	set ext_connector $bd_pin\_0
+	set_property name $external_pin_name [get_bd_ports $ext_connector]
 }
