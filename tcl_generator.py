@@ -43,10 +43,9 @@ verbose_prints = False # Not implemented yet.
 # 12. Run Synthesis, Implementation and Generate Bitstream
 
 
-def generate_tcl(path_to_hdlgen_project, regenerate_bd=False, start_gui=True, keep_vivado_open=False):
+def generate_tcl(path_to_hdlgen_project, regenerate_bd=False, start_gui=True, keep_vivado_open=False, skip_board_config=False):
 
-    ########## Options ########## 
-    experimental_board_config = True
+    ########## Options ##########
     experimental_import_contraints = True
 
     ########## Parsing .hdlgen file for required information ##########
@@ -112,7 +111,7 @@ def generate_tcl(path_to_hdlgen_project, regenerate_bd=False, start_gui=True, ke
     # Run Experimental Blocks ?
 
     # Set Board Part (Project Parameter)
-    if experimental_board_config:
+    if not skip_board_config:
         file_contents += f"\nset_property board_part tul.com.tw:pynq-z2:part0:1.0 [current_project]"
 
     # Import Board Constraints

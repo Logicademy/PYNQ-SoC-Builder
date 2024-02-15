@@ -32,6 +32,9 @@ class Application:
         self.build_running = False              # If build process is running, this flag will be True
         self.subprocess_exit_signal = threading.Event()    # If force closed, threading.Event() used to signal close to running threads.
 
+        # Shared Tcl Generator Flags
+        self.skip_board_config = False
+
         # Initalise app pages
         self.page1 = Page1(self)        # Main Menu
         self.page2 = Page2(self)        # Page Showing progress
@@ -327,8 +330,10 @@ class Page2(ctk.CTkFrame):
             response = self.app.dialog_response
             if response == "yes":
                 self.add_to_log_box("\nCRITICAL: Project Not Configured for PYNQ-Z2 board, bitstream compilation may fail or generated bitstream may have crash or behave unexpectedly on FPGA.")
+                self.app.skip_board_config = True
             elif response == "no":
                 # self.app.show_page(self.app.page1)
+                self.app.skip_board_config = False
                 self.add_to_log_box("\nClosing Project: PYNQ-Z2 Board Config Not Found - Quitting.")
                 return False
             else:
@@ -394,7 +399,7 @@ class Page2(ctk.CTkFrame):
             else:
                 print("Invalid response from Dialog, regenerate_bd = False (default)")
         
-        pm_obj.generate_tcl(regenerate_bd=regenerate_bd, start_gui=start_gui, keep_vivado_open=keep_vivado_open)
+        pm_obj.generate_tcl(regenerate_bd=regenerate_bd, start_gui=start_gui, keep_vivado_open=keep_vivado_open, skip_board_config=self.app.skip_board_config)
         if assert_complete:
             self.operation_completed()
 
