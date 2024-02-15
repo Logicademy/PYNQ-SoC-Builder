@@ -1,3 +1,5 @@
+import xml.dom.minidom
+import os
 # tcl_generator.py
 # This Python 3 script is responsible for generating a Tcl script file dynamically depending on the project.
 
@@ -21,9 +23,27 @@
 # set_property name NEWNAME [get_bd_ports count_0]
 # dunno what makegroup does but no need worry about it
 
+# ---- I/O Mapping Info ---- 
+# Current mapping scheme looks for _led suffix on (non-internal) signals.
+# _led0 - Map to LED 0 on board
+# _led1 - Map to LED 1 on board
+# _led2 - Map to LED 2 on board
+# _led3 - Map to LED 3 on board
+#
+# _led - Automatic mapping.
+# _led13 - Maps signal to LEDs 1, 2, 3
+io_suffix = ["_led", "_led0", "_led1", "_led2", "_led3", "_led01", "_led02", "_led03", "_led12", "_led13", "_led23", "_led3"]
 
-import xml.dom.minidom
-import os
+# io_connection_dictionary = {key: None for key in io_suffix}
+# {'_led': None, '_led0': None, '_led1': None, '_led2': None, '_led3': None, '_led01': None, '_led02': None, '_led03': None, '_led12': None, '_led13': None, '_led23': None}
+
+io_dictionary = {
+    'led0': None,
+    'led1': None,
+    'led2': None,
+    'led3': None
+}
+
 
 # Configurable Variables
 verbose_prints = False # Not implemented yet.
@@ -116,11 +136,6 @@ def generate_tcl(path_to_hdlgen_project, regenerate_bd=False, start_gui=True, ke
     # (2) Open Project
     file_contents += f"\nopen_project {path_to_xpr}"                # Open Project
 
-
-    ################################ Experimental Block for Board Contraints ################################
-    
-    # Run Experimental Blocks ?
-
     # Set Board Part (Project Parameter)
     if not skip_board_config:
         file_contents += f"\nset_property board_part tul.com.tw:pynq-z2:part0:1.0 [current_project]"
@@ -159,7 +174,7 @@ def generate_tcl(path_to_hdlgen_project, regenerate_bd=False, start_gui=True, ke
     ################### Experimental Check if Block Design Exists (and a Wrapper Exists) ####################
 
     generate_new_bd_design = regenerate_bd   # Default Consignment
-    delete_old_bd_design = False    # Default Consignment
+    delete_old_bd_design = False             # Default Consignment
 
     # Need to check if block design actually exists already,
     # And does a wrapper exist
@@ -170,8 +185,6 @@ def generate_tcl(path_to_hdlgen_project, regenerate_bd=False, start_gui=True, ke
     # BD Path:
     # D:/HDLGen-ChatGPT/User_Projects/Fearghal_November/RISCV_RB/VHDL/AMDprj/RISCV_RB.srcs/sources_1/bd/RISCV_RB_bd/RISCV_RB_bd.bd
     
-
-
     path_to_bd_folder_check = path_to_bd + "/" +  bd_filename
     path_to_bd_file_check = path_to_bd_folder_check + "/" + bd_filename + ".bd"
     path_to_wrapper_file_check = path_to_bd_folder_check + "/hdl/" + bd_filename + "_wrapper.vhd"
@@ -238,6 +251,17 @@ def generate_tcl(path_to_hdlgen_project, regenerate_bd=False, start_gui=True, ke
             gpio_mode = io[1]   # GPIO Mode (in/out)
             gpio_type = io[2]   # GPIO Type (single bit/bus/array)
 
+            # New Notes for New Feature:
+            # Tcl commands to create external connection and to rename the connection
+            # startgroup
+            # make_bd_pins_external  [get_bd_pins CB4CLED_0/count]
+            # endgroup
+            # connect_bd_net [get_bd_pins count/gpio_io_i] [get_bd_pins CB4CLED_0/count]
+            # set_property name NEWNAME [get_bd_ports count_0]
+            # dunno what makegroup does but no need worry about it
+                
+            # Implemented as proc make_external_connection {component bd_pin external_pin_name}
+
             if (gpio_type == "single bit"):
                 gpio_width = 1
             elif (gpio_type[:3] == "bus"):
@@ -252,6 +276,58 @@ def generate_tcl(path_to_hdlgen_project, regenerate_bd=False, start_gui=True, ke
                 print(gpio_type)
 
             if gpio_mode == "out":
+                
+                ####### Detected the Suffix of the Signal and Connecting I/O
+                # proc make_external_connection {component bd_pin external_pin_name}
+                
+                #run_external_connection(#)
+                
+                # First: 
+                # io_suffix = ["_led", "_led0", "_led1", "_led2", "_led3", "_led01", "_led02", "_led03", "_led12", "_led13", "_led23", "_led3"]
+                suffix_detected = None
+                for suff in io_suffix:
+                    if gpio_name.endswith(suff):
+                        suffix_detected = suff
+
+                if suffix_detected:
+                    if suffix_detected == io_suffix[0]: #   _led
+                        # Automatic assignment
+                        
+                        pass
+                    elif suffix_detected == io_suffix[1]: # _led0
+                        pass
+                    elif suffix_detected == io_suffix[2]: # _led1
+                        pass
+                    elif suffix_detected == io_suffix[3]: # _led2
+                        pass
+                    elif suffix_detected == io_suffix[4]: # _led01
+                        pass
+                    elif suffix_detected == io_suffix[5]: # _led01
+                        pass
+                    elif suffix_detected == io_suffix[6]: # _led02
+                        pass 
+                    elif suffix_detected == io_suffix[7]: # _led03
+                        pass
+                    elif suffix_detected == io_suffix[8]: # _led12
+                        pass
+                    elif suffix_detected == io_suffix[9]: # _led13
+                        pass
+                    elif suffix_detected == io_suffix[10]: # _led23
+                        pass
+                    elif suffix_detected == io_suffix[11]: # _led3
+                        pass
+                    else:
+                        print("ERROR: IO Out of range.")
+                    
+
+
+
+
+
+
+                    pass
+
+
                 file_contents += f"\nadd_axi_gpio_all_input {gpio_name} {gpio_width}"
                 # If the GPIO is added correctly, connect it to the User I/O
                 file_contents += f"\nconnect_gpio_all_input_to_module_port {io[0]} {module_source}_0"
