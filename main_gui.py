@@ -286,7 +286,6 @@ class Page2(ctk.CTkFrame):
 
         self.progress_bar = ctk.CTkProgressBar(row_2_frame, progress_color="green", orientation="horizontal", width=500, height=10, corner_radius=0)
         self.progress_bar.pack()
-        self.progress_bar.configure(mode="indeterminate", indeterminate_speed=0.4)
         self.progress_bar.stop()
 
 
@@ -316,6 +315,7 @@ class Page2(ctk.CTkFrame):
     def run_pynq_manager(self):
         self.add_to_log_box(f"\n\nRunning in mode {self.app.mode} commencing at {time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))}")
         self.add_to_log_box(f"\nHDLGen Project: {self.app.hdlgen_path}")
+        self.progress_bar.configure(mode="indeterminate", indeterminate_speed=0.4)
         self.progress_bar.start()
 
         pm_obj = pm.Pynq_Manager(self.app.hdlgen_path)
