@@ -34,6 +34,13 @@ import os
 # _led13 - Maps signal to LEDs 1, 2, 3
 io_suffix = ["_led", "_led0", "_led1", "_led2", "_led3", "_led01", "_led02", "_led03", "_led12", "_led13", "_led23", "_led3"]
 
+xdc_io_property_template = {
+    "led0" : "set_property -dict { PACKAGE_PIN R14   IOSTANDARD LVCMOS33 } [get_ports { signal_name }];",
+    "led1" : "set_property -dict { PACKAGE_PIN P14   IOSTANDARD LVCMOS33 } [get_ports { signal_name }];",
+    "led2" : "set_property -dict { PACKAGE_PIN N16   IOSTANDARD LVCMOS33 } [get_ports { signal_name }];",
+    "led3" : "set_property -dict { PACKAGE_PIN M14   IOSTANDARD LVCMOS33 } [get_ports { signal_name }];"
+}
+
 # io_connection_dictionary = {key: None for key in io_suffix}
 # {'_led': None, '_led0': None, '_led1': None, '_led2': None, '_led3': None, '_led01': None, '_led02': None, '_led03': None, '_led12': None, '_led13': None, '_led23': None}
 
@@ -129,7 +136,7 @@ def generate_tcl(path_to_hdlgen_project, regenerate_bd=False, start_gui=True, ke
     # (1) Source Procedures File
     current_dir = os.getcwd()
     friendly_current_dir = current_dir.replace("\\", "/")
-    file_contents = "source " + friendly_current_dir + "/generate_procs.tcl"  # Source the procedures
+    file_contents = "source " + friendly_current_dir + "/generated/generate_procs.tcl"  # Source the procedures
     
 
     # Additional Step: Set if GUI should be opened
@@ -162,7 +169,7 @@ def generate_tcl(path_to_hdlgen_project, regenerate_bd=False, start_gui=True, ke
         file_contents += "\n    puts \"Constraint $constraint_name does not exist - Importing Constraints.\""
         
         # Constaints do not exist - Import now:
-        path_to_constraints = friendly_current_dir + "/pynq-z2_v1.0.xdc/PYNQ-Z2 v1.0.xdc"
+        path_to_constraints = friendly_current_dir + "generated/physical_contr.xdc"       # This needs to be updated with generated contraints
         file_contents += f"\n    set path_to_constraints \"{path_to_constraints}\""
         file_contents += "\n    add_files -fileset constrs_1 -norecurse {{$path_to_constraints}}"
         file_contents += "\n    import_files -fileset constrs_1 {{$path_to_constraints}}"
@@ -315,12 +322,8 @@ def generate_tcl(path_to_hdlgen_project, regenerate_bd=False, start_gui=True, ke
                             if io_dictionary[key] == None:  # If the I/O is available:
                                 board_gpio = key
                                 external_connection_pin = external_connection + "[" + connections_made + "]"
-                                io_dictionary[key] == external_connection_pin  # Assign the connection (eg: "led0": "count_ext[0]")
-                                # add_line_to_contraints(board_gpio, external_connection_pin)
-
-                        ## add_line_to_contraints()
-                        ## add_line_to_contraints(gpio, gpio_connection)
-                        # add_line_to_contraints("led0", )
+                                io_dictionary[key] == external_connection_pin               # Assign the connection (eg: "led0": "count_ext[0]")
+                                add_line_to_xdc(board_gpio, external_connection_pin)        # Create connection in Physical Contraints File
 
                         # Opportunity: Can use the following "highest consecutive sequence" code to try fit a signal consecutively instead.
                         # for value in io_dictionary.values():
@@ -467,15 +470,20 @@ def generate_tcl(path_to_hdlgen_project, regenerate_bd=False, start_gui=True, ke
 
     
     ########## Writing to generate_script.tcl ##########
-    with open('generate_script.tcl', 'w') as file:
+    with open('generated/generate_script.tcl', 'w') as file:
         # Export Tcl Script
         file.write(file_contents)
         # print("generate_script.tcl generated!")
 
 def add_line_to_xdc(board_gpio, external_pin):
-    xdc_contents += ""
+    line_to_add = xdc_io_property_template[board_gpio]
+    line_to_add.replace("signal_name", external_pin)
+    xdc_contents += "\n" + line_to_add
+    xdc_contents += f" # {external_pin} connection to {board_gpio}"
+
+
 
 def export_xdc_file():
-    with open('physical_contr.xdc', 'w') as file:
+    with open('generated/physical_contr.xdc', 'w') as file:
         # Export contraints file
         file.write(xdc_contents)
