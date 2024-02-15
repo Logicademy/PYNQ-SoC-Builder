@@ -25,10 +25,17 @@ class Pynq_Manager:
             self.vivado_bat_path = projectManagerEdaToolDir.firstChild.data
         else:
             self.vivado_bat_path = vivado_bat_path              # Path to vivado .bat file
-        
 
-
-
+    def get_board_config_exists(self):
+        # vivado_bat_path = C:\Xilinx\Vivado\2019.1\bin\vivado.bat
+        vivado_dir = os.path.dirname(os.path.dirname(self.vivado_bat_path)) # Using this command twice removes /bin/vivado.bat
+        # Add /data/boards/board_files/pynq-z2/
+        board_path = vivado_dir + "/data/boards/board_files/pynq-z2/"
+        # print(board_path)
+        # Check if the path exists and return boolean
+        board_files_exists = os.path.exists(board_path)
+        return board_files_exists
+    
 
     def get_bd_exists(self):
         ## This function is highly inefficient and could be condensed easily, for sake of

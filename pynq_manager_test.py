@@ -4,9 +4,10 @@ import os
 # Pynq_Manager( Path to Vivado Bat File, Path to HDLGen file )
 
 pm = pm.Pynq_Manager(
-    "D:\\HDLGen-ChatGPT\\User_Projects\\LukeAND_used_good\\LukeAND\\HDLGenPrj\\LukeAND.hdlgen",
-    "D:/Xilinx/Vivado/2019.1/bin/vivado.bat"
+    "C:\\hdlgen\\CB4CLED\\HDLGenPrj\\cb4cled.hdlgen"
 )
+
+print(pm.get_board_config_exists())
 
 # pm.generate_tcl()             # Produce generate_script.tcl
 # pm.run_vivado()               # Execute generate_script.tcl in Vivado
