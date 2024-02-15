@@ -156,6 +156,14 @@ def generate_tcl(path_to_hdlgen_project, regenerate_bd=False, start_gui=True, ke
     # Import Board Constraints
     if experimental_import_contraints:
         ## Need to find a way to check if the contraints already exist - if we learned Tcl error handling we could just always attempt to add it.
+        # add_files -fileset constrs_12 -norecurse {{C:/repo/PYNQ-SoC-Builder/pynq-z2_v1.0.xdc/PYNQ-Z2 v1.0.xdc}}
+        # import_files -fileset constrs_12 {{C:/repo/PYNQ-SoC-Builder/pynq-z2_v1.0.xdc/PYNQ-Z2 v1.0.xdc}}
+        # export_ip_user_files -of_objects  [get_files {{C:/repo/HDLGen-ChatGPT/User_Projects/CB4CLED/VHDL/AMDprj/CB4CLED.srcs/constrs_12/imports/pynq-z2_v1.0.xdc/PYNQ-Z2 v1.0.xdc}}] -no_script -reset -force -quiet
+        # remove_files  -fileset constrs_12 {{C:/repo/HDLGen-ChatGPT/User_Projects/CB4CLED/VHDL/AMDprj/CB4CLED.srcs/constrs_12/imports/pynq-z2_v1.0.xdc/PYNQ-Z2 v1.0.xdc}}
+        # file delete -force {C:/repo/HDLGen-ChatGPT/User_Projects/CB4CLED/VHDL/AMDprj/CB4CLED.srcs/constrs_12/imports/pynq-z2_v1.0.xdc/PYNQ-Z2 v1.0.xdc}
+
+
+
 
         # Specify the name of the constraint
         file_contents += "\nset constraint_name \"constr_1\""
@@ -171,7 +179,7 @@ def generate_tcl(path_to_hdlgen_project, regenerate_bd=False, start_gui=True, ke
         file_contents += "\n    puts \"Constraint $constraint_name does not exist - Importing Constraints.\""
         
         # Constaints do not exist - Import now:
-        path_to_constraints = friendly_current_dir + "generated/physical_contr.xdc"       # This needs to be updated with generated contraints
+        path_to_constraints = friendly_current_dir + "/generated/physical_contr.xdc"       # This needs to be updated with generated contraints
         file_contents += f"\n    set path_to_constraints \"{path_to_constraints}\""
         file_contents += "\n    add_files -fileset constrs_1 -norecurse {{$path_to_constraints}}"
         file_contents += "\n    import_files -fileset constrs_1 {{$path_to_constraints}}"
