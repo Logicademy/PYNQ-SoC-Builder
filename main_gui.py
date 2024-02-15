@@ -214,13 +214,18 @@ class Page1(ctk.CTkFrame):
                 self.app.open_alert()
                 return
             
+            
             # Run threaded program:
             # self.run_pynq_manager()
-            self.app.page2.run_pynq_manager()
+            proceed = self.app.page2.run_pynq_manager() # If false, abort.
             # HDLGen file exists:
             # Move to page two:
-            self.app.show_page(self.app.page2)
-            self.app.root.geometry("500x240")
+            if proceed:
+                self.app.show_page(self.app.page2)
+                self.app.root.geometry("500x240")
+            else:
+                # Do nothing
+                pass
 
         # Go Button
         run_button = ctk.CTkButton(row_last_frame, text="Run", command=_on_run_button)
@@ -306,9 +311,29 @@ class Page2(ctk.CTkFrame):
         self.log_text_box.configure(state="disabled")
 
     def run_pynq_manager(self):
-        self.add_to_log_box(f"\nRunning in mode {self.app.mode} commencing at {time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))}")
+        self.add_to_log_box(f"\n\nRunning in mode {self.app.mode} commencing at {time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))}")
         self.add_to_log_box(f"\nHDLGen Project: {self.app.hdlgen_path}")
         self.progress_bar.start()
+
+        pm_obj = pm.Pynq_Manager(self.app.hdlgen_path)
+        if not pm_obj.get_board_config_exists():
+            self.app.top_level_message = "Could not find PYNQ-Z2 board files in Vivado directory. Do you wish to continue? - Bitstream output may crash FPGA if not configured"
+            self.app.open_dialog()
+
+            # Wait for the user to click their response
+            self.app.toplevel_window.wait_window()
+
+            print(self.app.dialog_response)
+            response = self.app.dialog_response
+            if response == "yes":
+                self.add_to_log_box("\nCRITICAL: Project Not Configured for PYNQ-Z2 board, bitstream compilation may fail or generated bitstream may have crash or behave unexpectedly on FPGA.")
+            elif response == "no":
+                # self.app.show_page(self.app.page1)
+                self.add_to_log_box("\nClosing Project: PYNQ-Z2 Board Config Not Found - Quitting.")
+                return False
+            else:
+                print("Invalid response from Dialog, regenerate_bd = False (default)")
+
         if self.app.mode == self.app.page1.mode_menu_options[0]:    # Run All
             thread = threading.Thread(target=self.run_all)
             thread.start()
@@ -329,6 +354,7 @@ class Page2(ctk.CTkFrame):
             # thread.start()
             self.add_to_log_box("Not yet implemented in Pynq_Manager.py")
         self.app.build_running = True
+        return True
 
 
     def run_all(self):
