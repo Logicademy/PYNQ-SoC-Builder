@@ -76,7 +76,7 @@ class Pynq_Manager:
         # D:\Xilinx\Vivado\2019.1\bin\vivado.bat -mode tcl -source C:/masters/masters_automation/generate_script.tcl
         try:
             print("Starting Vivado")
-            vivado_process = subprocess.run([self.vivado_bat_path, "-mode", "tcl", "-source", "generate_script.tcl"], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+            vivado_process = subprocess.run([self.vivado_bat_path, "-mode", "tcl", "-source", "./generated/generate_script.tcl"], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
             print("Bit stream generation is complete")
         except Exception as e:
             print("Exception")

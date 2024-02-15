@@ -138,7 +138,7 @@ def generate_tcl(path_to_hdlgen_project, regenerate_bd=False, start_gui=True, ke
     # (1) Source Procedures File
     current_dir = os.getcwd()
     friendly_current_dir = current_dir.replace("\\", "/")
-    file_contents = "source " + friendly_current_dir + "/generated/generate_procs.tcl"  # Source the procedures
+    file_contents = "source " + friendly_current_dir + "/generate_procs.tcl"  # Source the procedures
     
 
     # Additional Step: Set if GUI should be opened
@@ -156,14 +156,14 @@ def generate_tcl(path_to_hdlgen_project, regenerate_bd=False, start_gui=True, ke
     # Import Board Constraints
     if experimental_import_contraints:
         ## Need to find a way to check if the contraints already exist - if we learned Tcl error handling we could just always attempt to add it.
+
+
+
         # add_files -fileset constrs_12 -norecurse {{C:/repo/PYNQ-SoC-Builder/pynq-z2_v1.0.xdc/PYNQ-Z2 v1.0.xdc}}
         # import_files -fileset constrs_12 {{C:/repo/PYNQ-SoC-Builder/pynq-z2_v1.0.xdc/PYNQ-Z2 v1.0.xdc}}
         # export_ip_user_files -of_objects  [get_files {{C:/repo/HDLGen-ChatGPT/User_Projects/CB4CLED/VHDL/AMDprj/CB4CLED.srcs/constrs_12/imports/pynq-z2_v1.0.xdc/PYNQ-Z2 v1.0.xdc}}] -no_script -reset -force -quiet
         # remove_files  -fileset constrs_12 {{C:/repo/HDLGen-ChatGPT/User_Projects/CB4CLED/VHDL/AMDprj/CB4CLED.srcs/constrs_12/imports/pynq-z2_v1.0.xdc/PYNQ-Z2 v1.0.xdc}}
         # file delete -force {C:/repo/HDLGen-ChatGPT/User_Projects/CB4CLED/VHDL/AMDprj/CB4CLED.srcs/constrs_12/imports/pynq-z2_v1.0.xdc/PYNQ-Z2 v1.0.xdc}
-
-
-
 
         # Specify the name of the constraint
         file_contents += "\nset constraint_name \"constr_1\""
@@ -173,18 +173,53 @@ def generate_tcl(path_to_hdlgen_project, regenerate_bd=False, start_gui=True, ke
         file_contents += "\n    get_property -quiet $constraint_name [get_constraints]"
         file_contents += "\n} result]"
 
-        file_contents += "\nif {$constraint_exists} {"
-        file_contents += "\n    puts \"Constraint $constraint_name exists - Skipping Step\""
+        file_contents += "\nif {$constraint_exists} {"  # The contraints exists:
+        file_contents += "\n    puts \"Constraint $constraint_name exists - Reimporting Constraints\""
+
+        file_contents += "\n    puts \"Checking if a physical constraints file already exists\""
+        file_contents += "\n    set fileset_name \"constr_1\""
+        file_contents += "\n    set phys_constr_filename \"physical_constr.xdc\""
+        file_contents += "\n    set constraint_list [get_file -of_objects [get_filesets $fileset_name]]"
+        file_contents += "\n    if {[lsearch -exact $contraint_list $phys_constr_filename] >= 0} {"
+        file_contents += "\n        puts \"Constraints file exists: Deleting and reimporting\""
+        file_contents += "\n        file delete -force $phys_constr_filename"
+        file_contents += "\n    } else {"
+        file_contents += "\n        puts \"Constraints file does not exist: Importing\""
+        file_contents += "\n    }"
+
         file_contents += "\n} else {"
         file_contents += "\n    puts \"Constraint $constraint_name does not exist - Importing Constraints.\""
-        
+        file_contents += "\n}"
+
         # Constaints do not exist - Import now:
         path_to_constraints = friendly_current_dir + "/generated/physical_contr.xdc"       # This needs to be updated with generated contraints
-        file_contents += f"\n    set path_to_constraints \"{path_to_constraints}\""
-        file_contents += "\n    add_files -fileset constrs_1 -norecurse {{$path_to_constraints}}"
-        file_contents += "\n    import_files -fileset constrs_1 {{$path_to_constraints}}"
+        file_contents += f"\nset path_to_constraints \"{path_to_constraints}\""
+        file_contents += "\nadd_files -fileset constrs_1 -norecurse {{$path_to_constraints}}"
+        file_contents += "\nimport_files -fileset constrs_1 {{$path_to_constraints}}"
 
-        file_contents += "\n}"
+
+        # Completed: If the contraints fileset does not exist: Import it.
+        # Next: If the constraints fileset already exists: Re-import it.
+
+        # Get the list of files in the "contr_1" fileset
+        # set fileset_name "contr_1"
+        # set file_list [get_files -of_objects [get_filesets $fileset_name]]
+
+        # # Specify the file you want to check
+        # set target_file "myfile.vhd"
+
+        # # Check if the file exists in the fileset
+        # if {[lsearch -exact $file_list $target_file] >= 0} {
+        #     puts "File $target_file exists in fileset $fileset_name."
+        # } else {
+        #     puts "File $target_file does not exist in fileset $fileset_name."
+        # }
+
+
+
+
+
+
 
         #add_files -fileset constrs_1 -norecurse {{C:/Users/canny/Documents/5th Year ECE/Project/PYNQ Board Files Complete/pynq-z2_v1.0.xdc/PYNQ-Z2 v1.0.xdc}}
         #import_files -fileset constrs_1 {{C:/Users/canny/Documents/5th Year ECE/Project/PYNQ Board Files Complete/pynq-z2_v1.0.xdc/PYNQ-Z2 v1.0.xdc}}
