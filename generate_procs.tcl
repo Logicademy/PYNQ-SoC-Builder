@@ -204,7 +204,7 @@ proc delete_file {path_to_file} {
 
 proc make_external_connection {component bd_pin external_pin_name} { 
 	startgroup
-	make_bd_pins_external [get_bd_pins {component}/{port}] ; # port example: CB4CLED_0/count
+	make_bd_pins_external [get_bd_pins {component}/{port}]
 	endgroup
 	connect_bd_net [get_bd_pins {port}]
 	set_property name {external_pin_name} [get_bd_ports count_0]

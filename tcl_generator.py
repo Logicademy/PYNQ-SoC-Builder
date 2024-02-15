@@ -166,7 +166,7 @@ def generate_tcl(path_to_hdlgen_project, regenerate_bd=False, start_gui=True, ke
         # file delete -force {C:/repo/HDLGen-ChatGPT/User_Projects/CB4CLED/VHDL/AMDprj/CB4CLED.srcs/constrs_12/imports/pynq-z2_v1.0.xdc/PYNQ-Z2 v1.0.xdc}
 
         # Specify the name of the constraint
-        file_contents += "\nset constraint_name \"constr_1\""
+        file_contents += "\nset constraint_name \"constrs_1\""
 
         # Check if the constraint exists
         file_contents += "\nset constraint_exists [catch {"
@@ -177,10 +177,10 @@ def generate_tcl(path_to_hdlgen_project, regenerate_bd=False, start_gui=True, ke
         file_contents += "\n    puts \"Constraint $constraint_name exists - Reimporting Constraints\""
 
         file_contents += "\n    puts \"Checking if a physical constraints file already exists\""
-        file_contents += "\n    set fileset_name \"constr_1\""
+        file_contents += "\n    set fileset_name \"constrs_1\""
         file_contents += "\n    set phys_constr_filename \"physical_constr.xdc\""
-        file_contents += "\n    set constraint_list [get_file -of_objects [get_filesets $fileset_name]]"
-        file_contents += "\n    if {[lsearch -exact $contraint_list $phys_constr_filename] >= 0} {"
+        file_contents += "\n    set constraint_list [get_files -of_objects [get_filesets $fileset_name]]"
+        file_contents += "\n    if {[info exists constraint_list]} {"
         file_contents += "\n        puts \"Constraints file exists: Deleting and reimporting\""
         file_contents += "\n        file delete -force $phys_constr_filename"
         file_contents += "\n    } else {"
@@ -194,8 +194,8 @@ def generate_tcl(path_to_hdlgen_project, regenerate_bd=False, start_gui=True, ke
         # Constaints do not exist - Import now:
         path_to_constraints = friendly_current_dir + "/generated/physical_contr.xdc"       # This needs to be updated with generated contraints
         file_contents += f"\nset path_to_constraints \"{path_to_constraints}\""
-        file_contents += "\nadd_files -fileset constrs_1 -norecurse {{$path_to_constraints}}"
-        file_contents += "\nimport_files -fileset constrs_1 {{$path_to_constraints}}"
+        file_contents += "\nadd_files -fileset constrs_1 -norecurse $path_to_constraints"
+        file_contents += "\nimport_files -fileset constrs_1 $path_to_constraints"
 
 
         # Completed: If the contraints fileset does not exist: Import it.
@@ -360,7 +360,7 @@ def generate_tcl(path_to_hdlgen_project, regenerate_bd=False, start_gui=True, ke
                             print(f"The GPIO signal is greater the # of LED pins available - Assigning {count} LSBs.")
                         
                         external_connection = gpio_name + "_ext"
-                        file_contents += "run_external_connection {module_source} {gpio_name} {external_connection}"
+                        file_contents += "\nmake_external_connection {module_source} {gpio_name} {external_connection}"
 
                         connections_made = 0
                         for key in io_dictionary.keys():    # Cycle thru each key in io dictionary
