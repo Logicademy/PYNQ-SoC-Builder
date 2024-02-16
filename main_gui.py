@@ -107,6 +107,19 @@ class Page1(ctk.CTkFrame):
         row_1_frame = ctk.CTkFrame(self, width=500, height=30)
         self.row_2_frame = ctk.CTkFrame(self, width=500, height=30)
         row_3_frame = ctk.CTkFrame(self, width=500, height=30)
+        row_3_frame.grid_rowconfigure(0, weight=1)
+        row_3_frame.grid_rowconfigure(1, weight=1)
+        row_3_frame.grid_columnconfigure(0, weight=1)
+        row_3_frame.grid_columnconfigure(1, weight=1)
+        row_3_frame.grid_columnconfigure(2, weight=1)
+        row_3_frame.columnconfigure(0, weight=1)
+        row_3_frame.columnconfigure(1, weight=1)
+        row_3_frame.columnconfigure(2, weight=1)
+        self.rowconfigure(3, weight=1)
+        self.columnconfigure(0,weight=1)
+        row_3_frame.rowconfigure(0, weight=1)
+        row_3_frame.rowconfigure(1, weight=1)
+        row_3_frame.rowconfigure(2, weight=1)
         row_4_frame = ctk.CTkFrame(self, width=500, height=30)
         row_last_frame = ctk.CTkFrame(self, width=500, height=30)
 
@@ -114,8 +127,8 @@ class Page1(ctk.CTkFrame):
         row_0_frame.columnconfigure(0, weight=1) # Centre the row
         row_1_frame.grid(row=1, pady=5, padx=10)
         # self.row_2_frame.grid(row=2,pady=10)
-        row_3_frame.grid(row=3, padx=5, pady=15)
-        row_4_frame.grid(row=4, padx=5, pady=5)
+        row_3_frame.grid(row=3, padx=5, pady=15, sticky="nsew")
+        # row_4_frame.grid(row=4, padx=5, pady=5)
 
 
         row_last_frame.grid(row=10, pady=15)
@@ -178,25 +191,61 @@ class Page1(ctk.CTkFrame):
             # Convert to true/false
             self.app.checkbox_values = [open_gui_var.get() == "on", keep_gui_open_var.get() == "on", gen_jnb_var.get() == "on", use_testbench_var.get() == "on"]
 
+
+        # vivado config subframe
+        viv_subframe = ctk.CTkFrame(row_3_frame, width=166)
+        # jnb_subframe
+        jnb_subframe = ctk.CTkFrame(row_3_frame, width=166)
+        # io_subframe
+        io_subframe = ctk.CTkFrame(row_3_frame, width=166)
+        
+        viv_subframe.grid(row=0, column=0)
+        jnb_subframe.grid(row=0, column=1)
+        io_subframe.grid(row=0, column=2)
+
+        # Vivado config subframe
         open_gui_var = ctk.StringVar(value="on")
-        open_gui_check_box = ctk.CTkCheckBox(row_3_frame, text="Open Vivado GUI", command=checkbox_event,
-                                    variable=open_gui_var, onvalue="on", offvalue="off")
-        open_gui_check_box.grid(row=0, column=0, sticky="w", pady=5, padx=5)
+        open_gui_check_box = ctk.CTkCheckBox(viv_subframe, text="Open Vivado GUI", command=checkbox_event,
+                                    variable=open_gui_var, onvalue="on", offvalue="off", width=140)
+        open_gui_check_box.grid(row=0, column=0, pady=5, padx=5, sticky = 'nswe')
 
         keep_gui_open_var = ctk.StringVar(value="off")
-        keep_gui_open_check_box = ctk.CTkCheckBox(row_3_frame, text="Keep Vivado Open", command=checkbox_event,
-                                    variable=keep_gui_open_var, onvalue="on", offvalue="off")
-        keep_gui_open_check_box.grid(row=0, column=1, pady=5, padx=5)
+        keep_gui_open_check_box = ctk.CTkCheckBox(viv_subframe, text="Keep Vivado Open", command=checkbox_event,
+                                    variable=keep_gui_open_var, onvalue="on", offvalue="off", width=140)
+        keep_gui_open_check_box.grid(row=1, column=0, pady=5, padx=5, sticky = 'nswe')
 
+
+        # jnb subframe
         gen_jnb_var = ctk.StringVar(value="on")
-        gen_jnb_check_box = ctk.CTkCheckBox(row_4_frame, text="Generate JNB", command=checkbox_event,
-                                    variable=gen_jnb_var, onvalue="on", offvalue="off")
-        gen_jnb_check_box.grid(row=0, column=0, sticky="w", pady=5, padx=5)
+        gen_jnb_check_box = ctk.CTkCheckBox(jnb_subframe, text="Generate JNB", command=checkbox_event,
+                                    variable=gen_jnb_var, onvalue="on", offvalue="off", width=140)
+        gen_jnb_check_box.grid(row=0, column=0, pady=5, padx=5, sticky = 'nswe')
 
         use_testbench_var = ctk.StringVar(value="on")
-        use_testbench_check_box = ctk.CTkCheckBox(row_4_frame, text="Use Testbench", command=checkbox_event,
-                                    variable=use_testbench_var, onvalue="on", offvalue="off")
-        use_testbench_check_box.grid(row=0, column=1, pady=5, padx=5)
+        use_testbench_check_box = ctk.CTkCheckBox(jnb_subframe, text="Use Testbench", command=checkbox_event,
+                                    variable=use_testbench_var, onvalue="on", offvalue="off", width=140)
+        use_testbench_check_box.grid(row=1, column=0, pady=5, padx=5, sticky = 'nswe')
+
+        # io subframe
+        scan_io_var = ctk.StringVar(value="on")
+        scan_io_check_box = ctk.CTkCheckBox(io_subframe, text="Scan I/O", command=checkbox_event,
+                                    variable=scan_io_var, onvalue="on", offvalue="off", width=140)
+        scan_io_check_box.grid(row=0, column=0, pady=5, padx=5, sticky = 'nswe')
+
+        # config = ctk.StringVar(value="on")
+        configure_io_button = ctk.CTkButton(io_subframe, text="Configure I/O", command=self.on_io_config_button, width=140)
+        configure_io_button.grid(row=1, column=0, pady=5, padx=5, sticky = 'nswe')
+
+
+
+        # run_button = ctk.CTkButton(row_last_frame, text="Run", command=_on_run_button)
+        # run_button.grid(row=0, column=0, pady=5, padx=5)
+        # ctk.CTkCheckBox(io_subframe, text="Use Testbench", command=checkbox_event,
+        #                             variable=use_testbench_var, onvalue="on", offvalue="off")
+        # use_testbench_check_box.grid(row=0, column=1, pady=5, padx=5)
+
+
+
 
         checkbox_event() # Calling to set default values
 
@@ -233,6 +282,9 @@ class Page1(ctk.CTkFrame):
         # Go Button
         run_button = ctk.CTkButton(row_last_frame, text="Run", command=_on_run_button)
         run_button.grid(row=0, column=0, pady=5, padx=5)
+
+    def on_io_config_button(self):
+        pass
 
     def on_right_button_title_label(self, arg):
         # Second argument provided is the button press event, eg: <ButtonPress event state=Mod1 num=3 x=141 y=12>
