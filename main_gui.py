@@ -106,28 +106,28 @@ class Page1(ctk.CTkFrame):
         row_0_frame = ctk.CTkFrame(self, width=500, height=30, corner_radius=0)
         row_1_frame = ctk.CTkFrame(self, width=500, height=30)
         self.row_2_frame = ctk.CTkFrame(self, width=500, height=30)
-        row_3_frame = ctk.CTkFrame(self, width=500, height=30)
+        row_3_frame = ctk.CTkFrame(self, width=500)
         row_3_frame.grid_rowconfigure(0, weight=1)
-        row_3_frame.grid_rowconfigure(1, weight=1)
+        # row_3_frame.grid_rowconfigure(1, weight=1)
         row_3_frame.grid_columnconfigure(0, weight=1)
         row_3_frame.grid_columnconfigure(1, weight=1)
         row_3_frame.grid_columnconfigure(2, weight=1)
         row_3_frame.columnconfigure(0, weight=1)
         row_3_frame.columnconfigure(1, weight=1)
         row_3_frame.columnconfigure(2, weight=1)
-        self.rowconfigure(3, weight=1)
+        # self.rowconfigure(3, weight=1)
         self.columnconfigure(0,weight=1)
-        row_3_frame.rowconfigure(0, weight=1)
-        row_3_frame.rowconfigure(1, weight=1)
-        row_3_frame.rowconfigure(2, weight=1)
+        # row_3_frame.rowconfigure(0, weight=1)
+        # row_3_frame.rowconfigure(1, weight=1)
+        # row_3_frame.rowconfigure(2, weight=1)
         row_4_frame = ctk.CTkFrame(self, width=500, height=30)
         row_last_frame = ctk.CTkFrame(self, width=500, height=30)
 
         row_0_frame.grid(row=0, sticky="nsew")
         row_0_frame.columnconfigure(0, weight=1) # Centre the row
-        row_1_frame.grid(row=1, pady=5, padx=10)
+        row_1_frame.grid(row=1, pady=15, padx=10)
         # self.row_2_frame.grid(row=2,pady=10)
-        row_3_frame.grid(row=3, padx=5, pady=15, sticky="nsew")
+        row_3_frame.grid(row=3, padx=5, ipady=5, sticky="nsew")
         # row_4_frame.grid(row=4, padx=5, pady=5)
 
 
@@ -188,6 +188,11 @@ class Page1(ctk.CTkFrame):
                 use_testbench_check_box.configure(state="disabled")
             # self.app.checkbox_values = [open_gui_var.get(), keep_gui_open_var.get()]
             
+            if scan_io_var.get() == "off":
+                configure_io_button.configure(state="normal")
+            else:
+                configure_io_button.configure(state="disabled")
+
             # Convert to true/false
             self.app.checkbox_values = [open_gui_var.get() == "on", keep_gui_open_var.get() == "on", gen_jnb_var.get() == "on", use_testbench_var.get() == "on"]
 
@@ -218,10 +223,10 @@ class Page1(ctk.CTkFrame):
         # jnb subframe
         gen_jnb_var = ctk.StringVar(value="on")
         gen_jnb_check_box = ctk.CTkCheckBox(jnb_subframe, text="Generate JNB", command=checkbox_event,
-                                    variable=gen_jnb_var, onvalue="on", offvalue="off", width=140)
+                                    variable=gen_jnb_var, onvalue="on", offvalue="off", width=140, )
         gen_jnb_check_box.grid(row=0, column=0, pady=5, padx=5, sticky = 'nswe')
 
-        use_testbench_var = ctk.StringVar(value="on")
+        use_testbench_var = ctk.StringVar(value="off")
         use_testbench_check_box = ctk.CTkCheckBox(jnb_subframe, text="Use Testbench", command=checkbox_event,
                                     variable=use_testbench_var, onvalue="on", offvalue="off", width=140)
         use_testbench_check_box.grid(row=1, column=0, pady=5, padx=5, sticky = 'nswe')
@@ -236,16 +241,11 @@ class Page1(ctk.CTkFrame):
         configure_io_button = ctk.CTkButton(io_subframe, text="Configure I/O", command=self.on_io_config_button, width=140)
         configure_io_button.grid(row=1, column=0, pady=5, padx=5, sticky = 'nswe')
 
-
-
         # run_button = ctk.CTkButton(row_last_frame, text="Run", command=_on_run_button)
         # run_button.grid(row=0, column=0, pady=5, padx=5)
         # ctk.CTkCheckBox(io_subframe, text="Use Testbench", command=checkbox_event,
         #                             variable=use_testbench_var, onvalue="on", offvalue="off")
         # use_testbench_check_box.grid(row=0, column=1, pady=5, padx=5)
-
-
-
 
         checkbox_event() # Calling to set default values
 
