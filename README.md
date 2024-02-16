@@ -16,9 +16,21 @@ PYNQ Automate is a tool for generating PYNQ Overlays in Vivado automatically.
 ```python main_gui.py```
 
 
+## Screenshots from Project
+
 ![Main Menu GUI](docs/main_menu_gui.png)
 
 
-### Run CLI
+![IO Config GUI](docs/IO_Config_Menu.png)
+
+
+![Check BD Prompt](docs/Check_BD.png)
+
+![In Progress](docs/in_progress.png)
+
+![Vivado BD Produced](docs/vivado_bd.png)
+
+
+### Run CLI (No longer developed but can complete default Vivado run on basic HDL projects)
 
 PYNQ SoC Builder can also be run as a command-line tool: ```python main_cli.py```
