@@ -4,6 +4,7 @@ import threading
 import time
 import pynq_manager as pm
 import pyperclip
+import xml.dom.minidom
 
 ctk.set_appearance_mode("System")
 ctk.set_default_color_theme("blue")
@@ -31,6 +32,7 @@ class Application:
         # Shared flags
         self.build_running = False              # If build process is running, this flag will be True
         self.subprocess_exit_signal = threading.Event()    # If force closed, threading.Event() used to signal close to running threads.
+        self.io_config_set = False
 
         # Shared Tcl Generator Flags
         self.skip_board_config = False
@@ -67,6 +69,11 @@ class Application:
         else:
             self.toplevel_window.focus() # if window exists focus it.
         
+    def open_io_config_menu(self):
+        if self.toplevel_window is None or not self.toplevel_window.winfo_exists():
+            self.toplevel_window = IO_Config_Window(self) # Create window if None or destroyed
+        else:
+            self.toplevel_window.focus() # if window exists focus it.
 
     
     def on_close(self):
@@ -188,13 +195,13 @@ class Page1(ctk.CTkFrame):
                 use_testbench_check_box.configure(state="disabled")
             # self.app.checkbox_values = [open_gui_var.get(), keep_gui_open_var.get()]
             
-            if scan_io_var.get() == "off":
+            if use_io_var.get() == "on":
                 configure_io_button.configure(state="normal")
             else:
                 configure_io_button.configure(state="disabled")
 
             # Convert to true/false
-            self.app.checkbox_values = [open_gui_var.get() == "on", keep_gui_open_var.get() == "on", gen_jnb_var.get() == "on", use_testbench_var.get() == "on", scan_io_var.get() == "on"]
+            self.app.checkbox_values = [open_gui_var.get() == "on", keep_gui_open_var.get() == "on", gen_jnb_var.get() == "on", use_testbench_var.get() == "on", use_io_var.get() == "on"]
 
         # vivado config subframe
         viv_subframe = ctk.CTkFrame(row_3_frame, width=166)
@@ -231,13 +238,22 @@ class Page1(ctk.CTkFrame):
         use_testbench_check_box.grid(row=1, column=0, pady=5, padx=5, sticky = 'nswe')
 
         # io subframe
-        scan_io_var = ctk.StringVar(value="on")
-        scan_io_check_box = ctk.CTkCheckBox(io_subframe, text="Scan I/O", command=checkbox_event,
-                                    variable=scan_io_var, onvalue="on", offvalue="off", width=140)
-        scan_io_check_box.grid(row=0, column=0, pady=5, padx=5, sticky = 'nswe')
+        use_io_var = ctk.StringVar(value="on")
+        use_io_check_box = ctk.CTkCheckBox(io_subframe, text="Use Board I/O", command=checkbox_event,
+                                    variable=use_io_var, onvalue="on", offvalue="off", width=140)
+        use_io_check_box.grid(row=0, column=0, pady=5, padx=5, sticky = 'nswe')
+
+        def on_io_config_button():
+            self.app.hdlgen_path = entry_path.get()
+            if not os.path.isfile(entry_path.get()):
+                self.app.top_level_message = "Error: Could not find HDLGen file at path specified"
+                self.app.open_alert()
+                return
+            else:
+                self.app.open_io_config_menu()
 
         # config = ctk.StringVar(value="on")
-        configure_io_button = ctk.CTkButton(io_subframe, text="Configure I/O", command=self.on_io_config_button, width=140)
+        configure_io_button = ctk.CTkButton(io_subframe, text="Configure I/O", command=on_io_config_button, width=140)
         configure_io_button.grid(row=1, column=0, pady=5, padx=5, sticky = 'nswe')
 
         # run_button = ctk.CTkButton(row_last_frame, text="Run", command=_on_run_button)
@@ -278,12 +294,16 @@ class Page1(ctk.CTkFrame):
                 # Do nothing
                 pass
 
+        
+            
+            
+
+
         # Go Button
         run_button = ctk.CTkButton(row_last_frame, text="Run", command=_on_run_button)
         run_button.grid(row=0, column=0, pady=5, padx=5)
 
-    def on_io_config_button(self):
-        pass
+    
 
     def on_right_button_title_label(self, arg):
         # Second argument provided is the button press event, eg: <ButtonPress event state=Mod1 num=3 x=141 y=12>
@@ -566,6 +586,128 @@ class Dialog_Window(ctk.CTkToplevel):
         self.left_frame.grid(column=0, row=0)
         self.right_frame.grid(column=1, row=0)
         self.button_frame.grid(column=0, row=1, columnspan=2)
+
+class IO_Config_Window(ctk.CTkToplevel):
+    def __init__(self, app):
+        ctk.CTkToplevel.__init__(self, app.root)
+        self.app = app
+        self.title("Configure Board IO")
+        self.grab_set() # This makes the pop-up the primary window and doesn't allow interaction with main menu
+        self.geometry("500x300")
+        icon_font = ("Segoe Fluent Icons Regular", 80)
+        self.resizable(False, False) # Dont let the window be resizable
+        
+        # Need to learn the I/O thats available - What top level signals can we use.
+        # LED0: (dropdown) -> dropdown menu will contain all the signals as
+        #                                   count[3]
+        #                                   count[2]
+        #                                   count[1]
+        #                                   count[0]
+        #                                   TC
+        #                                   ceo
+
+        port_map = self.get_io_ports()
+        port_map_signals_names = [port[0] for port in port_map]
+
+        # Left frame
+        self.left_frame = ctk.CTkFrame(self, width=100, height=100)  # Left frame will contain checkbox for yes/no auto scanning + explaination
+
+        # Left frame set up
+        self.auto_io_checkbox = ctk.CTkCheckBox(self.left_frame, text="Auto Detect IO", width=100)
+        self.auto_io_checkbox.grid(row=0, column=0)
+        # text="In automatic mode, signals tagged with an IO related suffix (eg '_led') will be assigned to I/O. The suffix mapping is as follows:\n - _led: Any available port\n- _ledx: LEDx only (x=0,1,2,3)"
+        self.auto_io_label = ctk.CTkLabel(self.left_frame, wraplength=100, width=100, anchor="w", text="Sample Text")
+        self.auto_io_label.grid(row=1, column=0)
+        
+        # Right frame
+        self.right_frame = ctk.CTkFrame(self, width=200, height=100) # Right frame will contain manual config of signals
+
+        self.top_label = ctk.CTkLabel(self.right_frame, width=200, height=30, text="Configure IO Manually")
+        self.top_label.grid(row=0, column=0, columnspan=2, pady=5)
+
+
+        self.led_0_label = ctk.CTkLabel(self.right_frame, text="LED0", width=40)
+        self.led_1_label = ctk.CTkLabel(self.right_frame, text="LED1", width=40)
+        self.led_2_label = ctk.CTkLabel(self.right_frame, text="LED2", width=40)
+        self.led_3_label = ctk.CTkLabel(self.right_frame, text="LED3", width=40)
+
+        self.led_0_label.grid(row=1, column=0, pady=5)
+        self.led_1_label.grid(row=2, column=0, pady=5)
+        self.led_2_label.grid(row=3, column=0, pady=5)
+        self.led_3_label.grid(row=4, column=0, pady=5)
+
+        # mode_dropdown = ctk.CTkOptionMenu(self.row_2_frame, variable=mode_menu_var, values=self.mode_menu_options, command=on_mode_dropdown, width=150)
+        def _on_io_dropdown(args):
+            # handle dropdown event
+            pass
+
+        dropdown_options = port_map_signals_names
+        dropdown_options.insert(0, "No I/O")
+
+        self.led_0_var = ctk.StringVar(value="No I/O")
+        self.led_0_dropdown = ctk.CTkOptionMenu(self.right_frame, variable=self.led_0_var, values=dropdown_options, command=_on_io_dropdown)
+
+        self.led_1_var = ctk.StringVar(value="No I/O")
+        self.led_1_dropdown = ctk.CTkOptionMenu(self.right_frame, variable=self.led_1_var, values=dropdown_options, command=_on_io_dropdown)
+
+        self.led_2_var = ctk.StringVar(value="No I/O")
+        self.led_2_dropdown = ctk.CTkOptionMenu(self.right_frame, variable=self.led_2_var, values=dropdown_options, command=_on_io_dropdown)
+
+        self.led_3_var = ctk.StringVar(value="No I/O")
+        self.led_3_dropdown = ctk.CTkOptionMenu(self.right_frame, variable=self.led_3_var, values=dropdown_options, command=_on_io_dropdown)
+
+        self.led_0_dropdown.grid(row=1, column=1, pady=5)
+        self.led_1_dropdown.grid(row=2, column=1, pady=5)
+        self.led_2_dropdown.grid(row=3, column=1, pady=5)
+        self.led_3_dropdown.grid(row=4, column=1, pady=5)
+
+
+        # Right frame set up
+    	# Button handlers
+        def _on_save_button():
+            # Set the IO config in shared space.
+            # Close Window
+            # Set a flag to say that the config was defined.
+            self.destroy()
+
+        def _on_cancel_button():
+            # We don't care about setting any values
+            # If cancel pressed, simply close the menu.
+            self.destroy()  
+
+        self.button_frame = ctk.CTkFrame(self, width=300, height=50) # Button frame will remain the same as Dialog window
+
+        # Button placement
+        self.button_frame = ctk.CTkFrame(self, width=300, height=50)
+        self.save_button = ctk.CTkButton(self.button_frame, text="Yes", command=_on_save_button)
+        self.save_button.grid(row=0, column=0, pady=5, padx=5)
+        self.cancel_button = ctk.CTkButton(self.button_frame, text="No", command=_on_cancel_button)
+        self.cancel_button.grid(row=0, column=1, pady=5, padx=5)
+
+        self.left_frame.grid(column=0, row=0)
+        self.right_frame.grid(column=1, row=0)
+        self.button_frame.grid(column=0, row=1, columnspan=2)
+
+    def get_io_ports(self):
+        hdlgen = xml.dom.minidom.parse(self.app.hdlgen_path)
+        root = hdlgen.documentElement
+
+        # hdlDesign - entityIOPorts
+        hdlDesign = root.getElementsByTagName("hdlDesign")[0]
+        entityIOPorts = hdlDesign.getElementsByTagName("entityIOPorts")[0]
+        signals = entityIOPorts.getElementsByTagName("signal")
+
+        all_ports = []
+        for sig in signals:
+            signame = sig.getElementsByTagName("name")[0]
+            mode = sig.getElementsByTagName("mode")[0]
+            type = sig.getElementsByTagName("type")[0]
+            desc = sig.getElementsByTagName("description")[0]
+            all_ports.append(
+                [signame.firstChild.data, mode.firstChild.data, type.firstChild.data, desc.firstChild.data]
+            )
+    
+        return all_ports
 
 
 
