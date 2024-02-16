@@ -606,8 +606,28 @@ class IO_Config_Window(ctk.CTkToplevel):
         #                                   TC
         #                                   ceo
 
-        port_map = self.get_io_ports()
-        port_map_signals_names = [port[0] for port in port_map]
+        port_map = self.get_io_ports()    
+        port_map_signals_names = []
+
+
+
+        for port in port_map:
+            gpio_name = port[0]   # GPIO Name
+            gpio_mode = port[1]   # GPIO Mode (in/out)
+            gpio_type = port[2]   # GPIO Type (single bit/bus/array)
+            gpio_width = 0
+            if (gpio_type == "single bit"):
+                gpio_width = 1
+            elif (gpio_type[:3] == "bus"):
+                # <type>bus(31 downto 0)</type>     ## Example Type Value
+                substring = gpio_type[4:]           # substring = '31 downto 0)'
+                words = substring.split()           # words = ['31', 'downto', '0)']
+                gpio_width = int(words[0]) + 1           # words[0] = 31
+
+            # port_map_signals_names.append(sub_array[0])
+            for i in range(gpio_width):
+                port_map_signals_names.append(f"{gpio_name}[{i}]")
+
 
         # Left frame
         self.left_frame = ctk.CTkFrame(self, width=100, height=100)  # Left frame will contain checkbox for yes/no auto scanning + explaination
