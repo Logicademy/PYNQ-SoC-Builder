@@ -593,7 +593,7 @@ class IO_Config_Window(ctk.CTkToplevel):
         self.app = app
         self.title("Configure Board IO")
         self.grab_set() # This makes the pop-up the primary window and doesn't allow interaction with main menu
-        self.geometry("500x300")
+        self.geometry("400x230")
         icon_font = ("Segoe Fluent Icons Regular", 80)
         self.resizable(False, False) # Dont let the window be resizable
         
@@ -612,18 +612,21 @@ class IO_Config_Window(ctk.CTkToplevel):
         # Left frame
         self.left_frame = ctk.CTkFrame(self, width=100, height=100)  # Left frame will contain checkbox for yes/no auto scanning + explaination
 
+        self.l_top_label = ctk.CTkLabel(self.left_frame, width=200, height=30, text="Auto IO")
+        self.l_top_label.grid(row=0, column=0, pady=5)
+
         # Left frame set up
         self.auto_io_checkbox = ctk.CTkCheckBox(self.left_frame, text="Auto Detect IO", width=100)
-        self.auto_io_checkbox.grid(row=0, column=0)
+        self.auto_io_checkbox.grid(row=1, column=0)
         # text="In automatic mode, signals tagged with an IO related suffix (eg '_led') will be assigned to I/O. The suffix mapping is as follows:\n - _led: Any available port\n- _ledx: LEDx only (x=0,1,2,3)"
-        self.auto_io_label = ctk.CTkLabel(self.left_frame, wraplength=100, width=100, anchor="w", text="Sample Text")
-        self.auto_io_label.grid(row=1, column=0)
+        self.auto_io_label = ctk.CTkLabel(self.left_frame, wraplength=100, width=100, anchor="nw", text="\nExplaination of how Auto mode works", height=130, corner_radius=0)
+        self.auto_io_label.grid(row=2, column=0)
         
         # Right frame
         self.right_frame = ctk.CTkFrame(self, width=200, height=100) # Right frame will contain manual config of signals
 
-        self.top_label = ctk.CTkLabel(self.right_frame, width=200, height=30, text="Configure IO Manually")
-        self.top_label.grid(row=0, column=0, columnspan=2, pady=5)
+        self.r_top_label = ctk.CTkLabel(self.right_frame, width=200, height=30, text="Manual IO", corner_radius=0)
+        self.r_top_label.grid(row=0, column=0, columnspan=2, pady=5)
 
 
         self.led_0_label = ctk.CTkLabel(self.right_frame, text="LED0", width=40)
@@ -679,9 +682,9 @@ class IO_Config_Window(ctk.CTkToplevel):
 
         # Button placement
         self.button_frame = ctk.CTkFrame(self, width=300, height=50)
-        self.save_button = ctk.CTkButton(self.button_frame, text="Yes", command=_on_save_button)
+        self.save_button = ctk.CTkButton(self.button_frame, text="Save", command=_on_save_button)
         self.save_button.grid(row=0, column=0, pady=5, padx=5)
-        self.cancel_button = ctk.CTkButton(self.button_frame, text="No", command=_on_cancel_button)
+        self.cancel_button = ctk.CTkButton(self.button_frame, text="Cancel", command=_on_cancel_button)
         self.cancel_button.grid(row=0, column=1, pady=5, padx=5)
 
         self.left_frame.grid(column=0, row=0)
