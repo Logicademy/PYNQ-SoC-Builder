@@ -194,8 +194,7 @@ class Page1(ctk.CTkFrame):
                 configure_io_button.configure(state="disabled")
 
             # Convert to true/false
-            self.app.checkbox_values = [open_gui_var.get() == "on", keep_gui_open_var.get() == "on", gen_jnb_var.get() == "on", use_testbench_var.get() == "on"]
-
+            self.app.checkbox_values = [open_gui_var.get() == "on", keep_gui_open_var.get() == "on", gen_jnb_var.get() == "on", use_testbench_var.get() == "on", scan_io_var.get() == "on"]
 
         # vivado config subframe
         viv_subframe = ctk.CTkFrame(row_3_frame, width=166)
