@@ -371,11 +371,13 @@ def generate_tcl(path_to_hdlgen_project, regenerate_bd=True, start_gui=True, kee
                     # If there is no connection selected for the IO, skip to the next IO
                     continue
 
-                if value.endswith(']'):
+                if value.endswith(']'): # if it ends with ] then its > 1 bits.
                     split = value.split("[")
                     board_gpio = key
                     external_connection_pin = split[0] + "_ext[" + split[1]
                     xdc_contents += add_line_to_xdc(board_gpio, external_connection_pin)
+                else:
+                    xdc_contents += add_line_to_xdc(key, value+"_ext")
 
 
         # (6) Add AXI GPIO for each input/output
