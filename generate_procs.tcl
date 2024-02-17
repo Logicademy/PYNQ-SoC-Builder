@@ -178,8 +178,9 @@ proc set_wrapper_top {wrapper_name} {
 
 # Generate Bitstream - synth_2 and impl_2 used in counter program but these should both be "_1"
 proc generate_bitstream {} {	
+	set_property {STEPS.SYNTH_DESIGN.ARGS.MORE OPTIONS} {} [get_runs synth_1]
 	reset_run synth_1
-	launch_runs impl_1 -to_step write_bitstream -jobs 2
+	launch_runs impl_1 -to_step write_bitstream -jobs 4
 }
 
 
@@ -200,4 +201,13 @@ proc delete_file {path_to_file} {
 	remove_files  $path_to_file
 	file delete -force $path_to_file
 	update_compile_order -fileset sources_1 
+}
+
+proc make_external_connection {component bd_pin external_pin_name} {
+	startgroup
+	make_bd_pins_external [ get_bd_pins $component/$bd_pin ]
+	endgroup
+	# connect_bd_net [get_bd_pins $bd_pin]
+	set ext_connector $bd_pin\_0
+	set_property name $external_pin_name [get_bd_ports $ext_connector]
 }

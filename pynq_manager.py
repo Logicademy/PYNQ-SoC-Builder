@@ -69,14 +69,14 @@ class Pynq_Manager:
 
         return bd_exists
 
-    def generate_tcl(self, regenerate_bd=False, start_gui=True, keep_vivado_open=False, skip_board_config=False):
-        tcl_generator.generate_tcl(self.hdlgen_project_path, regenerate_bd=regenerate_bd, start_gui=start_gui, keep_vivado_open=keep_vivado_open, skip_board_config=skip_board_config)
+    def generate_tcl(self, regenerate_bd=True, start_gui=True, keep_vivado_open=False, skip_board_config=False, io_map=None):
+        tcl_generator.generate_tcl(self.hdlgen_project_path, regenerate_bd=regenerate_bd, start_gui=start_gui, keep_vivado_open=keep_vivado_open, skip_board_config=skip_board_config, io_map=io_map)
 
     def run_vivado(self):
         # D:\Xilinx\Vivado\2019.1\bin\vivado.bat -mode tcl -source C:/masters/masters_automation/generate_script.tcl
         try:
             print("Starting Vivado")
-            vivado_process = subprocess.run([self.vivado_bat_path, "-mode", "tcl", "-source", "generate_script.tcl"], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+            vivado_process = subprocess.run([self.vivado_bat_path, "-mode", "tcl", "-source", "./generated/generate_script.tcl"], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
             print("Bit stream generation is complete")
         except Exception as e:
             print("Exception")
