@@ -190,7 +190,7 @@ def generate_tcl(path_to_hdlgen_project, regenerate_bd=False, start_gui=True, ke
         # file exists - path to xdc.
 
         # Step 1: Check if file exists:
-        path_to_xdc = environment + "/" + AMDproj_folder_rel_path + "/" + name + ".srcs/constrs_1/imports/"    # hotfix changed to environment
+        path_to_xdc = environment + "/" + AMDproj_folder_rel_path + "/" + name + ".srcs/constrs_1/imports/generated/"    # hotfix changed to environment
         full_path_to_xdc = path_to_xdc + "physical_constr.xdc"
         file_contents += f"\nset xdc_exists [file exists {full_path_to_xdc}]"
         
@@ -212,13 +212,13 @@ def generate_tcl(path_to_hdlgen_project, regenerate_bd=False, start_gui=True, ke
         file_contents += "\n}"
 
         # Step 3: Add XDC file
-        path_to_constraints = friendly_current_dir + "/generated/physical_contr.xdc"       # This needs to be updated with generated contraints
+        path_to_constraints = friendly_current_dir + "/generated/physical_constr.xdc"       # This needs to be updated with generated constraints
 
         file_contents += "\nadd_files -fileset constrs_1 -norecurse {"
         file_contents += path_to_constraints
         file_contents += "}"
 
-        file_contents += "\nimport_files -fileset constrs_1 {"
+        file_contents += "\nimport_files -force -fileset constrs_1 {"   # -force flag will overwrite physical_constr.xdc if it exists and somehow wasn't deleted.
         file_contents += path_to_constraints
         file_contents += "}"
 
@@ -597,7 +597,7 @@ def generate_tcl(path_to_hdlgen_project, regenerate_bd=False, start_gui=True, ke
         file.write(file_contents)
         # print("generate_script.tcl generated!")
 
-    with open('generated/physical_contr.xdc', 'w') as file:
+    with open('generated/physical_constr.xdc', 'w') as file:
         # Export contraints file
         file.write(xdc_contents)
 
