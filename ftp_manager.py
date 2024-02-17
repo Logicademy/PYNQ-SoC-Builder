@@ -39,7 +39,7 @@ class Ftp_Manager:
 
     def copy_bitstream_to_dir(self, dest_path):
         
-        tcl_location = self.location + "/" + self.AMDproj_folder_path
+        tcl_location = self.environment + "/" + self.AMDproj_folder_path # path hotfix
         hwh_location = tcl_location + "/" + self.name + ".srcs/sources_1/bd/" + self.name + "_bd/hw_handoff"
         bit_location = tcl_location + "/" + self.name + ".runs/impl_1"
 
