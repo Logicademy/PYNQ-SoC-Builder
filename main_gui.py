@@ -269,6 +269,7 @@ class Page1(ctk.CTkFrame):
         ToolTip(keep_gui_open_check_box, msg="Keep Vivado GUI open once automation steps have completed", delay=1)
         ToolTip(gen_jnb_check_box, msg="Generate Jupyter Notebook file for project", delay=1)
         ToolTip(use_testplan_check_box, msg="Generate JNB to execute each individual test case", delay=1)
+        ToolTip(use_io_check_box, msg="Enable to allow connection to PYNQ-Z2 I/O such as LEDs")
 
         checkbox_event() # Calling to set default values
 
