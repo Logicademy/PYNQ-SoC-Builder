@@ -331,7 +331,8 @@ def generate_tcl(path_to_hdlgen_project, regenerate_bd=False, start_gui=True, ke
                 file_contents += f"\nmake_external_connection {module_source}_0 {port} {port + '_ext'}"
 
             # Each connection must then be added to the XDC file.
-            for key, value in io_map:
+            # print(io_map)
+            for key, value in io_map.items():
                 board_gpio = key
                 external_connection_pin = value + "_ext"
                 xdc_contents += add_line_to_xdc(board_gpio, external_connection_pin)
