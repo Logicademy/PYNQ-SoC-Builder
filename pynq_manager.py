@@ -69,7 +69,7 @@ class Pynq_Manager:
 
         return bd_exists
 
-    def generate_tcl(self, regenerate_bd=False, start_gui=True, keep_vivado_open=False, skip_board_config=False, io_map=None):
+    def generate_tcl(self, regenerate_bd=True, start_gui=True, keep_vivado_open=False, skip_board_config=False, io_map=None):
         tcl_generator.generate_tcl(self.hdlgen_project_path, regenerate_bd=regenerate_bd, start_gui=start_gui, keep_vivado_open=keep_vivado_open, skip_board_config=skip_board_config, io_map=io_map)
 
     def run_vivado(self):

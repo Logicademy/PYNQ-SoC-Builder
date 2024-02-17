@@ -445,7 +445,7 @@ class Page2(ctk.CTkFrame):
         self.operation_completed()
 
     def generate_tcl(self, assert_complete=True):
-        regenerate_bd = False # Default
+        regenerate_bd = True # Default
         # start_gui = True 
         # keep_vivado_open = False
 

@@ -89,7 +89,7 @@ verbose_prints = False # Not implemented yet.
 # 12. Run Synthesis, Implementation and Generate Bitstream
 
 
-def generate_tcl(path_to_hdlgen_project, regenerate_bd=False, start_gui=True, keep_vivado_open=False, skip_board_config=False, io_map=None):
+def generate_tcl(path_to_hdlgen_project, regenerate_bd=True, start_gui=True, keep_vivado_open=False, skip_board_config=False, io_map=None):
 
     xdc_contents = "" # Instanciate the xdc_contents variable
 
