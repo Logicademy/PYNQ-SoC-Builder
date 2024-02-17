@@ -191,6 +191,22 @@ def generate_tcl(path_to_hdlgen_project, regenerate_bd=False, start_gui=True, ke
         file_contents += "\n    puts \"Constraint $constraint_name does not exist - Importing Constraints.\""
         file_contents += "\n}"
 
+        # export_ip_user_files -of_objects  [get_files C:/repo/PYNQ-SoC-Builder/generated/physical_contr.xdc] -no_script -reset -force -quiet
+        # remove_files  -fileset constrs_1 C:/repo/PYNQ-SoC-Builder/generated/physical_contr.xdc
+        # export_ip_user_files -of_objects  [get_files C:/repo/HDLGen-ChatGPT/User_Projects/Backup_led_Working_io_mapping/CB4CLED/VHDL/AMDprj/CB4CLED.srcs/constrs_1/imports/generated/physical_contr.xdc] -no_script -reset -force -quiet
+        # remove_files  -fileset constrs_1 C:/repo/HDLGen-ChatGPT/User_Projects/Backup_led_Working_io_mapping/CB4CLED/VHDL/AMDprj/CB4CLED.srcs/constrs_1/imports/generated/physical_contr.xdc
+        # file delete -force C:/repo/HDLGen-ChatGPT/User_Projects/Backup_led_Working_io_mapping/CB4CLED/VHDL/AMDprj/CB4CLED.srcs/constrs_1/imports/generated/physical_contr.xdc
+
+        # Files aren't getting imported or deleted correctly.
+        # 
+        #
+        # How to import:
+        # add_files -fileset constrs_1 -norecurse {{C:/repo/PYNQ-SoC-Builder/pynq-z2_v1.0.xdc/PYNQ-Z2 v1.0.xdc}}
+        # import_files -fileset constrs_1 {{C:/repo/PYNQ-SoC-Builder/pynq-z2_v1.0.xdc/PYNQ-Z2 v1.0.xdc}}    
+        # ### Don't run import_files to not copy over.
+
+
+
         # Constaints do not exist - Import now:
         path_to_constraints = friendly_current_dir + "/generated/physical_contr.xdc"       # This needs to be updated with generated contraints
         file_contents += f"\nset path_to_constraints \"{path_to_constraints}\""
