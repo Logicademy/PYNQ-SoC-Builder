@@ -178,6 +178,7 @@ proc set_wrapper_top {wrapper_name} {
 
 # Generate Bitstream - synth_2 and impl_2 used in counter program but these should both be "_1"
 proc generate_bitstream {} {	
+	set_property {STEPS.SYNTH_DESIGN.ARGS.MORE OPTIONS} {} [get_runs synth_1]
 	reset_run synth_1
 	launch_runs impl_1 -to_step write_bitstream -jobs 4
 }
