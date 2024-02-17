@@ -634,7 +634,7 @@ class IO_Config_Window(ctk.CTkToplevel):
 
             if (gpio_type == "single bit"):
                 gpio_width = 1
-                # port_map_signals_names.append(gpio_name)
+                port_map_signals_names.append(gpio_name)
             
             elif (gpio_type[:3] == "bus"):
                 # <type>bus(31 downto 0)</type>     ## Example Type Value
@@ -642,8 +642,8 @@ class IO_Config_Window(ctk.CTkToplevel):
                 words = substring.split()           # words = ['31', 'downto', '0)']
                 gpio_width = int(words[0]) + 1           # words[0] = 31
             
-            for i in range(gpio_width):
-                port_map_signals_names.append(f"{gpio_name}[{i}]")
+                for i in range(gpio_width):
+                    port_map_signals_names.append(f"{gpio_name}[{i}]")
 
 
         # # # # Automatic Mode is Disabled for the Moment - Realistically it just adds too much complexicity for only a few LEDs.

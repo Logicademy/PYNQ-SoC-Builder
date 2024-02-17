@@ -349,9 +349,12 @@ def generate_tcl(path_to_hdlgen_project, regenerate_bd=True, start_gui=True, kee
 
             ports_to_make_external = []
             for value in io_config_values:
-                res_set = value.split('[')  # Remove [x] from end if present. We can't make individual bits from a signal external. Only entire signal.
-                ports_to_make_external.append(res_set[0])
-                
+                if value.endswith(']'):
+                    res_set = value.split('[')  # Remove [x] from end if present. We can't make individual bits from a signal external. Only entire signal.
+                    ports_to_make_external.append(res_set[0])
+                else:
+                    ports_to_make_external.append(value)
+
             # Remove duplicates ["count", "count", "TC"]
             ports_to_make_external = list(set(ports_to_make_external))
 
