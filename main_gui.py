@@ -207,7 +207,8 @@ class Page1(ctk.CTkFrame):
                 configure_io_button.configure(state="disabled")
 
             # Convert to true/false
-            self.app.checkbox_values = [open_gui_var.get() == "on", keep_gui_open_var.get() == "on", gen_jnb_var.get() == "on", use_testbench_var.get() == "on", use_io_var.get() == "on"]
+            self.app.checkbox_values = [open_gui_var.get() == "on", keep_gui_open_var.get() == "on", gen_jnb_var.get() == "on", use_testplan_var.get() == "on", use_io_var.get() == "on"]
+            print(self.app.checkbox_values)
 
         # vivado config subframe
         viv_subframe = ctk.CTkFrame(row_3_frame, width=166)
@@ -239,10 +240,10 @@ class Page1(ctk.CTkFrame):
                                     variable=gen_jnb_var, onvalue="on", offvalue="off", width=140, )
         gen_jnb_check_box.grid(row=0, column=0, pady=5, padx=5, sticky = 'nswe')
 
-        use_testbench_var = ctk.StringVar(value="off")
-        use_testbench_check_box = ctk.CTkCheckBox(jnb_subframe, text="Use Testbench", command=checkbox_event,
-                                    variable=use_testbench_var, onvalue="on", offvalue="off", width=140)
-        use_testbench_check_box.grid(row=1, column=0, pady=5, padx=5, sticky = 'nswe')
+        use_testplan_var = ctk.StringVar(value="off")
+        use_testplan_check_box = ctk.CTkCheckBox(jnb_subframe, text="Use Testplan", command=checkbox_event,
+                                    variable=use_testplan_var, onvalue="on", offvalue="off", width=140)
+        use_testplan_check_box.grid(row=1, column=0, pady=5, padx=5, sticky = 'nswe')
 
         # io subframe
         use_io_var = ctk.StringVar(value="on")
@@ -264,30 +265,12 @@ class Page1(ctk.CTkFrame):
         configure_io_button = ctk.CTkButton(io_subframe, text="Configure I/O", command=on_io_config_button, width=140)
         configure_io_button.grid(row=1, column=0, pady=5, padx=5, sticky = 'nswe')
 
-        # run_button = ctk.CTkButton(row_last_frame, text="Run", command=_on_run_button)
-        # run_button.grid(row=0, column=0, pady=5, padx=5)
-        # ctk.CTkCheckBox(io_subframe, text="Use Testbench", command=checkbox_event,
-        #                             variable=use_testbench_var, onvalue="on", offvalue="off")
-        # use_testbench_check_box.grid(row=0, column=1, pady=5, padx=5)
-        use_testplan_var = ctk.StringVar(value="on")
-        use_testplan_check_box = ctk.CTkCheckBox(row_4_frame, text="Use testplan", command=checkbox_event,
-                                    variable=use_testplan_var, onvalue="on", offvalue="off",)
-        use_testplan_check_box.grid(row=0, column=1, pady=5, padx=5)
-
         ToolTip(open_gui_check_box, msg="Open Vivado GUI when executing automation steps", delay=1)
         ToolTip(keep_gui_open_check_box, msg="Keep Vivado GUI open once automation steps have completed", delay=1)
         ToolTip(gen_jnb_check_box, msg="Generate Jupyter Notebook file for project", delay=1)
         ToolTip(use_testplan_check_box, msg="Generate JNB to execute each individual test case", delay=1)
 
-
-
         checkbox_event() # Calling to set default values
-
-        # check_var3 = ctk.StringVar(value="on")
-        # check_box3 = ctk.CTkCheckBox(row_3_frame, text="Show Vivado GUI", command=checkbox_event,
-        #                             variable=check_var3, onvalue="on", offvalue="off")
-        # check_box3.grid(row=0, column=2, pady=5, padx=5)
-
 
         ## Last Row
         def _on_run_button():
