@@ -23,6 +23,11 @@ import os
 # set_property name NEWNAME [get_bd_ports count_0]
 # dunno what makegroup does but no need worry about it
 
+
+# set_property {STEPS.SYNTH_DESIGN.ARGS.MORE OPTIONS} {} [get_runs synth_1]
+# reset_run synth_1
+
+
 # ---- I/O Mapping Info ---- 
 # Current mapping scheme looks for _led suffix on (non-internal) signals.
 # _led0 - Map to LED 0 on board
@@ -128,10 +133,11 @@ def generate_tcl(path_to_hdlgen_project, regenerate_bd=False, start_gui=True, ke
 
     # Derived Variables
     location = location.replace('\\', '/')
-    path_to_xpr = location + "/" + AMDproj_folder_rel_path + "/" + name + ".xpr"
+    environment = environment.replace('\\', '/')
+    path_to_xpr = environment + "/" + AMDproj_folder_rel_path + "/" + name + ".xpr"    #   hotfix changed to environment
     bd_filename = name + "_bd"
     module_source = name
-    path_to_bd = location + "/" + AMDproj_folder_rel_path + "/" + name + ".srcs/sources_1/bd"
+    path_to_bd = environment + "/" + AMDproj_folder_rel_path + "/" + name + ".srcs/sources_1/bd"    # hotfix changed to environment
 
     ########## Start of Tcl Script Generation ##########
 
@@ -184,7 +190,7 @@ def generate_tcl(path_to_hdlgen_project, regenerate_bd=False, start_gui=True, ke
         # file exists - path to xdc.
 
         # Step 1: Check if file exists:
-        path_to_xdc = location + "/" + AMDproj_folder_rel_path + "/" + name + ".srcs/constrs_1/imports/"
+        path_to_xdc = environment + "/" + AMDproj_folder_rel_path + "/" + name + ".srcs/constrs_1/imports/"    # hotfix changed to environment
         full_path_to_xdc = path_to_xdc + "physical_constr.xdc"
         file_contents += f"\nset xdc_exists [file exists {full_path_to_xdc}]"
         
@@ -557,7 +563,7 @@ def generate_tcl(path_to_hdlgen_project, regenerate_bd=False, start_gui=True, ke
     file_contents += "\ngenerate_bitstream"
     # C:/masters/masters_automation/cb4cled-jn-application_automatic/CB4CLED/vhdl/xilinxprj/automated_bd.tcl
 
-    path_to_bd_export = location + "/" + AMDproj_folder_rel_path + "/" + bd_filename + ".tcl"
+    path_to_bd_export = environment + "/" + AMDproj_folder_rel_path + "/" + bd_filename + ".tcl"   # hotfix changed to environment
 
     # If BD isn't open, export will fail.
     file_contents += f"\nopen_bd_design {path_to_bd}/{bd_filename}/{bd_filename}.bd"
