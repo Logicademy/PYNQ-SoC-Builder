@@ -440,8 +440,8 @@ class Page2(ctk.CTkFrame):
 
     def run_all(self):
         self.progress_bar.start()
-        self.generate_tcl(False)
-        self.run_vivado(False)
+        self.generate_tcl(False)    # False flag used to ask func not to assert complete after running
+        self.run_vivado(False)      # this is because we are running many functions and wish only to assert at very end
         self.copy_to_dir(False)
         self.generate_jnb(False)
         self.operation_completed()
@@ -455,6 +455,15 @@ class Page2(ctk.CTkFrame):
         # self.app.checkbox_values = [open_gui_var.get(), keep_gui_open_var.get()]
         start_gui = self.app.checkbox_values[0]
         keep_vivado_open = self.app.checkbox_values[1]
+
+        # I/O Mapping
+        # If "Use Board I/O" checkbox is enabled, pass io_configuration.
+        # If not, pass None.
+        use_board_io = self.app.checkbox_values[4]
+        if use_board_io:
+            io_map = self.app.io_configuration
+        else:
+            io_map = None
 
         # Run check here, and run dialog:
         pm_obj = pm.Pynq_Manager(self.app.hdlgen_path)
@@ -475,7 +484,8 @@ class Page2(ctk.CTkFrame):
             else:
                 print("Invalid response from Dialog, regenerate_bd = False (default)")
         
-        pm_obj.generate_tcl(regenerate_bd=regenerate_bd, start_gui=start_gui, keep_vivado_open=keep_vivado_open, skip_board_config=self.app.skip_board_config)
+        pm_obj.generate_tcl(regenerate_bd=regenerate_bd, start_gui=start_gui, keep_vivado_open=keep_vivado_open, skip_board_config=self.app.skip_board_config, io_map=io_map)
+        
         if assert_complete:
             self.operation_completed()
 
