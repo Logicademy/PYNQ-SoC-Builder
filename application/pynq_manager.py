@@ -2,7 +2,7 @@ import subprocess
 import time
 import runpy
 import application.tcl_generator as tcl_gen
-import application.ftp_manager as ftp_manager
+import application.file_manager as file_manager
 import application.notebook_generator as nbg
 import xml.dom.minidom
 import os
@@ -86,7 +86,7 @@ class Pynq_Manager:
         pass
 
     def copy_to_dir(self, destination=None):
-        ftp = ftp_manager.Ftp_Manager(self.hdlgen_project_path)
+        ftp = file_manager.Ftp_Manager(self.hdlgen_project_path)
         if destination == None:
             destination = os.getcwd() + "\\output"
         res = ftp.copy_bitstream_to_dir(destination)
@@ -94,7 +94,7 @@ class Pynq_Manager:
         return res
 
     def test_connection(self):
-        ftp_manager.pwd()
+        file_manager.pwd()
 
     def generate_jnb(self, generic=False):
         nbg.create_jnb(self.hdlgen_project_path, generic=generic)

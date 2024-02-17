@@ -496,7 +496,7 @@ class Page2(ctk.CTkFrame):
         pm_obj = pm.Pynq_Manager(self.app.hdlgen_path)
         res = pm_obj.copy_to_dir()
         if not res:
-            self.app.top_level_message = "All steps completed: Synthesis/Implementation/Bitstream generation failed - Please see Vivado logs for information"
+            self.app.top_level_message = "Could not find .bit file - Please see Vivado logs for information"
             self.app.open_alert()
         if assert_complete:
             self.operation_completed()
