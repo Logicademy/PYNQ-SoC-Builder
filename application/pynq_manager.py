@@ -1,9 +1,9 @@
 import subprocess
 import time
 import runpy
-import tcl_generator
-import ftp_manager
-import notebook_generator as nbg
+import application.tcl_generator as tcl_gen
+import application.ftp_manager as ftp_manager
+import application.notebook_generator as nbg
 import xml.dom.minidom
 import os
 # Define location of vivado exe, this might need to be the bat file we will see.
@@ -70,7 +70,7 @@ class Pynq_Manager:
         return bd_exists
 
     def generate_tcl(self, regenerate_bd=True, start_gui=True, keep_vivado_open=False, skip_board_config=False, io_map=None):
-        tcl_generator.generate_tcl(self.hdlgen_project_path, regenerate_bd=regenerate_bd, start_gui=start_gui, keep_vivado_open=keep_vivado_open, skip_board_config=skip_board_config, io_map=io_map)
+        tcl_gen.generate_tcl(self.hdlgen_project_path, regenerate_bd=regenerate_bd, start_gui=start_gui, keep_vivado_open=keep_vivado_open, skip_board_config=skip_board_config, io_map=io_map)
 
     def run_vivado(self):
         # D:\Xilinx\Vivado\2019.1\bin\vivado.bat -mode tcl -source C:/masters/masters_automation/generate_script.tcl
@@ -89,9 +89,9 @@ class Pynq_Manager:
         ftp = ftp_manager.Ftp_Manager(self.hdlgen_project_path)
         if destination == None:
             destination = os.getcwd() + "\\output"
-        ftp.copy_bitstream_to_dir(destination)
+        res = ftp.copy_bitstream_to_dir(destination)
         print(f"Copied Bitsteam Output to: {destination}")
-        # this function is responsible for moving the output in the event that direct upload isn't available.
+        return res
 
     def test_connection(self):
         ftp_manager.pwd()

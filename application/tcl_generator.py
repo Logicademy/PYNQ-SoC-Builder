@@ -144,7 +144,7 @@ def generate_tcl(path_to_hdlgen_project, regenerate_bd=True, start_gui=True, kee
     # (1) Source Procedures File
     current_dir = os.getcwd()
     friendly_current_dir = current_dir.replace("\\", "/")
-    file_contents = "source " + friendly_current_dir + "/generate_procs.tcl"  # Source the procedures
+    file_contents = "source " + friendly_current_dir + "/application/generate_procs.tcl"  # Source the procedures
     
 
     # Additional Step: Set if GUI should be opened

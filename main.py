@@ -2,7 +2,7 @@ import customtkinter as ctk
 import os 
 import threading
 import time
-import pynq_manager as pm
+import application.pynq_manager as pm
 import pyperclip
 import xml.dom.minidom
 from tktooltip import ToolTip
@@ -494,7 +494,10 @@ class Page2(ctk.CTkFrame):
 
     def copy_to_dir(self, assert_complete=True):
         pm_obj = pm.Pynq_Manager(self.app.hdlgen_path)
-        pm_obj.copy_to_dir()
+        res = pm_obj.copy_to_dir()
+        if not res:
+            self.app.top_level_message = "All steps completed: Synthesis/Implementation/Bitstream generation failed - Please see Vivado logs for information"
+            self.app.open_alert()
         if assert_complete:
             self.operation_completed()
 
