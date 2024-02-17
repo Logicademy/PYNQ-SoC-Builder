@@ -5,6 +5,7 @@ import time
 import pynq_manager as pm
 import pyperclip
 import xml.dom.minidom
+from tktooltip import ToolTip
 
 ctk.set_appearance_mode("System")
 ctk.set_default_color_theme("blue")
@@ -195,9 +196,9 @@ class Page1(ctk.CTkFrame):
                 keep_gui_open_check_box.configure(state="disabled")
 
             if gen_jnb_var.get() == "on":
-                use_testbench_check_box.configure(state="normal")
+                use_testplan_check_box.configure(state="normal")
             else:
-                use_testbench_check_box.configure(state="disabled")
+                use_testplan_check_box.configure(state="disabled")
             # self.app.checkbox_values = [open_gui_var.get(), keep_gui_open_var.get()]
             
             if use_io_var.get() == "on":
@@ -218,6 +219,7 @@ class Page1(ctk.CTkFrame):
         viv_subframe.grid(row=0, column=0)
         jnb_subframe.grid(row=0, column=1)
         io_subframe.grid(row=0, column=2)
+
 
         # Vivado config subframe
         open_gui_var = ctk.StringVar(value="on")
@@ -257,6 +259,7 @@ class Page1(ctk.CTkFrame):
             else:
                 self.app.open_io_config_menu()
 
+
         # config = ctk.StringVar(value="on")
         configure_io_button = ctk.CTkButton(io_subframe, text="Configure I/O", command=on_io_config_button, width=140)
         configure_io_button.grid(row=1, column=0, pady=5, padx=5, sticky = 'nswe')
@@ -266,6 +269,17 @@ class Page1(ctk.CTkFrame):
         # ctk.CTkCheckBox(io_subframe, text="Use Testbench", command=checkbox_event,
         #                             variable=use_testbench_var, onvalue="on", offvalue="off")
         # use_testbench_check_box.grid(row=0, column=1, pady=5, padx=5)
+        use_testplan_var = ctk.StringVar(value="on")
+        use_testplan_check_box = ctk.CTkCheckBox(row_4_frame, text="Use testplan", command=checkbox_event,
+                                    variable=use_testplan_var, onvalue="on", offvalue="off",)
+        use_testplan_check_box.grid(row=0, column=1, pady=5, padx=5)
+
+        ToolTip(open_gui_check_box, msg="Open Vivado GUI when executing automation steps", delay=1)
+        ToolTip(keep_gui_open_check_box, msg="Keep Vivado GUI open once automation steps have completed", delay=1)
+        ToolTip(gen_jnb_check_box, msg="Generate Jupyter Notebook file for project", delay=1)
+        ToolTip(use_testplan_check_box, msg="Generate JNB to execute each individual test case", delay=1)
+
+
 
         checkbox_event() # Calling to set default values
 
@@ -502,8 +516,8 @@ class Page2(ctk.CTkFrame):
 
     def generate_jnb(self, assert_complete=True):
         generate_jnb = self.app.checkbox_values[2]
-        use_testbench = self.app.checkbox_values[3]
-        generic = not use_testbench
+        use_testplan = self.app.checkbox_values[3]
+        generic = not use_testplan
 
         if not generate_jnb:
             pm_obj = pm.Pynq_Manager(self.app.hdlgen_path)
