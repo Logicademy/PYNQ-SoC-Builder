@@ -64,5 +64,5 @@ Once configured, the program may be run. Once the build has been completed, all 
 
 ## Notes
 
-- If a signal is to be used for I/O all bits of the chosen signal must be used - When a port is made; this is because once a signal has been made external, no floating pins are allowed.
+- If a signal is to be used for I/O all bits of the chosen signal must be used - this is because once a signal has been made external, no floating pins are allowed.
 
