@@ -208,7 +208,7 @@ class Page1(ctk.CTkFrame):
 
             # Convert to true/false
             self.app.checkbox_values = [open_gui_var.get() == "on", keep_gui_open_var.get() == "on", gen_jnb_var.get() == "on", use_testplan_var.get() == "on", use_io_var.get() == "on"]
-            print(self.app.checkbox_values)
+
 
         # vivado config subframe
         viv_subframe = ctk.CTkFrame(row_3_frame, width=166)

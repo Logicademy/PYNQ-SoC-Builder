@@ -169,49 +169,58 @@ def generate_tcl(path_to_hdlgen_project, regenerate_bd=False, start_gui=True, ke
         file_contents += "\nset constraint_name \"constrs_1\""
 
         # Check if the constraint exists
-        file_contents += "\nset constraint_exists [catch {"
-        file_contents += "\n    get_property -quiet $constraint_name [get_constraints]"
-        file_contents += "\n} result]"
 
-        file_contents += "\nif {$constraint_exists} {"  # The contraints exists:
-        file_contents += "\n    puts \"Constraint $constraint_name exists - Reimporting Constraints\""
+        ############# Steps to delete existing XDC file #############
+        # export_ip_user_files -of_objects  [get_files {{C:/repo/HDLGen-ChatGPT/User_Projects/Backup_led_Working_io_mapping/CB4CLED/VHDL/AMDprj/CB4CLED.srcs/constrs_1/imports/pynq-z2_v1.0.xdc/PYNQ-Z2 v1.0.xdc}}] -no_script -reset -force -quiet
+        # remove_files  -fileset constrs_1 {{C:/repo/HDLGen-ChatGPT/User_Projects/Backup_led_Working_io_mapping/CB4CLED/VHDL/AMDprj/CB4CLED.srcs/constrs_1/imports/pynq-z2_v1.0.xdc/PYNQ-Z2 v1.0.xdc}}
+        # file delete -force {C:/repo/HDLGen-ChatGPT/User_Projects/Backup_led_Working_io_mapping/CB4CLED/VHDL/AMDprj/CB4CLED.srcs/constrs_1/imports/pynq-z2_v1.0.xdc/PYNQ-Z2 v1.0.xdc} 
 
-        file_contents += "\n    puts \"Checking if a physical constraints file already exists\""
-        file_contents += "\n    set fileset_name \"constrs_1\""
-        file_contents += "\n    set phys_constr_filename \"physical_constr.xdc\""
-        file_contents += "\n    set constraint_list [get_files -of_objects [get_filesets $fileset_name]]"
-        file_contents += "\n    if {[info exists constraint_list]} {"
-        file_contents += "\n        puts \"Constraints file exists: Deleting and reimporting\""
-        file_contents += "\n        file delete -force $phys_constr_filename"
-        file_contents += "\n    } else {"
-        file_contents += "\n        puts \"Constraints file does not exist: Importing\""
-        file_contents += "\n    }"
+        ############# Steps to add new XDC file (note: Copy XDC to project is enabled by import_files command) #############
+        # add_files -fileset constrs_1 -norecurse {{C:/repo/PYNQ-SoC-Builder/pynq-z2_v1.0.xdc/PYNQ-Z2 v1.0.xdc}}
+        # import_files -fileset constrs_1 {{C:/repo/PYNQ-SoC-Builder/pynq-z2_v1.0.xdc/PYNQ-Z2 v1.0.xdc}}
 
-        file_contents += "\n} else {"
-        file_contents += "\n    puts \"Constraint $constraint_name does not exist - Importing Constraints.\""
+        ############# Steps to check if constraints exist ############# 
+        # file exists C:/repo/HDLGen-ChatGPT/User_Projects/Backup_led_Working_io_mapping/CB4CLED/VHDL/AMDprj/CB4CLED.srcs/constrs_1/imports/pynq-z2_v1.0.xdc
+        # file exists - path to xdc.
+
+        # Step 1: Check if file exists:
+        path_to_xdc = location + "/" + AMDproj_folder_rel_path + "/" + name + ".srcs/constrs_1/imports/"
+        full_path_to_xdc = path_to_xdc + "physical_constr.xdc"
+        file_contents += f"\nset xdc_exists [file exists {full_path_to_xdc}]"
+        
+        # Step 2: If file exists - Delete it.
+        file_contents += "\nif {$xdc_exists} {"
+        
+        file_contents += "\n    export_ip_user_files -of_objects  [get_files {{"
+        file_contents += full_path_to_xdc
+        file_contents += "}}] -no_script -reset -force -quiet"
+
+        file_contents += "\n    remove_files  -fileset constrs_1 {{"
+        file_contents += full_path_to_xdc
+        file_contents += "}}"
+
+        file_contents += "\n    file delete -force {"
+        file_contents += full_path_to_xdc
+        file_contents += "}"
+        
         file_contents += "\n}"
 
-        # export_ip_user_files -of_objects  [get_files C:/repo/PYNQ-SoC-Builder/generated/physical_contr.xdc] -no_script -reset -force -quiet
-        # remove_files  -fileset constrs_1 C:/repo/PYNQ-SoC-Builder/generated/physical_contr.xdc
-        # export_ip_user_files -of_objects  [get_files C:/repo/HDLGen-ChatGPT/User_Projects/Backup_led_Working_io_mapping/CB4CLED/VHDL/AMDprj/CB4CLED.srcs/constrs_1/imports/generated/physical_contr.xdc] -no_script -reset -force -quiet
-        # remove_files  -fileset constrs_1 C:/repo/HDLGen-ChatGPT/User_Projects/Backup_led_Working_io_mapping/CB4CLED/VHDL/AMDprj/CB4CLED.srcs/constrs_1/imports/generated/physical_contr.xdc
-        # file delete -force C:/repo/HDLGen-ChatGPT/User_Projects/Backup_led_Working_io_mapping/CB4CLED/VHDL/AMDprj/CB4CLED.srcs/constrs_1/imports/generated/physical_contr.xdc
+        # Step 3: Add XDC file
+        path_to_constraints = friendly_current_dir + "/generated/physical_contr.xdc"       # This needs to be updated with generated contraints
 
-        # Files aren't getting imported or deleted correctly.
-        # 
-        #
-        # How to import:
-        # add_files -fileset constrs_1 -norecurse {{C:/repo/PYNQ-SoC-Builder/pynq-z2_v1.0.xdc/PYNQ-Z2 v1.0.xdc}}
-        # import_files -fileset constrs_1 {{C:/repo/PYNQ-SoC-Builder/pynq-z2_v1.0.xdc/PYNQ-Z2 v1.0.xdc}}    
-        # ### Don't run import_files to not copy over.
+        file_contents += "\nadd_files -fileset constrs_1 -norecurse {"
+        file_contents += path_to_constraints
+        file_contents += "}"
 
-
+        file_contents += "\nimport_files -fileset constrs_1 {"
+        file_contents += path_to_constraints
+        file_contents += "}"
 
         # Constaints do not exist - Import now:
-        path_to_constraints = friendly_current_dir + "/generated/physical_contr.xdc"       # This needs to be updated with generated contraints
-        file_contents += f"\nset path_to_constraints \"{path_to_constraints}\""
-        file_contents += "\nadd_files -fileset constrs_1 -norecurse $path_to_constraints"
-        file_contents += "\nimport_files -fileset constrs_1 $path_to_constraints"
+
+        # file_contents += f"\nset path_to_constraints \"{path_to_constraints}\""
+        # file_contents += "\nadd_files -fileset constrs_1 -norecurse $path_to_constraints"
+        # file_contents += "\nimport_files -fileset constrs_1 $path_to_constraints"
 
 
         # Completed: If the contraints fileset does not exist: Import it.
@@ -349,6 +358,10 @@ def generate_tcl(path_to_hdlgen_project, regenerate_bd=False, start_gui=True, ke
             # Each connection must then be added to the XDC file.
             # print(io_map)
             for key, value in io_map.items():
+                if value == 'None':
+                    # If there is no connection selected for the IO, skip to the next IO
+                    continue
+
                 split = value.split("[")
                 board_gpio = key
                 external_connection_pin = split[0] + "_ext[" + split[1]
