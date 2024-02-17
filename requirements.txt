@@ -2,3 +2,4 @@ pysftp
 nbformat
 customtkinter
 pyperclip
+tkinter-tooltip
