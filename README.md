@@ -14,7 +14,7 @@ PYNQ Automate is a tool for generating PYNQ Overlays in Vivado automatically.
 ## Run Application
 
 ```
-python main_gui.py
+python main.py
 ```
 
 ## Screenshots from Project
