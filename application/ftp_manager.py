@@ -1,6 +1,7 @@
 import pysftp
 import xml.dom.minidom
 import shutil
+import os
 
 other_host_name = "192.168.0.53"
 host_name = "pynq"
@@ -51,16 +52,19 @@ class Ftp_Manager:
         hwh_full_path = hwh_location + "/" + hwh_filename
         bit_full_path = bit_location + "/" + bit_filename
 
-        # TODO: Correct for \\ instead of / earlier in the program. This is a quick patch.
+        # Perm temp fix lol
         tcl_full_path = tcl_full_path.replace("\\", "/")
         hwh_full_path = hwh_full_path.replace("\\", "/")
         bit_full_path = bit_full_path.replace("\\", "/")
 
+        if os.path.exists(bit_full_path):
+            shutil.copy(tcl_full_path, dest_path+"/"+self.name+".tcl")
+            shutil.copy(hwh_full_path, dest_path+"/"+self.name+".hwh")
+            shutil.copy(bit_full_path, dest_path+"/"+self.name+".bit")
+            return True
+        else:
+            return False
 
-        shutil.copy(tcl_full_path, dest_path+"/"+self.name+".tcl")
-        shutil.copy(hwh_full_path, dest_path+"/"+self.name+".hwh")
-        shutil.copy(bit_full_path, dest_path+"/"+self.name+".bit")
-        
     def copy_to_dir(source_full_path, destination_full_path):
         shutil.copy(source_full_path, destination_full_path)
 
@@ -68,6 +72,26 @@ class Ftp_Manager:
     # with pysftp.Connection(host=other_host_name, username=user_name, password=pass_word, cnopts=cnopts) as sftp:
     #     print("Connection Estabilished Successfully\n")
     #     print(sftp.pwd)
+
+    def check_bitstream_exists(self):
+        tcl_location = self.environment + "/" + self.AMDproj_folder_path # path hotfix
+        # hwh_location = tcl_location + "/" + self.name + ".srcs/sources_1/bd/" + self.name + "_bd/hw_handoff"
+        bit_location = tcl_location + "/" + self.name + ".runs/impl_1"
+
+        # hwh_filename = self.name + "_bd.hwh"
+        # tcl_filename = self.name + ".tcl"
+        bit_filename = self.name + "_bd_wrapper.bit"
+
+
+        # tcl_full_path = tcl_location + "/" + tcl_filename
+        # hwh_full_path = hwh_location + "/" + hwh_filename
+        bit_full_path = bit_location + "/" + bit_filename
+
+        # tcl_full_path = tcl_full_path.replace("\\", "/")
+        # hwh_full_path = hwh_full_path.replace("\\", "/")
+        bit_full_path = bit_full_path.replace("\\", "/")
+
+        return os.path.exists(bit_full_path)
 
     def pwd(self):
         with pysftp.Connection(host=host_name, username=user_name, password=pass_word, cnopts=cnopts) as sftp:
