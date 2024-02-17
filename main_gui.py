@@ -466,7 +466,7 @@ class Page2(ctk.CTkFrame):
         # Run check here, and run dialog:
         pm_obj = pm.Pynq_Manager(self.app.hdlgen_path)
         response = None
-        if pm_obj.get_bd_exists:
+        if pm_obj.get_bd_exists():
             self.app.top_level_message = "A block diagram already exists, would you like to regenerate a fresh BD?"
             self.app.open_dialog()
             
