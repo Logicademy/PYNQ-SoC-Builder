@@ -252,7 +252,7 @@ def create_jnb(path_to_hdlgen_file, output_filename=None, generic=False):
                 # code_cell_contents += "\nclk.write(1,0)"
                 # code_cell_contents += "\ntime.sleep(0.05) # Sleep for 50 ms"
                 # code_cell_contents += "\nclk.write(0,0)\n"
-                code_cell_contents += "\nrun_clock_pulse() # run clock pulse"
+                code_cell_contents += "\nrun_clock_pulse()"
                 delay_total = delay_total - 1
 
 
