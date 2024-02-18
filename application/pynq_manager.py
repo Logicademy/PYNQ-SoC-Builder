@@ -60,7 +60,7 @@ class Pynq_Manager:
         AMDproj_folder_rel_path = AMDproj_folder.firstChild.data
 
         bd_filename = name + "_bd"
-        path_to_bd = location + "/" + AMDproj_folder_rel_path + "/" + name + ".srcs/sources_1/bd"
+        path_to_bd = environment + "/" + AMDproj_folder_rel_path + "/" + name + ".srcs/sources_1/bd"    # hotfix environment var instead of location
         path_to_bd_folder_check = path_to_bd + "/" +  bd_filename
         path_to_bd_file_check = path_to_bd_folder_check + "/" + bd_filename + ".bd"
         path_to_wrapper_file_check = path_to_bd_folder_check + "/hdl/" + bd_filename + "_wrapper.vhd"
