@@ -2,44 +2,18 @@ import customtkinter as ctk
 import xml.dom.minidom
 from tktooltip import ToolTip
 
-class Led_Config_Window(ctk.CTkToplevel):
-    def __init__(self, app):
-        ctk.CTkToplevel.__init__(self, app.root)
-        self.app = app
-        self.title("Configure Board IO")
-        self.grab_set() # This makes the pop-up the primary window and doesn't allow interaction with main menu
-        self.geometry("300x230")
-        # {'family': 'Segoe UI', 'size': 9, 'weight': 'normal', 'slant': 'roman', 'underline': 0, 'overstrike': 0}
-        header_font = ("Segoe UI", 16, "bold") # Title font
-        self.resizable(False, False) # Dont let the window be resizable
-        
-        # Need to learn the I/O thats available - What top level signals can we use.
-        # LED0: (dropdown) -> dropdown menu will contain all the signals as
-        #                                   count[3]
-        #                                   count[2]
-        #                                   count[1]
-        #                                   count[0]
-        #                                   TC
-        #                                   ceo
+class IO_TopLevel_Functions():
+    def __init__(self, top_level):
+        self.top_level = top_level
+    
+    def get_all_signal_names(self, mode=None):
 
-        port_map = self.get_io_ports()    
+        # if mode = None, return all
+        # if mode = "in", return inputs only
+        # if mode = "out", return outputs only
+
+        port_map = self.top_level.get_io_ports()    
         port_map_signals_names = []
-
-        # # # # Automatic Mode is Disabled for the Moment - Realistically it just adds too much complexicity for only a few LEDs.
-        # # # # Ultimately not very scalable either.
-
-        # Left frame
-        # self.left_frame = ctk.CTkFrame(self, width=100, height=100)  # Left frame will contain checkbox for yes/no auto scanning + explaination
-
-        # self.l_top_label = ctk.CTkLabel(self.left_frame, width=200, height=30, text="Auto IO")
-        # self.l_top_label.grid(row=0, column=0, pady=5)
-
-        # Left frame set up
-        # self.auto_io_checkbox = ctk.CTkCheckBox(self.left_frame, text="Auto Detect IO", width=100)
-        # self.auto_io_checkbox.grid(row=1, column=0)
-        # text="In automatic mode, signals tagged with an IO related suffix (eg '_led') will be assigned to I/O. The suffix mapping is as follows:\n - _led: Any available port\n- _ledx: LEDx only (x=0,1,2,3)"
-        # self.auto_io_label = ctk.CTkLabel(self.left_frame, wraplength=100, width=100, anchor="nw", text="\nExplaination of how Auto mode works", height=130, corner_radius=0)
-        # self.auto_io_label.grid(row=2, column=0)
 
         for port in port_map:
 
@@ -61,6 +35,54 @@ class Led_Config_Window(ctk.CTkToplevel):
                 for i in range(gpio_width):
                     port_map_signals_names.append(f"{gpio_name}[{i}]")
 
+        return port_map_signals_names
+
+class Led_Config_Window(ctk.CTkToplevel):
+    def __init__(self, app):
+        
+        self.io_functions = IO_TopLevel_Functions(self)
+
+        ctk.CTkToplevel.__init__(self, app.root)
+        self.app = app
+        self.title("Configure Board IO")
+        self.grab_set() # This makes the pop-up the primary window and doesn't allow interaction with main menu
+        self.geometry("300x230")
+        header_font = ("Segoe UI", 16, "bold") # Title font
+        self.resizable(False, False) # Dont let the window be resizable
+        
+        # Need to learn the I/O thats available - What top level signals can we use.
+        # LED0: (dropdown) -> dropdown menu will contain all the signals as
+        #                                   count[3]
+        #                                   count[2]
+        #                                   count[1]
+        #                                   count[0]
+        #                                   TC
+        #                                   ceo
+
+        # port_map = self.get_io_ports()    
+        # port_map_signals_names = []
+
+        # for port in port_map:
+
+        #     gpio_name = port[0]   # GPIO Name
+        #     gpio_mode = port[1]   # GPIO Mode (in/out)
+        #     gpio_type = port[2]   # GPIO Type (single bit/bus/array)
+        #     gpio_width = 0
+
+        #     if (gpio_type == "single bit"):
+        #         gpio_width = 1
+        #         port_map_signals_names.append(gpio_name)
+            
+        #     elif (gpio_type[:3] == "bus"):
+        #         # <type>bus(31 downto 0)</type>     ## Example Type Value
+        #         substring = gpio_type[4:]           # substring = '31 downto 0)'
+        #         words = substring.split()           # words = ['31', 'downto', '0)']
+        #         gpio_width = int(words[0]) + 1           # words[0] = 31
+            
+        #         for i in range(gpio_width):
+        #             port_map_signals_names.append(f"{gpio_name}[{i}]")
+
+        # port_map_signals_name = self.io_functions.get_all_signal_names()
 
         # Right frame
         self.right_frame = ctk.CTkFrame(self, width=200, height=100) # Right frame will contain manual config of signals
@@ -84,7 +106,7 @@ class Led_Config_Window(ctk.CTkToplevel):
             # handle dropdown event
             pass
 
-        dropdown_options = port_map_signals_names
+        dropdown_options = self.io_functions.get_all_signal_names()
         dropdown_options.insert(0, "None")
 
         self.led_0_var = ctk.StringVar(value=self.app.io_configuration["led0"]) # self.io_configuration["led0"]
