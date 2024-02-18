@@ -46,10 +46,11 @@ class Application:
         # Initalise app pages
         self.page1 = Page1(self)        # Main Menu
         self.page2 = Page2(self)        # Page Showing progress
-        # self.page3 = Page3(self)        # Possible we create a summary page later 
+        self.page3 = IO_Config_Page(self)   # IO Config Page
+        # self.page4 = Summary_Page(self)        # Possible we create a summary page later 
 
         # Show Inital Page
-        self.show_page(self.page1)
+        self.show_page(self.page3)
 
         # Initalise attribute toplevel_window
         self.toplevel_window = None
@@ -60,7 +61,7 @@ class Application:
         # Should be ok for this small application
         self.page1.hide()
         self.page2.hide()
-        # self.page3.hide()
+        self.page3.hide()
         page.show() # Show requested page.
 
     def open_alert(self):
@@ -532,7 +533,107 @@ class Page2(ctk.CTkFrame):
     def hide(self):
         self.pack_forget()
 
+class IO_Config_Page(ctk.CTkFrame):
+    def __init__(self, app):
+        ctk.CTkFrame.__init__(self, app.root)
+        self.app = app       
+
+        row_0_frame = ctk.CTkFrame(self, width=500, height=30, corner_radius=0)
+        row_1_frame = ctk.CTkFrame(self, width=500, height=30)
+        row_2_frame = ctk.CTkFrame(self, width=500, height=30)
+        row_3_frame = ctk.CTkFrame(self, width=500)
+        row_3_frame.grid_rowconfigure(0, weight=1)
+        # row_3_frame.grid_rowconfigure(1, weight=1)
+        row_3_frame.grid_columnconfigure(0, weight=1)
+        row_3_frame.grid_columnconfigure(1, weight=1)
+        row_3_frame.grid_columnconfigure(2, weight=1)
+        row_3_frame.columnconfigure(0, weight=1)
+        row_3_frame.columnconfigure(1, weight=1)
+        row_3_frame.columnconfigure(2, weight=1)
+        # self.rowconfigure(3, weight=1)
+        self.columnconfigure(0,weight=1)
+        # row_3_frame.rowconfigure(0, weight=1)
+        # row_3_frame.rowconfigure(1, weight=1)
+        # row_3_frame.rowconfigure(2, weight=1)
+        row_4_frame = ctk.CTkFrame(self, width=500, height=30)
+        row_last_frame = ctk.CTkFrame(self, width=500, height=30)
+
+        row_0_frame.grid(row=0, sticky="nsew")
+        row_0_frame.columnconfigure(0, weight=1) # Centre the row
+        row_1_frame.grid(row=1, pady=15, padx=10)
+        row_2_frame.grid(row=2,pady=10)
+        row_3_frame.grid(row=3, padx=5, ipady=5, sticky="nsew")
+        # row_4_frame.grid(row=4, padx=5, pady=5)
+
+
+        row_last_frame.grid(row=10, pady=15)
+
+        ## Row 0
+        # Title Label
+        title_font = ("Segoe UI", 20, "bold") # Title font
+        title_label = ctk.CTkLabel(row_0_frame, text="Configure Board I/O Connections", font=title_font, padx=10)
+        title_label.grid(row=0, column=0, sticky="nsew")
+
+        # title_label.bind("<Button-3>", self.on_right_button_title_label)
+
+        def config_button_selected():
+            pass
+
+        # Row 1
+        led_button = ctk.CTkButton(row_1_frame, text="LEDs", command=config_button_selected, width=140)
+        sw_btn_button = ctk.CTkButton(row_1_frame, text="Switches+Buttons", command=config_button_selected, width=140)
+        clk_crypto_button = ctk.CTkButton(row_1_frame, text="Clock+Crypto", command=config_button_selected, width=140)
+        led_button.grid(row=0, column=0, padx=5, pady=5, sticky="nsew")
+        sw_btn_button.grid(row=0, column=1, padx=5, pady=5, sticky="nsew")
+        clk_crypto_button.grid(row=0, column=2, padx=5, pady=5, sticky="nsew")
+
+        ## Row 2
+        arduino_button = ctk.CTkButton(row_2_frame, text="Arduino", command=config_button_selected, width=140)
+        raspberry_pi_button = ctk.CTkButton(row_2_frame, text="Raspberry Pi", command=config_button_selected, width=140)
+        pmod_button = ctk.CTkButton(row_2_frame, text="Pmod", command=config_button_selected, width=140)
+        arduino_button.grid(row=0, column=0, padx=5, pady=5, sticky="nsew")
+        raspberry_pi_button.grid(row=0, column=1, padx=5, pady=5, sticky="nsew")
+        pmod_button.grid(row=0, column=2, padx=5, pady=5, sticky="nsew")
+
+        # Row 3
+        hdmi_button = ctk.CTkButton(row_3_frame, text="HDMI", command=config_button_selected, width=140)
+        audio_button = ctk.CTkButton(row_3_frame, text="Audio", command=config_button_selected, width=140)
+        analog_input_button = ctk.CTkButton(row_3_frame, text="Single Ended Analog", command=config_button_selected, width=140)
+        hdmi_button.grid(row=0, column=0, padx=5, pady=5, sticky="nsew")
+        audio_button.grid(row=0, column=1, padx=5, pady=5, sticky="nsew")
+        analog_input_button.grid(row=0, column=2, padx=5, pady=5, sticky="nsew")
+
+
+        ## Last Row
+        def on_save_button():
+
+            # Attempt to save
+            save_success = True
+
+            if save_success:
+                self.app.show_page(self.app.page1)
+                self.app.root.geometry("500x240")
+            else:
+                # Tell the user why
+                pass
+
+        def on_cancel_button():
+            # don't save anything, just return
+            self.app.show_page(self.app.page1)
+            self.app.root.geometry("500x240")
+        
+
+        # Go Button
+        save_button = ctk.CTkButton(row_last_frame, text="Save", command=on_save_button)
+        save_button.grid(row=0, column=0, pady=5, padx=5)
+        cancel_button = ctk.CTkButton(row_last_frame, text="Cancel", command=on_cancel_button)
+        cancel_button.grid(row=0, column=1, pady=5, padx=5)
+
+    def show(self):
+        self.pack()
     
+    def hide(self):
+        self.pack_forget()  
 
 class Alert_Window(ctk.CTkToplevel):
     def __init__(self, app):
@@ -626,7 +727,21 @@ class IO_Config_Window(ctk.CTkToplevel):
         port_map = self.get_io_ports()    
         port_map_signals_names = []
 
+        # # # # Automatic Mode is Disabled for the Moment - Realistically it just adds too much complexicity for only a few LEDs.
+        # # # # Ultimately not very scalable either.
 
+        # Left frame
+        # self.left_frame = ctk.CTkFrame(self, width=100, height=100)  # Left frame will contain checkbox for yes/no auto scanning + explaination
+
+        # self.l_top_label = ctk.CTkLabel(self.left_frame, width=200, height=30, text="Auto IO")
+        # self.l_top_label.grid(row=0, column=0, pady=5)
+
+        # Left frame set up
+        # self.auto_io_checkbox = ctk.CTkCheckBox(self.left_frame, text="Auto Detect IO", width=100)
+        # self.auto_io_checkbox.grid(row=1, column=0)
+        # text="In automatic mode, signals tagged with an IO related suffix (eg '_led') will be assigned to I/O. The suffix mapping is as follows:\n - _led: Any available port\n- _ledx: LEDx only (x=0,1,2,3)"
+        # self.auto_io_label = ctk.CTkLabel(self.left_frame, wraplength=100, width=100, anchor="nw", text="\nExplaination of how Auto mode works", height=130, corner_radius=0)
+        # self.auto_io_label.grid(row=2, column=0)
 
         for port in port_map:
 
@@ -649,22 +764,6 @@ class IO_Config_Window(ctk.CTkToplevel):
                     port_map_signals_names.append(f"{gpio_name}[{i}]")
 
 
-        # # # # Automatic Mode is Disabled for the Moment - Realistically it just adds too much complexicity for only a few LEDs.
-        # # # # Ultimately not very scalable either.
-
-        # Left frame
-        # self.left_frame = ctk.CTkFrame(self, width=100, height=100)  # Left frame will contain checkbox for yes/no auto scanning + explaination
-
-        # self.l_top_label = ctk.CTkLabel(self.left_frame, width=200, height=30, text="Auto IO")
-        # self.l_top_label.grid(row=0, column=0, pady=5)
-
-        # Left frame set up
-        # self.auto_io_checkbox = ctk.CTkCheckBox(self.left_frame, text="Auto Detect IO", width=100)
-        # self.auto_io_checkbox.grid(row=1, column=0)
-        # text="In automatic mode, signals tagged with an IO related suffix (eg '_led') will be assigned to I/O. The suffix mapping is as follows:\n - _led: Any available port\n- _ledx: LEDx only (x=0,1,2,3)"
-        # self.auto_io_label = ctk.CTkLabel(self.left_frame, wraplength=100, width=100, anchor="nw", text="\nExplaination of how Auto mode works", height=130, corner_radius=0)
-        # self.auto_io_label.grid(row=2, column=0)
-        
         # Right frame
         self.right_frame = ctk.CTkFrame(self, width=200, height=100) # Right frame will contain manual config of signals
 
