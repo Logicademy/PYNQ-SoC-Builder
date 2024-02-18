@@ -50,7 +50,7 @@ class Application:
         # self.page4 = Summary_Page(self)        # Possible we create a summary page later 
 
         # Show Inital Page
-        self.show_page(self.page3)
+        self.show_page(self.page1)
 
         # Initalise attribute toplevel_window
         self.toplevel_window = None
@@ -75,12 +75,14 @@ class Application:
             self.toplevel_window = Dialog_Window(self) # Create window if None or destroyed
         else:
             self.toplevel_window.focus() # if window exists focus it.
-        
-    def open_io_config_menu(self):
+
+    def open_io_led_window(self):
         if self.toplevel_window is None or not self.toplevel_window.winfo_exists():
             self.toplevel_window = IO_Config_Window(self) # Create window if None or destroyed
         else:
             self.toplevel_window.focus() # if window exists focus it.
+        # Wait for the user to close the window
+        self.toplevel_window.wait_window()
 
     
     def on_close(self):
@@ -259,7 +261,7 @@ class Page1(ctk.CTkFrame):
                 self.app.open_alert()
                 return
             else:
-                self.app.open_io_config_menu()
+                self.app.show_page(self.app.page3)
 
 
         # config = ctk.StringVar(value="on")
@@ -582,7 +584,7 @@ class IO_Config_Page(ctk.CTkFrame):
             pass
 
         # Row 1
-        led_button = ctk.CTkButton(row_1_frame, text="LEDs", command=config_button_selected, width=140)
+        led_button = ctk.CTkButton(row_1_frame, text="LEDs", command=self.app.open_io_led_window, width=140)
         sw_btn_button = ctk.CTkButton(row_1_frame, text="Switches+Buttons", command=config_button_selected, width=140)
         clk_crypto_button = ctk.CTkButton(row_1_frame, text="Clock+Crypto", command=config_button_selected, width=140)
         led_button.grid(row=0, column=0, padx=10, pady=5, sticky="nsew")
@@ -617,29 +619,14 @@ class IO_Config_Page(ctk.CTkFrame):
         analog_input_button.configure(state="disabled")
         
         ## Last Row
-        def on_save_button():
-
-            # Attempt to save
-            save_success = True
-
-            if save_success:
-                self.app.show_page(self.app.page1)
-                self.app.root.geometry("500x240")
-            else:
-                # Tell the user why
-                pass
-
-        def on_cancel_button():
-            # don't save anything, just return
+        def on_return_button():
+            # Saves should be taking place on each individual IO pop-up window.
+            # Therefore no action required here, just to return.
             self.app.show_page(self.app.page1)
             self.app.root.geometry("500x240")
-        
 
-        # Go Button
-        save_button = ctk.CTkButton(row_last_frame, text="Save", command=on_save_button)
-        save_button.grid(row=0, column=0, pady=5, padx=5)
-        cancel_button = ctk.CTkButton(row_last_frame, text="Cancel", command=on_cancel_button)
-        cancel_button.grid(row=0, column=1, pady=5, padx=5)
+        return_button = ctk.CTkButton(row_last_frame, text="Return", command=on_return_button)
+        return_button.grid(row=0, column=0, pady=5, padx=5)
 
     def show(self):
         self.pack()
