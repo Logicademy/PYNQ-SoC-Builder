@@ -61,7 +61,7 @@ class Ftp_Manager:
             shutil.copy(tcl_full_path, dest_path+"/"+self.name+".tcl")
             shutil.copy(hwh_full_path, dest_path+"/"+self.name+".hwh")
             shutil.copy(bit_full_path, dest_path+"/"+self.name+".bit")
-            return False
+            return True
         else:
             return False
 
