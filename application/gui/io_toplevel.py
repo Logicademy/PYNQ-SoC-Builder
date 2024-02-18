@@ -142,20 +142,18 @@ class Led_Config_Window(ctk.CTkToplevel):
         self.led_3_dropdown.grid(row=4, column=1, pady=5, padx=5)
 
         self.led_4b_var = ctk.StringVar(value=self.app.io_configuration["led0"]) # self.io_configuration["led0"]
-        self.led_4b_dropdown = ctk.CTkOptionMenu(self.right_frame, variable=self.led_0_var, values=dropdown_options, command=_on_io_dropdown)
-
+        self.led_4b_dropdown = ctk.CTkOptionMenu(self.right_frame, variable=self.led_4b_var, values=dropdown_options, command=_on_io_dropdown)
         self.led_4g_var = ctk.StringVar(value=self.app.io_configuration["led1"])
-        self.led_4g_dropdown = ctk.CTkOptionMenu(self.right_frame, variable=self.led_1_var, values=dropdown_options, command=_on_io_dropdown)
-
+        self.led_4g_dropdown = ctk.CTkOptionMenu(self.right_frame, variable=self.led_4g_var, values=dropdown_options, command=_on_io_dropdown)
         self.led_4r_var = ctk.StringVar(value=self.app.io_configuration["led2"])
-        self.led_4r_dropdown = ctk.CTkOptionMenu(self.right_frame, variable=self.led_2_var, values=dropdown_options, command=_on_io_dropdown)
+        self.led_4r_dropdown = ctk.CTkOptionMenu(self.right_frame, variable=self.led_4r_var, values=dropdown_options, command=_on_io_dropdown)
 
         self.led_5b_var = ctk.StringVar(value=self.app.io_configuration["led3"])
-        self.led_5b_dropdown = ctk.CTkOptionMenu(self.right_frame, variable=self.led_3_var, values=dropdown_options, command=_on_io_dropdown)
+        self.led_5b_dropdown = ctk.CTkOptionMenu(self.right_frame, variable=self.led_5b_var, values=dropdown_options, command=_on_io_dropdown)
         self.led_5g_var = ctk.StringVar(value=self.app.io_configuration["led3"])
-        self.led_5g_dropdown = ctk.CTkOptionMenu(self.right_frame, variable=self.led_3_var, values=dropdown_options, command=_on_io_dropdown)
+        self.led_5g_dropdown = ctk.CTkOptionMenu(self.right_frame, variable=self.led_5g_var, values=dropdown_options, command=_on_io_dropdown)
         self.led_5r_var = ctk.StringVar(value=self.app.io_configuration["led3"])
-        self.led_5r_dropdown = ctk.CTkOptionMenu(self.right_frame, variable=self.led_3_var, values=dropdown_options, command=_on_io_dropdown)
+        self.led_5r_dropdown = ctk.CTkOptionMenu(self.right_frame, variable=self.led_5r_var, values=dropdown_options, command=_on_io_dropdown)
 
         self.led_4b_dropdown.grid(row=1, column=3, pady=5, padx=5)
         self.led_4g_dropdown.grid(row=2, column=3, pady=5, padx=5)
