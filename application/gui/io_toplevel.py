@@ -22,18 +22,19 @@ class IO_TopLevel_Functions():
             gpio_type = port[2]   # GPIO Type (single bit/bus/array)
             gpio_width = 0
 
-            if (gpio_type == "single bit"):
-                gpio_width = 1
-                port_map_signals_names.append(gpio_name)
-            
-            elif (gpio_type[:3] == "bus"):
-                # <type>bus(31 downto 0)</type>     ## Example Type Value
-                substring = gpio_type[4:]           # substring = '31 downto 0)'
-                words = substring.split()           # words = ['31', 'downto', '0)']
-                gpio_width = int(words[0]) + 1           # words[0] = 31
-            
-                for i in range(gpio_width):
-                    port_map_signals_names.append(f"{gpio_name}[{i}]")
+            if mode==None or mode==gpio_mode:    
+                if (gpio_type == "single bit"):
+                    gpio_width = 1
+                    port_map_signals_names.append(gpio_name)
+                
+                elif (gpio_type[:3] == "bus"):
+                    # <type>bus(31 downto 0)</type>     ## Example Type Value
+                    substring = gpio_type[4:]           # substring = '31 downto 0)'
+                    words = substring.split()           # words = ['31', 'downto', '0)']
+                    gpio_width = int(words[0]) + 1           # words[0] = 31
+                
+                    for i in range(gpio_width):
+                        port_map_signals_names.append(f"{gpio_name}[{i}]")
 
         return port_map_signals_names
 
