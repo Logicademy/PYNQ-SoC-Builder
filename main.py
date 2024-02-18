@@ -506,7 +506,7 @@ class Page2(ctk.CTkFrame):
         use_testplan = self.app.checkbox_values[3]
         generic = not use_testplan
 
-        if not generate_jnb:
+        if generate_jnb:
             pm_obj = pm.Pynq_Manager(self.app.hdlgen_path)
             pm_obj.generate_jnb(generic=generic)
         
