@@ -40,10 +40,175 @@ import os
 io_suffix = ["_led", "_led0", "_led1", "_led2", "_led3", "_led01", "_led02", "_led03", "_led12", "_led13", "_led23", "_led3"]
 
 xdc_io_property_template = {
-    "led0" : "set_property -dict { PACKAGE_PIN R14   IOSTANDARD LVCMOS33 } [get_ports { signal_name }];",
-    "led1" : "set_property -dict { PACKAGE_PIN P14   IOSTANDARD LVCMOS33 } [get_ports { signal_name }];",
-    "led2" : "set_property -dict { PACKAGE_PIN N16   IOSTANDARD LVCMOS33 } [get_ports { signal_name }];",
-    "led3" : "set_property -dict { PACKAGE_PIN M14   IOSTANDARD LVCMOS33 } [get_ports { signal_name }];"
+    # clock
+    "clock": "set_property -dict { PACKAGE_PIN H16   IOSTANDARD LVCMOS33 } [get_ports { signal_name }];\ncreate_clock -add -name signal_name_pin -period 8.00 -waveform {0 4} [get_ports { signal_name }];",
+    # switches
+    "sw0": "set_property -dict { PACKAGE_PIN M20   IOSTANDARD LVCMOS33 } [get_ports { signal_name }];",
+    "sw1": "set_property -dict { PACKAGE_PIN M19   IOSTANDARD LVCMOS33 } [get_ports { signal_name }];",
+
+    # RGB LEDs
+    "led4_b": "set_property -dict { PACKAGE_PIN L15   IOSTANDARD LVCMOS33 } [get_ports { signal_name }];",
+    "led4_g": "set_property -dict { PACKAGE_PIN G17   IOSTANDARD LVCMOS33 } [get_ports { signal_name }];",
+    "led4_r": "set_property -dict { PACKAGE_PIN N15   IOSTANDARD LVCMOS33 } [get_ports { signal_name }];",
+    "led5_b": "set_property -dict { PACKAGE_PIN G14   IOSTANDARD LVCMOS33 } [get_ports { signal_name }];",
+    "led5_g": "set_property -dict { PACKAGE_PIN L14   IOSTANDARD LVCMOS33 } [get_ports { signal_name }];",
+    "led5_r": "set_property -dict { PACKAGE_PIN M15   IOSTANDARD LVCMOS33 } [get_ports { signal_name }];",
+
+    # LEDs
+    "led0": "set_property -dict { PACKAGE_PIN R14   IOSTANDARD LVCMOS33 } [get_ports { signal_name }];",
+    "led1": "set_property -dict { PACKAGE_PIN P14   IOSTANDARD LVCMOS33 } [get_ports { signal_name }];",
+    "led2": "set_property -dict { PACKAGE_PIN N16   IOSTANDARD LVCMOS33 } [get_ports { signal_name }];",
+    "led3": "set_property -dict { PACKAGE_PIN M14   IOSTANDARD LVCMOS33 } [get_ports { signal_name }];",
+
+    # Buttons
+    "btn0": "set_property -dict { PACKAGE_PIN D19   IOSTANDARD LVCMOS33 } [get_ports { signal_name }];",
+    "btn1": "set_property -dict { PACKAGE_PIN D20   IOSTANDARD LVCMOS33 } [get_ports { signal_name }];",
+    "btn2": "set_property -dict { PACKAGE_PIN L20   IOSTANDARD LVCMOS33 } [get_ports { signal_name }];",
+    "btn3": "set_property -dict { PACKAGE_PIN L19   IOSTANDARD LVCMOS33 } [get_ports { signal_name }];",
+
+    # PmodA
+    "ja0": "set_property -dict { PACKAGE_PIN Y18   IOSTANDARD LVCMOS33 } [get_ports { signal_name }];",
+    "ja1": "set_property -dict { PACKAGE_PIN Y19   IOSTANDARD LVCMOS33 } [get_ports { signal_name }];",
+    "ja2": "set_property -dict { PACKAGE_PIN Y16   IOSTANDARD LVCMOS33 } [get_ports { signal_name }];",
+    "ja3": "set_property -dict { PACKAGE_PIN Y17   IOSTANDARD LVCMOS33 } [get_ports { signal_name }];",
+    "ja4": "set_property -dict { PACKAGE_PIN U18   IOSTANDARD LVCMOS33 } [get_ports { signal_name }];",
+    "ja5": "set_property -dict { PACKAGE_PIN U19   IOSTANDARD LVCMOS33 } [get_ports { signal_name }];",
+    "ja6": "set_property -dict { PACKAGE_PIN W18   IOSTANDARD LVCMOS33 } [get_ports { signal_name }];",
+    "ja7": "set_property -dict { PACKAGE_PIN W19   IOSTANDARD LVCMOS33 } [get_ports { signal_name }];",
+
+
+    #PmodB
+    "jb0": "set_property -dict { PACKAGE_PIN W14   IOSTANDARD LVCMOS33 } [get_ports { signal_name }];",
+    "jb1": "set_property -dict { PACKAGE_PIN Y14   IOSTANDARD LVCMOS33 } [get_ports { signal_name }];",
+    "jb2": "set_property -dict { PACKAGE_PIN T11   IOSTANDARD LVCMOS33 } [get_ports { signal_name }];",
+    "jb3": "set_property -dict { PACKAGE_PIN T10   IOSTANDARD LVCMOS33 } [get_ports { signal_name }];",
+    "jb4": "set_property -dict { PACKAGE_PIN V16   IOSTANDARD LVCMOS33 } [get_ports { signal_name }];",
+    "jb5": "set_property -dict { PACKAGE_PIN W16   IOSTANDARD LVCMOS33 } [get_ports { signal_name }];",
+    "jb6": "set_property -dict { PACKAGE_PIN V12   IOSTANDARD LVCMOS33 } [get_ports { signal_name }];",
+    "jb7": "set_property -dict { PACKAGE_PIN W13   IOSTANDARD LVCMOS33 } [get_ports { signal_name }];",
+
+    #Audio 
+    "adr0": "set_property -dict { PACKAGE_PIN M17   IOSTANDARD LVCMOS33 } [get_ports { signal_name }];",
+    "adr1": "set_property -dict { PACKAGE_PIN M18   IOSTANDARD LVCMOS33 } [get_ports { signal_name }];",
+
+    "au_mclk_r": "set_property -dict { PACKAGE_PIN U5    IOSTANDARD LVCMOS33 } [get_ports { signal_name }];",
+    "au_sda_r": "set_property -dict { PACKAGE_PIN T9    IOSTANDARD LVCMOS33 } [get_ports { signal_name }];",
+    "au_scl_r": "set_property -dict { PACKAGE_PIN U9    IOSTANDARD LVCMOS33 } [get_ports { signal_name }];",
+    "au_dout_r": "set_property -dict { PACKAGE_PIN F17   IOSTANDARD LVCMOS33 } [get_ports { signal_name }];",
+    "au_din_r": "set_property -dict { PACKAGE_PIN G18   IOSTANDARD LVCMOS33 } [get_ports { signal_name }];",
+    "au_wclk_r": "set_property -dict { PACKAGE_PIN T17   IOSTANDARD LVCMOS33 } [get_ports { signal_name }];",
+    "au_bclk_r": "set_property -dict { PACKAGE_PIN R18   IOSTANDARD LVCMOS33 } [get_ports { signal_name }];",
+
+
+    # Single Ended Analog Inputs
+    #NOTE: The ar_an_p pins can be used as single ended analog inputs with voltages from 0-3.3V (Arduino Analog pins a[0]-a[5]). 
+    #      These signals should only be connected to the XADC core. When using these pins as digital I/O, use pins a[0]-a[5].
+    "ar_an0_p": "set_property -dict { PACKAGE_PIN E17   IOSTANDARD LVCMOS33 } [get_ports { signal_name }];",
+    "ar_an0_n": "set_property -dict { PACKAGE_PIN D18   IOSTANDARD LVCMOS33 } [get_ports { signal_name }];",
+    "ar_an1_p": "set_property -dict { PACKAGE_PIN E18   IOSTANDARD LVCMOS33 } [get_ports { signal_name }];",
+    "ar_an1_n": "set_property -dict { PACKAGE_PIN E19   IOSTANDARD LVCMOS33 } [get_ports { signal_name }];",
+    "ar_an2_p": "set_property -dict { PACKAGE_PIN K14   IOSTANDARD LVCMOS33 } [get_ports { signal_name }];",
+    "ar_an2_n": "set_property -dict { PACKAGE_PIN J14   IOSTANDARD LVCMOS33 } [get_ports { signal_name }];",
+    "ar_an3_p": "set_property -dict { PACKAGE_PIN K16   IOSTANDARD LVCMOS33 } [get_ports { signal_name }];",
+    "ar_an3_n": "set_property -dict { PACKAGE_PIN J16   IOSTANDARD LVCMOS33 } [get_ports { signal_name }];",
+    "ar_an4_p": "set_property -dict { PACKAGE_PIN J20   IOSTANDARD LVCMOS33 } [get_ports { signal_name }];",
+    "ar_an4_n": "set_property -dict { PACKAGE_PIN H20   IOSTANDARD LVCMOS33 } [get_ports { signal_name }];",
+    "ar_an5_p": "set_property -dict { PACKAGE_PIN G19   IOSTANDARD LVCMOS33 } [get_ports { signal_name }];",
+    "ar_an5_n": "set_property -dict { PACKAGE_PIN G20   IOSTANDARD LVCMOS33 } [get_ports { signal_name }];",
+
+    #Arduino Digital I/O 
+    "ar0": "set_property -dict { PACKAGE_PIN T14   IOSTANDARD LVCMOS33 } [get_ports { signal_name }];",
+    "ar1": "set_property -dict { PACKAGE_PIN U12   IOSTANDARD LVCMOS33 } [get_ports { signal_name }];",
+    "ar2": "set_property -dict { PACKAGE_PIN U13   IOSTANDARD LVCMOS33 } [get_ports { signal_name }];",
+    "ar3": "set_property -dict { PACKAGE_PIN V13   IOSTANDARD LVCMOS33 } [get_ports { signal_name }];",
+    "ar4": "set_property -dict { PACKAGE_PIN V15   IOSTANDARD LVCMOS33 } [get_ports { signal_name }];",
+    "ar5": "set_property -dict { PACKAGE_PIN T15   IOSTANDARD LVCMOS33 } [get_ports { signal_name }];",
+    "ar6": "set_property -dict { PACKAGE_PIN R16   IOSTANDARD LVCMOS33 } [get_ports { signal_name }];",
+    "ar7": "set_property -dict { PACKAGE_PIN U17   IOSTANDARD LVCMOS33 } [get_ports { signal_name }];",
+    "ar8": "set_property -dict { PACKAGE_PIN V17   IOSTANDARD LVCMOS33 } [get_ports { signal_name }];",
+    "ar9": "set_property -dict { PACKAGE_PIN V18   IOSTANDARD LVCMOS33 } [get_ports { signal_name }];",
+    "ar10": "set_property -dict { PACKAGE_PIN T16   IOSTANDARD LVCMOS33 } [get_ports { signal_name }];",
+    "ar11": "set_property -dict { PACKAGE_PIN R17   IOSTANDARD LVCMOS33 } [get_ports { signal_name }];",
+    "ar12": "set_property -dict { PACKAGE_PIN P18   IOSTANDARD LVCMOS33 } [get_ports { signal_name }];",
+    "ar13": "set_property -dict { PACKAGE_PIN N17   IOSTANDARD LVCMOS33 } [get_ports { signal_name }];",
+    "a": "set_property -dict { PACKAGE_PIN Y13   IOSTANDARD LVCMOS33 } [get_ports { signal_name }];",
+
+    #Arduino Digital I/O On Outer Analog Header
+    #NOTE: These pins should be used when using the analog header signals A0-A5 as digital I/O 
+    "a0": "set_property -dict { PACKAGE_PIN Y11   IOSTANDARD LVCMOS33 } [get_ports { signal_name }];",
+    "a1": "set_property -dict { PACKAGE_PIN Y12   IOSTANDARD LVCMOS33 } [get_ports { signal_name }];",
+    "a2": "set_property -dict { PACKAGE_PIN W11   IOSTANDARD LVCMOS33 } [get_ports { signal_name }];",
+    "a3": "set_property -dict { PACKAGE_PIN V11   IOSTANDARD LVCMOS33 } [get_ports { signal_name }];",
+    "a4": "set_property -dict { PACKAGE_PIN T5    IOSTANDARD LVCMOS33 } [get_ports { signal_name }];",
+    "a5": "set_property -dict { PACKAGE_PIN U10   IOSTANDARD LVCMOS33 } [get_ports { signal_name }];",
+
+    # Arduino SPI
+    "ck_miso": "set_property -dict { PACKAGE_PIN W15   IOSTANDARD LVCMOS33 } [get_ports { signal_name }];",
+    "ck_mosi": "set_property -dict { PACKAGE_PIN T12   IOSTANDARD LVCMOS33 } [get_ports { signal_name }];",
+    "ck_sck": "set_property -dict { PACKAGE_PIN H15   IOSTANDARD LVCMOS33 } [get_ports { signal_name }];",
+    "ck_ss": "set_property -dict { PACKAGE_PIN F16   IOSTANDARD LVCMOS33 } [get_ports { signal_name }];",
+
+    # Arduino I2C
+    "ar_scl": "set_property -dict { PACKAGE_PIN P16   IOSTANDARD LVCMOS33 } [get_ports { signal_name }];",
+    "ar_sda": "set_property -dict { PACKAGE_PIN P15   IOSTANDARD LVCMOS33 } [get_ports { signal_name }];",
+
+    #Raspberry Digital I/O 
+    "rpio_02_r": "set_property -dict { PACKAGE_PIN W18   IOSTANDARD LVCMOS33 } [get_ports { signal_name }];",
+    "rpio_03_r": "set_property -dict { PACKAGE_PIN W19   IOSTANDARD LVCMOS33 } [get_ports { signal_name }];",
+    "rpio_04_r": "set_property -dict { PACKAGE_PIN Y18   IOSTANDARD LVCMOS33 } [get_ports { signal_name }];",
+    "rpio_05_r": "set_property -dict { PACKAGE_PIN Y19   IOSTANDARD LVCMOS33 } [get_ports { signal_name }];",
+    "rpio_06_r": "set_property -dict { PACKAGE_PIN U18   IOSTANDARD LVCMOS33 } [get_ports { signal_name }];",
+    "rpio_07_r": "set_property -dict { PACKAGE_PIN U19   IOSTANDARD LVCMOS33 } [get_ports { signal_name }];",
+    "rpio_08_r": "set_property -dict { PACKAGE_PIN F19   IOSTANDARD LVCMOS33 } [get_ports { signal_name }];",
+    "rpio_09_r": "set_property -dict { PACKAGE_PIN V10   IOSTANDARD LVCMOS33 } [get_ports { signal_name }];",
+    "rpio_10_r": "set_property -dict { PACKAGE_PIN V8    IOSTANDARD LVCMOS33 } [get_ports { signal_name }];",
+    "rpio_11_r": "set_property -dict { PACKAGE_PIN W10   IOSTANDARD LVCMOS33 } [get_ports { signal_name }];",
+    "rpio_12_r": "set_property -dict { PACKAGE_PIN B20   IOSTANDARD LVCMOS33 } [get_ports { signal_name }];",
+    "rpio_13_r": "set_property -dict { PACKAGE_PIN W8    IOSTANDARD LVCMOS33 } [get_ports { signal_name }];",
+    "rpio_14_r": "set_property -dict { PACKAGE_PIN V6    IOSTANDARD LVCMOS33 } [get_ports { signal_name }];",
+    "rpio_15_r": "set_property -dict { PACKAGE_PIN Y6    IOSTANDARD LVCMOS33 } [get_ports { signal_name }];",
+    "rpio_16_r": "set_property -dict { PACKAGE_PIN B19   IOSTANDARD LVCMOS33 } [get_ports { signal_name }];",
+    "rpio_17_r": "set_property -dict { PACKAGE_PIN U7    IOSTANDARD LVCMOS33 } [get_ports { signal_name }];",
+    "rpio_18_r": "set_property -dict { PACKAGE_PIN C20   IOSTANDARD LVCMOS33 } [get_ports { signal_name }];",
+    "rpio_19_r": "set_property -dict { PACKAGE_PIN Y8    IOSTANDARD LVCMOS33 } [get_ports { signal_name }];",
+    "rpio_20_r": "set_property -dict { PACKAGE_PIN A20   IOSTANDARD LVCMOS33 } [get_ports { signal_name }];",
+    "rpio_21_r": "set_property -dict { PACKAGE_PIN Y9    IOSTANDARD LVCMOS33 } [get_ports { signal_name }];",
+    "rpio_22_r": "set_property -dict { PACKAGE_PIN U8    IOSTANDARD LVCMOS33 } [get_ports { signal_name }];",
+    "rpio_23_r": "set_property -dict { PACKAGE_PIN W6    IOSTANDARD LVCMOS33 } [get_ports { signal_name }];",
+    "rpio_24_r": "set_property -dict { PACKAGE_PIN Y7    IOSTANDARD LVCMOS33 } [get_ports { signal_name }];",
+    "rpio_25_r": "set_property -dict { PACKAGE_PIN F20   IOSTANDARD LVCMOS33 } [get_ports { signal_name }];",
+    "rpio_26_r": "set_property -dict { PACKAGE_PIN W9    IOSTANDARD LVCMOS33 } [get_ports { signal_name }];",
+    "rpio_sd_r": "set_property -dict { PACKAGE_PIN Y16   IOSTANDARD LVCMOS33 } [get_ports { signal_name }];",
+    "rpio_sc_r": "set_property -dict { PACKAGE_PIN Y17   IOSTANDARD LVCMOS33 } [get_ports { signal_name }];",
+
+    #HDMI Rx
+    "hdmi_rx_cec": "set_property -dict { PACKAGE_PIN H17   IOSTANDARD LVCMOS33 } [get_ports { signal_name }];",
+    "hdmi_rx_clk_n": "set_property -dict { PACKAGE_PIN P19   IOSTANDARD TMDS_33  } [get_ports { signal_name }];",
+    "hdmi_rx_clk_p": "set_property -dict { PACKAGE_PIN N18   IOSTANDARD TMDS_33  } [get_ports { signal_name }];",
+    "hdmi_rx_d_n0": "set_property -dict { PACKAGE_PIN W20   IOSTANDARD TMDS_33  } [get_ports { signal_name }];",
+    "hdmi_rx_d_p0": "set_property -dict { PACKAGE_PIN V20   IOSTANDARD TMDS_33  } [get_ports { signal_name }];",
+    "hdmi_rx_d_n1": "set_property -dict { PACKAGE_PIN U20   IOSTANDARD TMDS_33  } [get_ports { signal_name }];",
+    "hdmi_rx_d_p1": "set_property -dict { PACKAGE_PIN T20   IOSTANDARD TMDS_33  } [get_ports { signal_name }];",
+    "hdmi_rx_d_n2": "set_property -dict { PACKAGE_PIN P20   IOSTANDARD TMDS_33  } [get_ports { signal_name }];",
+    "hdmi_rx_d_p2": "set_property -dict { PACKAGE_PIN N20   IOSTANDARD TMDS_33  } [get_ports { signal_name }];",
+    "hdmi_rx_hpd": "set_property -dict { PACKAGE_PIN T19   IOSTANDARD LVCMOS33 } [get_ports { signal_name }];",
+    "hdmi_rx_scl": "set_property -dict { PACKAGE_PIN U14   IOSTANDARD LVCMOS33 } [get_ports { signal_name }];",
+    "hdmi_rx_sda": "set_property -dict { PACKAGE_PIN U15   IOSTANDARD LVCMOS33 } [get_ports { signal_name }];",
+
+    #HDMI Tx
+    "hdmi_tx_cec": "set_property -dict { PACKAGE_PIN G15   IOSTANDARD LVCMOS33 } [get_ports { signal_name }];",
+    "hdmi_tx_clk_n": "set_property -dict { PACKAGE_PIN L17   IOSTANDARD TMDS_33  } [get_ports { signal_name }];",
+    "hdmi_tx_clk_p": "set_property -dict { PACKAGE_PIN L16   IOSTANDARD TMDS_33  } [get_ports { signal_name }];",
+    "hdmi_tx_d_n0": "set_property -dict { PACKAGE_PIN K18   IOSTANDARD TMDS_33  } [get_ports { signal_name }];",
+    "hdmi_tx_d_p0": "set_property -dict { PACKAGE_PIN K17   IOSTANDARD TMDS_33  } [get_ports { signal_name }];",
+    "hdmi_tx_d_n1": "set_property -dict { PACKAGE_PIN J19   IOSTANDARD TMDS_33  } [get_ports { signal_name }];",
+    "hdmi_tx_d_p1": "set_property -dict { PACKAGE_PIN K19   IOSTANDARD TMDS_33  } [get_ports { signal_name }];",
+    "hdmi_tx_d_n2": "set_property -dict { PACKAGE_PIN H18   IOSTANDARD TMDS_33  } [get_ports { signal_name }];",
+    "hdmi_tx_d_p2": "set_property -dict { PACKAGE_PIN J18   IOSTANDARD TMDS_33  } [get_ports { signal_name }];",
+    "hdmi_tx_hpdn": "set_property -dict { PACKAGE_PIN R19   IOSTANDARD LVCMOS33 } [get_ports { signal_name }];",
+
+    #Crypto SDA 
+    "crypto_sda": "set_property -dict { PACKAGE_PIN J15   IOSTANDARD LVCMOS33 } [get_ports { signal_name }];"
 }
 
 # io_connection_dictionary = {key: None for key in io_suffix}
