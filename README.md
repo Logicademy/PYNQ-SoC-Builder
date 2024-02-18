@@ -42,7 +42,7 @@ To open a HDLGen project use the browse option to find the project's .hdlgen fil
 
 ![IO Config GUI](docs/IO_Config_Menu_2.png)
 
-![IO Config GUI](docs/IO_Config_Menu_1.png)
+![IO Config GUI](docs/IO_Config_Menu_3.png)
 
 ![IO Config GUI](docs/IO_Config_Menu.png)
 
