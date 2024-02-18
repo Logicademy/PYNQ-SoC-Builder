@@ -1,8 +1,7 @@
 import customtkinter as ctk
 from tktooltip import ToolTip
 import os
-import application.pynq_manager as pm
-import pyperclip
+
 
 class Main_Menu(ctk.CTkFrame):
     def __init__(self, app):
