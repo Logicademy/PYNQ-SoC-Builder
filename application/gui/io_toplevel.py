@@ -88,7 +88,7 @@ class Led_Config_Window(ctk.CTkToplevel):
         # Right frame
         self.right_frame = ctk.CTkFrame(self, width=200, height=100) # Right frame will contain manual config of signals
 
-        self.r_top_label = ctk.CTkLabel(self.right_frame, width=200, height=30, text="LED", corner_radius=0, font=header_font)
+        self.r_top_label = ctk.CTkLabel(self.right_frame, width=200, height=30, text="LEDs", corner_radius=0, font=header_font)
         self.r_top_label.grid(row=0, column=0, columnspan=4, pady=5)
 
 
