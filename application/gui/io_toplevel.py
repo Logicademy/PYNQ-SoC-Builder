@@ -47,7 +47,7 @@ class Led_Config_Window(ctk.CTkToplevel):
         self.app = app
         self.title("Configure Board IO")
         self.grab_set() # This makes the pop-up the primary window and doesn't allow interaction with main menu
-        self.geometry("300x230")
+        self.geometry("600x305")
         header_font = ("Segoe UI", 16, "bold") # Title font
         self.resizable(False, False) # Dont let the window be resizable
         
@@ -88,8 +88,8 @@ class Led_Config_Window(ctk.CTkToplevel):
         # Right frame
         self.right_frame = ctk.CTkFrame(self, width=200, height=100) # Right frame will contain manual config of signals
 
-        self.r_top_label = ctk.CTkLabel(self.right_frame, width=200, height=30, text="Configure Board I/O Connections", corner_radius=0, font=header_font)
-        self.r_top_label.grid(row=0, column=0, columnspan=2, pady=5)
+        self.r_top_label = ctk.CTkLabel(self.right_frame, width=200, height=30, text="LED", corner_radius=0, font=header_font)
+        self.r_top_label.grid(row=0, column=0, columnspan=4, pady=5)
 
 
         self.led_0_label = ctk.CTkLabel(self.right_frame, text="LED0", width=140)
@@ -101,6 +101,20 @@ class Led_Config_Window(ctk.CTkToplevel):
         self.led_1_label.grid(row=2, column=0, pady=5, padx=5)
         self.led_2_label.grid(row=3, column=0, pady=5, padx=5)
         self.led_3_label.grid(row=4, column=0, pady=5, sticky="nsew", padx=5)
+
+        self.led_4b_label = ctk.CTkLabel(self.right_frame, text="LED4b", width=140)
+        self.led_4g_label = ctk.CTkLabel(self.right_frame, text="LED4g", width=140)
+        self.led_4r_label = ctk.CTkLabel(self.right_frame, text="LED4r", width=140)
+        self.led_5b_label = ctk.CTkLabel(self.right_frame, text="LED5b", width=140)
+        self.led_5g_label = ctk.CTkLabel(self.right_frame, text="LED5g", width=140)
+        self.led_5r_label = ctk.CTkLabel(self.right_frame, text="LED5r", width=140)
+
+        self.led_4b_label.grid(row=1, column=2, pady=5, padx=5)
+        self.led_4g_label.grid(row=2, column=2, pady=5, padx=5)
+        self.led_4r_label.grid(row=3, column=2, pady=5, padx=5)
+        self.led_5b_label.grid(row=4, column=2, pady=5, padx=5)
+        self.led_5g_label.grid(row=5, column=2, pady=5, padx=5)
+        self.led_5r_label.grid(row=6, column=2, pady=5, padx=5)
 
         # mode_dropdown = ctk.CTkOptionMenu(self.row_2_frame, variable=mode_menu_var, values=self.mode_menu_options, command=on_mode_dropdown, width=150)
         def _on_io_dropdown(args):
@@ -126,6 +140,29 @@ class Led_Config_Window(ctk.CTkToplevel):
         self.led_1_dropdown.grid(row=2, column=1, pady=5, padx=5)
         self.led_2_dropdown.grid(row=3, column=1, pady=5, padx=5)
         self.led_3_dropdown.grid(row=4, column=1, pady=5, padx=5)
+
+        self.led_4b_var = ctk.StringVar(value=self.app.io_configuration["led0"]) # self.io_configuration["led0"]
+        self.led_4b_dropdown = ctk.CTkOptionMenu(self.right_frame, variable=self.led_0_var, values=dropdown_options, command=_on_io_dropdown)
+
+        self.led_4g_var = ctk.StringVar(value=self.app.io_configuration["led1"])
+        self.led_4g_dropdown = ctk.CTkOptionMenu(self.right_frame, variable=self.led_1_var, values=dropdown_options, command=_on_io_dropdown)
+
+        self.led_4r_var = ctk.StringVar(value=self.app.io_configuration["led2"])
+        self.led_4r_dropdown = ctk.CTkOptionMenu(self.right_frame, variable=self.led_2_var, values=dropdown_options, command=_on_io_dropdown)
+
+        self.led_5b_var = ctk.StringVar(value=self.app.io_configuration["led3"])
+        self.led_5b_dropdown = ctk.CTkOptionMenu(self.right_frame, variable=self.led_3_var, values=dropdown_options, command=_on_io_dropdown)
+        self.led_5g_var = ctk.StringVar(value=self.app.io_configuration["led3"])
+        self.led_5g_dropdown = ctk.CTkOptionMenu(self.right_frame, variable=self.led_3_var, values=dropdown_options, command=_on_io_dropdown)
+        self.led_5r_var = ctk.StringVar(value=self.app.io_configuration["led3"])
+        self.led_5r_dropdown = ctk.CTkOptionMenu(self.right_frame, variable=self.led_3_var, values=dropdown_options, command=_on_io_dropdown)
+
+        self.led_4b_dropdown.grid(row=1, column=3, pady=5, padx=5)
+        self.led_4g_dropdown.grid(row=2, column=3, pady=5, padx=5)
+        self.led_4r_dropdown.grid(row=3, column=3, pady=5, padx=5)
+        self.led_5b_dropdown.grid(row=4, column=3, pady=5, padx=5)
+        self.led_5g_dropdown.grid(row=5, column=3, pady=5, padx=5)
+        self.led_5r_dropdown.grid(row=6, column=3, pady=5, padx=5)
 
 
         # Right frame set up
