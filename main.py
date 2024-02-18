@@ -11,6 +11,8 @@ import application.gui.io_toplevel as io_toplevel
 import application.gui.main_menu as main_menu
 import application.gui.in_progress_page as in_progress
 import application.gui.io_config_page as io_config_page
+import application.gui.popups as popups
+
 
 ctk.set_appearance_mode("System")
 ctk.set_default_color_theme("blue")
@@ -71,13 +73,13 @@ class Application:
 
     def open_alert(self):
         if self.toplevel_window is None or not self.toplevel_window.winfo_exists():
-            self.toplevel_window = Alert_Window(self) # Create window if None or destroyed
+            self.toplevel_window = popups.Alert_Window(self) # Create window if None or destroyed
         else:
             self.toplevel_window.focus() # if window exists focus it.
     
     def open_dialog(self):
         if self.toplevel_window is None or not self.toplevel_window.winfo_exists():
-            self.toplevel_window = Dialog_Window(self) # Create window if None or destroyed
+            self.toplevel_window = popups.Dialog_Window(self) # Create window if None or destroyed
         else:
             self.toplevel_window.focus() # if window exists focus it.
 
