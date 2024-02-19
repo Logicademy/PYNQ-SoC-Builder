@@ -34,7 +34,7 @@ To open a HDLGen project use the browse option to find the project's .hdlgen fil
 
 ![Main Menu GUI](docs/main_menu_gui.png)
 
-### Options:
+### Options
 
 - **Open Vivado GUI**: Should the Vivado GUI be visable whilst build is executing. (Headless mode may improve performance)
 - **Keep Vivado Open:** This flag keeps Vivado open after bitstream generation has completed, user must manually close Vivado to complete SoC Builder process.
