@@ -11,9 +11,6 @@ PYNQ SoC Builder is a standalone Python application which:
 - Performs synthesis, implementation and bitstream generation
 - Generates Jupyter Notebook project based on provided test plan
 
-## Project Poster
-
-![Project Poster](docs/project_poster.png)
 
 ## Installation
 
@@ -72,3 +69,6 @@ Once configured, the program may be run. Once the build has been completed, all 
 
 - If a signal is to be used for I/O all bits of the chosen signal must be used - this is because once a signal has been made external, no floating pins are allowed.
 
+## Project Poster
+
+![Project Poster](docs/project_poster.png)
