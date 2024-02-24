@@ -40,8 +40,14 @@ class Ftp_Manager:
 
     def copy_bitstream_to_dir(self, dest_path):
         
+        # We need better handling of output files and be able to raise errors to the front-end
+        # C:\repo\HDLGen-ChatGPT\User_Projects\Backup_led_Working_io_mapping\CB4CLED\VHDL\AMDprj_2023\CB4CLED.gen\sources_1\bd\CB4CLED_bd\hw_handoff
+        # In brand new Vivado projects, the hwh file is in the .gen folder not the .srcs
+
+
         tcl_location = self.environment + "/" + self.AMDproj_folder_path # path hotfix
         hwh_location = tcl_location + "/" + self.name + ".srcs/sources_1/bd/" + self.name + "_bd/hw_handoff"
+        hwh_location_2023 = tcl_location + "/" + self.name + ".gen/sources_1/bd/" + self.name + "_bd/hw_handoff"
         bit_location = tcl_location + "/" + self.name + ".runs/impl_1"
 
         bit_filename = self.name + "_bd_wrapper.bit"
@@ -50,6 +56,7 @@ class Ftp_Manager:
         
         tcl_full_path = tcl_location + "/" + tcl_filename
         hwh_full_path = hwh_location + "/" + hwh_filename
+        hwh_full_path_2023 = hwh_location_2023 + "/" + hwh_filename
         bit_full_path = bit_location + "/" + bit_filename
 
         # Perm temp fix lol
@@ -57,9 +64,16 @@ class Ftp_Manager:
         hwh_full_path = hwh_full_path.replace("\\", "/")
         bit_full_path = bit_full_path.replace("\\", "/")
 
-        if os.path.exists(bit_full_path):
+        if os.path.exists(tcl_full_path):
             shutil.copy(tcl_full_path, dest_path+"/"+self.name+".tcl")
-            shutil.copy(hwh_full_path, dest_path+"/"+self.name+".hwh")
+
+        if os.path.exists(hwh_full_path):
+            shutil.copy(hwh_full_path, dest_path+"/"+self.name+".tcl")
+
+        if os.path.exists(hwh_full_path_2023):
+            shutil.copy(hwh_full_path_2023, dest_path+"/"+self.name+".tcl")
+
+        if os.path.exists(bit_full_path):
             shutil.copy(bit_full_path, dest_path+"/"+self.name+".bit")
             return True
         else:
