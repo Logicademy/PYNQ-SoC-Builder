@@ -46,7 +46,7 @@ class Ftp_Manager:
 
         bit_filename = self.name + "_bd_wrapper.bit"
         hwh_filename = self.name + "_bd.hwh"
-        tcl_filename = self.name + ".tcl"
+        tcl_filename = self.name + "_bd.tcl"
         
         tcl_full_path = tcl_location + "/" + tcl_filename
         hwh_full_path = hwh_location + "/" + hwh_filename
