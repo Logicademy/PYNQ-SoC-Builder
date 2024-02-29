@@ -91,6 +91,15 @@ class Application:
         # Wait for the user to close the window
         self.toplevel_window.wait_window()
 
+    # Repeatitive code but this func called directly from button handler where can't pass parameters
+    def open_remote_menu(self):
+        if self.toplevel_window is None or not self.toplevel_window.winfo_exists():
+            self.toplevel_window = popups.Remote_Window(self) # Create window if None or destroyed
+        else:
+            self.toplevel_window.focus() # if window exists focus it.
+        # Wait for the user to close the window
+        self.toplevel_window.wait_window()
+
     # Generic Function where the toplevel window is passed as argument.
     def open_toplevel_window(self, new_toplevel_window):
         if self.toplevel_window is None or not self.toplevel_window.winfo_exists():
