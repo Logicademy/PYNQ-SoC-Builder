@@ -1,5 +1,6 @@
 import customtkinter as ctk
 import csv
+import webbrowser
 
 class Alert_Window(ctk.CTkToplevel):
     def __init__(self, app):
@@ -128,13 +129,13 @@ class Remote_Window(ctk.CTkToplevel):
             for link in csv_data:
                 print(link)
                 # link = [name, url]
-                button = ctk.CTkButton(self.popup_frame, text=link[0], width=140)
+                button = ctk.CTkButton(self.popup_frame, text=link[0], width=140, command=lambda: self.button_press(link[1]) )
                 button.grid(row=current_row, column=0, pady=5, padx=5)
                 # Link is gonna be handled by the button handler I suppose.
                 current_row = current_row + 1
 
             # Here we need to add close button
-            return_button = ctk.CTkButton(self.popup_frame, text="Return", width=140)
+            return_button = ctk.CTkButton(self.popup_frame, text="Return", width=140, command=self.on_return)
             return_button.grid(row=current_row, column=0, padx=5, pady=5)
         
             window_width = 200
@@ -143,4 +144,13 @@ class Remote_Window(ctk.CTkToplevel):
             self.geometry(window_size)
 
         self.popup_frame.pack()
-        
+
+    def button_press(self, url):
+        # Make sure to .strip the url because if space, silly Edge opens and bing searches the address
+        # instead of opening on the user's default browser
+        webbrowser.open(url.strip())
+
+    def on_return(self):
+        # On return button we dont need to do anything
+        # except to destroy the window
+        self.destroy()

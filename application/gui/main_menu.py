@@ -189,14 +189,11 @@ class Main_Menu(ctk.CTkFrame):
                 # Do nothing
                 pass
 
-        
-            
-            
-
-
         # Go Button
         run_button = ctk.CTkButton(row_last_frame, text="Run", command=_on_run_button)
         run_button.grid(row=0, column=0, pady=5, padx=5)
+        remote_button = ctk.CTkButton(row_last_frame, text="Remote Lab", command=self.app.open_remote_menu)
+        remote_button.grid(row=0, column=1, pady=5, padx=5)
 
     
 
