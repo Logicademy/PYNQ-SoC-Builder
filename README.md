@@ -11,6 +11,7 @@ PYNQ SoC Builder is a standalone Python application which:
 - Performs synthesis, implementation and bitstream generation
 - Generates Jupyter Notebook project based on provided test plan
 
+PYNQ SoC Builder is compatible with Vivado 2019.1 and 2023.2. Versions in between may work, but are untested.
 
 ## Installation
 
