@@ -135,7 +135,7 @@ class Remote_Window(ctk.CTkToplevel):
                 current_row = current_row + 1
 
             # Here we need to add close button
-            return_button = ctk.CTkButton(self.popup_frame, text="Return", width=140, command=self.on_return)
+            return_button = ctk.CTkButton(self.popup_frame, text="OK", width=140, command=self.on_return)
             return_button.grid(row=current_row, column=0, padx=5, pady=5)
         
             window_width = 200
