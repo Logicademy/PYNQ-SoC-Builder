@@ -1,0 +1,11 @@
+<!-- This XML file will store persistant program data -->
+<?xml version="1.0" ?>
+<SoCBuilder>
+    <!-- For now the only data we will need to save is some recent projects -->
+    <recentProjects>
+        <!-- The name of the Project to be listed will be taken from the filename (no need parse HDL XML) -->
+        <project>C:\repo\projects\FIFO\fifo.hdlgen</project>
+        <project>C:\repo\projects\CB4CLED\cb4cled.hdlgen</project>
+        <project>C:\repo\projects\something\something.hdlgen</project>
+    </recentProjects>
+</SoCBuilder>

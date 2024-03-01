@@ -1,0 +1,35 @@
+<!-- This XML is a template for project XML -->
+<?xml version="1.0" ?>
+<!-- This file will be responsible for storing the settings chosen and the IO configuration -->
+<PYNQBuild>
+    <settings>
+        <vivado>
+            <showGui>True</showGui>
+            <keepOpen>True</keepOpen>
+        </vivado>
+        <jupyter>
+            <generate>True</generate>
+            <useTB>True</useTB>
+        </jupyter>
+    </settings>
+
+    <ioConfig>
+        <connection>
+            <signal>count[0]</signal>
+            <io>led0</io>
+        <connection>
+        <connection>
+            <signal>count[1]</signal>
+            <io>led1</io>
+        <connection>
+        <connection>
+            <signal>count[2]</signal>
+            <io>led2</io>
+        <connection>
+        <connection>
+            <signal>count[3]</signal>
+            <io>led3</io>
+        <connection>
+    </ioConfig>
+
+</PYNQBuild>
