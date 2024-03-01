@@ -56,7 +56,7 @@ Once configured, the program may be run. Once the build has been completed, all 
 
 Once the build has completed and you are ready to use PYNQ Z2 remote lab, select the "Remote Lab" option on the Main Menu. You will have an opportunity to select online boards or a livestream of the boards (for viewing LED I/O output).
 
-![Remote Menu](open_remote_lab.png)
+![Remote Menu](docs/open_remote_lab.png)
 
 Selecting an option will open the corresponding board's Jupyter Notebook environment in your default web-browser.
 
