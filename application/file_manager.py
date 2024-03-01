@@ -57,7 +57,7 @@ class Ftp_Manager:
         # C:\repo\HDLGen-ChatGPT\User_Projects\Backup_led_Working_io_mapping\CB4CLED\VHDL\AMDprj_2023\CB4CLED.gen\sources_1\bd\CB4CLED_bd\hw_handoff
         
         # In brand new Vivado projects, the hwh file is in the .gen folder not the .srcs
-        if dest_path=None:
+        if dest_path==None:
             self.check_path_and_mkdir()
             dest_path = self.pynq_build_output_path
 
