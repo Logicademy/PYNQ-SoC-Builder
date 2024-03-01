@@ -49,7 +49,7 @@ class In_Progress_Page(ctk.CTkFrame):
 
         copy_to_clip_button = ctk.CTkButton(bottom_row_frame, width=150, text="Copy Log to Clipboard", command=self.copy_logs_to_clip)
         self.force_quit_button = ctk.CTkButton(bottom_row_frame, width=150, text="Force Quit", fg_color="red3", hover_color="red4", command=self.app.on_close)
-        self.go_back_complete_button = ctk.CTkButton(bottom_row_frame, width=150, text="Return", fg_color="green3", hover_color="green4", command=self.on_return_button)
+        self.go_back_complete_button = ctk.CTkButton(bottom_row_frame, width=150, text="OK", fg_color="green3", hover_color="green4", command=self.on_return_button)
         
         bottom_row_frame.columnconfigure(1,weight=1)
         copy_to_clip_button.grid(row=0, column=0)

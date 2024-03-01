@@ -90,7 +90,7 @@ class IO_Config_Page(ctk.CTkFrame):
             self.app.show_page(self.app.page1)
             self.app.root.geometry("500x240")
 
-        return_button = ctk.CTkButton(row_last_frame, text="Return", command=on_return_button)
+        return_button = ctk.CTkButton(row_last_frame, text="OK", command=on_return_button)
         return_button.grid(row=0, column=0, pady=5, padx=5)
 
     def show(self):
