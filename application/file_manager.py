@@ -32,10 +32,18 @@ class Ftp_Manager:
 
         # genFolder - VHDL Folders
         genFolder = root.getElementsByTagName("genFolder")[0]
-        self.model_folder_path = genFolder.getElementsByTagName("vhdl_folder")[0].firstChild.data
-        self.testbench_folder_path = genFolder.getElementsByTagName("vhdl_folder")[1].firstChild.data
+        try:
+            self.model_folder_path = genFolder.getElementsByTagName("vhdl_folder")[0].firstChild.data
+            self.testbench_folder_path = genFolder.getElementsByTagName("vhdl_folder")[1].firstChild.data
+        except Exception:
+            self.model_folder_path = genFolder.getElementsByTagName("verilog_folder")[0].firstChild.data
+            self.testbench_folder_path = genFolder.getElementsByTagName("verilog_folder")[1].firstChild.data
         # self.ChatGPT_folder = genFolder.getElementsByTagName("vhdl_folder")[2]             # Commented as not needed
         # self.ChatGPT_Backups_folder = genFolder.getElementsByTagName("vhdl_folder")[3]     # Commented as not needed
+        try:
+            self.AMDproj_folder = genFolder.getElementsByTagName("vhdl_folder")[4]
+        except Exception:
+            self.AMDproj_folder = genFolder.getElementsByTagName("verilog_folder")[4]
         self.AMDproj_folder_path = genFolder.getElementsByTagName("vhdl_folder")[4].firstChild.data
 
     def copy_bitstream_to_dir(self, dest_path):

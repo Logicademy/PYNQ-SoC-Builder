@@ -281,7 +281,10 @@ def generate_tcl(path_to_hdlgen_project, regenerate_bd=True, start_gui=True, kee
     testbench_folder = genFolder.getElementsByTagName("vhdl_folder")[1]
     # ChatGPT_folder = genFolder.getElementsByTagName("vhdl_folder")[2]             # Commented as not needed
     # ChatGPT_Backups_folder = genFolder.getElementsByTagName("vhdl_folder")[3]     # Commented as not needed
-    AMDproj_folder = genFolder.getElementsByTagName("vhdl_folder")[4]
+    try:
+        AMDproj_folder = genFolder.getElementsByTagName("vhdl_folder")[4]
+    except Exception:
+        AMDproj_folder = genFolder.getElementsByTagName("verilog_folder")[4]
     AMDproj_folder_rel_path = AMDproj_folder.firstChild.data
 
     # hdlDesign - entityIOPorts
