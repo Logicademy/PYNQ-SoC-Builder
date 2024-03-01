@@ -91,10 +91,8 @@ class Pynq_Manager:
 
     def copy_to_dir(self, destination=None):
         ftp = file_manager.Ftp_Manager(self.hdlgen_project_path)
-        if destination == None:
-            destination = os.getcwd() + "\\output"
         res = ftp.copy_bitstream_to_dir(destination)
-        print(f"Copied Bitsteam Output to: {destination}")
+        print(f"Copied Bitsteam Output to: /PYNQBuild/output")
         return res
 
     def test_connection(self):

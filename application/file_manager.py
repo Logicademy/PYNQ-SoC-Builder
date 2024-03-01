@@ -46,12 +46,20 @@ class Ftp_Manager:
             self.AMDproj_folder = genFolder.getElementsByTagName("verilog_folder")[4]
         self.AMDproj_folder_path = genFolder.getElementsByTagName("vhdl_folder")[4].firstChild.data
 
+        self.pynq_build_path = os.path.join(self.location, "PYNQBuild")
+        self.pynq_build_output_path = os.path.join(self.pynq_build_path, "output")
+
+
+
     def copy_bitstream_to_dir(self, dest_path):
         
         # We need better handling of output files and be able to raise errors to the front-end
         # C:\repo\HDLGen-ChatGPT\User_Projects\Backup_led_Working_io_mapping\CB4CLED\VHDL\AMDprj_2023\CB4CLED.gen\sources_1\bd\CB4CLED_bd\hw_handoff
+        
         # In brand new Vivado projects, the hwh file is in the .gen folder not the .srcs
-
+        if dest_path=None:
+            self.check_path_and_mkdir()
+            dest_path = self.pynq_build_output_path
 
         tcl_location = self.environment + "/" + self.AMDproj_folder_path # path hotfix
         hwh_location = tcl_location + "/" + self.name + ".srcs/sources_1/bd/" + self.name + "_bd/hw_handoff"
@@ -86,6 +94,12 @@ class Ftp_Manager:
             return True
         else:
             return False
+        
+    def check_path_and_mkdir(self):
+        try:
+            os.makedirs(self.pynq_build_output_path)
+        except FileExistsError:
+            print("FEE: PYNQBuild/output exists already.")
 
     def copy_to_dir(source_full_path, destination_full_path):
         shutil.copy(source_full_path, destination_full_path)
