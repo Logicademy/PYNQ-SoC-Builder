@@ -76,10 +76,10 @@ class Ftp_Manager:
             shutil.copy(tcl_full_path, dest_path+"/"+self.name+".tcl")
 
         if os.path.exists(hwh_full_path):
-            shutil.copy(hwh_full_path, dest_path+"/"+self.name+".tcl")
+            shutil.copy(hwh_full_path, dest_path+"/"+self.name+".hwh")
 
         if os.path.exists(hwh_full_path_2023):
-            shutil.copy(hwh_full_path_2023, dest_path+"/"+self.name+".tcl")
+            shutil.copy(hwh_full_path_2023, dest_path+"/"+self.name+".hwh")
 
         if os.path.exists(bit_full_path):
             shutil.copy(bit_full_path, dest_path+"/"+self.name+".bit")
