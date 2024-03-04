@@ -23,8 +23,16 @@ class Pynq_Manager:
             projectManagerEdaTool = projectManagerEda.getElementsByTagName("tool")[0]
             projectManagerEdaToolDir = projectManagerEdaTool.getElementsByTagName("dir")[0]
             self.vivado_bat_path = projectManagerEdaToolDir.firstChild.data
+
+            projectManager = root.getElementsByTagName("projectManager")[0]
+            projectManagerSettings = projectManager.getElementsByTagName("settings")[0]
+            self.location = projectManagerSettings.getElementsByTagName("location")[0].firstChild.data
+            self.pynq_build_path = os.path.join(self.location, "PYNQBuild")
+            self.pynq_build_output_path = os.path.join(self.pynq_build_path, "output")
         else:
             self.vivado_bat_path = vivado_bat_path              # Path to vivado .bat file
+        
+        
 
     def get_board_config_exists(self):
         # vivado_bat_path = C:\Xilinx\Vivado\2019.1\bin\vivado.bat
@@ -98,8 +106,16 @@ class Pynq_Manager:
     def test_connection(self):
         file_manager.pwd()
 
+    def check_path_and_mkdir(self):
+        try:
+            os.makedirs(self.pynq_build_output_path)
+        except FileExistsError:
+            print("FEE: PYNQBuild/output exists already.")
+
     def generate_jnb(self, generic=False):
-        nbg.create_jnb(self.hdlgen_project_path, generic=generic)
+        self.check_path_and_mkdir()
+        dest_path = self.pynq_build_output_path
+        nbg.create_jnb(self.hdlgen_project_path, generic=generic, output_filename=dest_path)
 
 
 ## Read the docs : https://pysftp.readthedocs.io/en/release_0.2.9/cookbook.html#pysftp-connection-get
