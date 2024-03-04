@@ -154,10 +154,11 @@ def create_jnb(path_to_hdlgen_file, output_filename=None, generic=False):
         code_cell_contents += f"\n{o[0]} = {compName}.{o[0]}"
     if clock_enabled:
         code_cell_contents += "\n# Set-Up Clock Function\ndef run_clock_pulse():"
-        code_cell_contents += "\n\tclk.write(1,0)"
+        code_cell_contents += "\n\tclk.write(0,1)"
         code_cell_contents += "\n\tclk.write(0,0)\n"
 
     ##### Break here if only dealing with skeleton code.
+    # Possible To-do here is a "example" cell showing how to use signals
 
     if not generic:
 
@@ -247,11 +248,6 @@ def create_jnb(path_to_hdlgen_file, output_filename=None, generic=False):
 
             while delay_total >= 1 and clock_enabled:
                 # run clock 
-                # code_cell_contents += "\n# Running Clock Pulse"
-                # code_cell_contents += "\ntime.sleep(0.05) # Sleep for 50 ms"
-                # code_cell_contents += "\nclk.write(1,0)"
-                # code_cell_contents += "\ntime.sleep(0.05) # Sleep for 50 ms"
-                # code_cell_contents += "\nclk.write(0,0)\n"
                 code_cell_contents += "\nrun_clock_pulse()"
                 delay_total = delay_total - 1
 
