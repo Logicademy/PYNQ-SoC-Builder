@@ -323,13 +323,14 @@ def create_jnb(path_to_hdlgen_file, output_filename=None, generic=False):
 
             # Break
             code_cell_contents += "\n\n# Recording Outputs"
-            code_cell_contents += "\ntst_res = []"
-            # Checking Output:
-            for i in range(len(sub_signals)):
-                if sub_modes[i] == "out":
-                    code_cell_contents += f"\ntst_res.append(True if {sub_signals[i]}.read(0) == {test_converted_to_decimal_from_radix[i]} else False)"
+            code_cell_contents += f"\nsave_and_print_test({test_number})"
+            # code_cell_contents += "\ntst_res = []"
+            # # Checking Output:
+            # for i in range(len(sub_signals)):
+            #     if sub_modes[i] == "out":
+            #         code_cell_contents += f"\ntst_res.append(True if {sub_signals[i]}.read(0) == {test_converted_to_decimal_from_radix[i]} else False)"
 
-            code_cell_contents += f"\ntest_results[{test_number}] = all(tst_res)"
+            # code_cell_contents += f"\ntest_results[{test_number}] = all(tst_res)"
 
             # Code to print summary and present results.
             #code_cell_contents += 
@@ -342,7 +343,7 @@ def create_jnb(path_to_hdlgen_file, output_filename=None, generic=False):
 
         # Finally, presenting the results in a presentable fashion:
         # Title Markdown Cell
-        markdown_cell = nbf.v4.new_markdown_cell("# Test Results")
+        markdown_cell = nbf.v4.new_markdown_cell("# Test Results - Needs to be improved")
         notebook.cells.append(markdown_cell)
 
         code_cell_contents = "import pandas as pd\n"
