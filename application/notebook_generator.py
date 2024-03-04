@@ -154,7 +154,9 @@ def create_jnb(path_to_hdlgen_file, output_filename=None, generic=False):
         code_cell_contents += f"\n{o[0]} = {compName}.{o[0]}"
     if clock_enabled:
         code_cell_contents += "\n# Set-Up Clock Function\ndef run_clock_pulse():"
+        code_cell_contents += "\n\ttime.sleep(0.0000002)"
         code_cell_contents += "\n\tclk.write(0,1)"
+        code_cell_contents += "\n\ttime.sleep(0.0000002)"
         code_cell_contents += "\n\tclk.write(0,0)\n"
 
     ##### Break here if only dealing with skeleton code.
@@ -215,6 +217,8 @@ def create_jnb(path_to_hdlgen_file, output_filename=None, generic=False):
         # 3) Store results as test_results[test] = [signal1_val, signal2_val, signal3_val]
         sub_signals = signals_line[1:-3]
         sub_modes = mode_line[1:-3]
+        sub_radix = radix_line[1:-3]  
+        output_radix = []
 
         string1 = "\noutput_signals = ["
         string2 = ""
@@ -223,7 +227,17 @@ def create_jnb(path_to_hdlgen_file, output_filename=None, generic=False):
                 if sub_modes[i] == "out":
                     string1 += "'"+sub_signals[i] + "', " # signal1, 
                     string2 += "\n\t\t" + sub_signals[i] + "_val = " + sub_signals[i] + ".read(0)"    # reading each signal   <- Working perfectly
-                    string3 += sub_signals[i] + "_val , "
+                    
+                    try:
+                        if sub_radix[i][-1] == "h":
+                            string3 += f"hex({sub_signals[i]}_val), "
+                        elif sub_radix[i][-1] == "b":
+                            string3 += f"bin({sub_signals[i]}_val), "
+                        if sub_radix[i][-1] == "d":
+                            string3 += f"str({sub_signals[i]}_val), "
+                    except Exception:
+                        pass                    
+                    output_radix.append(sub_radix[i])
 
         string1 = string1[:-2] + "]" # delete the last ", " and add "]" instead
         string3 = string3[:-2] + "]" # delete the last 
@@ -234,17 +248,23 @@ def create_jnb(path_to_hdlgen_file, output_filename=None, generic=False):
         code_cell_contents += string1
                     
         code_cell_contents += "\nexpected_results = ["
-        # [a,b],[c,d],[e,f],[g,h]]
-
         
-
-        for test in test_cases:
+        for test_num in range(0,len(test_cases)):
+            
             code_cell_contents += " ["
             for i in range(len(sub_signals)):
                 if sub_modes[i] == "out":
-                    code_cell_contents += f""
-                    code_cell_contents += f" {test[i+1]},"
-            code_cell_contents = code_cell_contents[:-1] + " ], "
+                    try:
+                        if sub_radix[i][-1] == "h":
+                            code_cell_contents += f"\"0x{test_cases[test_num][i+1]}\", "
+                        elif sub_radix[i][-1] == "b":
+                            code_cell_contents += f"\"0b{test_cases[test_num][i+1]}\", "
+                        if sub_radix[i][-1] == "d":
+                            code_cell_contents += f"\"{test_cases[test_num][i+1]}\", "
+                    except Exception:
+                        pass   
+
+            code_cell_contents = code_cell_contents[:-2] + " ], "
         code_cell_contents = code_cell_contents[:-2] + " ]"
 
         code_cell_contents += "\n# Functions for Storing/Printing Test Results"

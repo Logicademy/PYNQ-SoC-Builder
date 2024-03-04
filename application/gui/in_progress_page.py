@@ -177,7 +177,7 @@ class In_Progress_Page(ctk.CTkFrame):
             self.operation_completed()
 
     def operation_completed(self):
-        self.force_quit_button.destroy()
+        self.force_quit_button.grid_forget()
         self.app.build_running = False
         self.go_back_complete_button.grid(row=0, column=1,sticky="e")
         self.progress_bar.configure(mode="determinate")
@@ -191,6 +191,8 @@ class In_Progress_Page(ctk.CTkFrame):
 
     def show(self):
         self.pack()
+        self.go_back_complete_button.grid_forget()  # Hide the button
+        self.force_quit_button.grid(row=0, column=1,sticky="e")
     
     def hide(self):
         self.pack_forget()
