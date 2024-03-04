@@ -17,7 +17,7 @@ cnopts.hostkeys = None
 #     print("Connection Estabilished Successfully\n")
 #     sftp.put("C:\\masters\\masters_automation\\tmp.txt", "jupyter_notebooks/live_directory/text.tmp")
 
-class Ftp_Manager:
+class File_Manager:
     # Using the IP address directly or simply "pynq" both work.
     def __init__(self, path_to_hdlgen_project):
         path_to_hdlgen_project = path_to_hdlgen_project
