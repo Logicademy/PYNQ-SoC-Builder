@@ -162,10 +162,6 @@ def create_jnb(path_to_hdlgen_file, output_filename=None, generic=False):
 
     if not generic:
 
-        code_cell_contents += "\n\n# Test Case Set Up"
-        code_cell_contents += f"\n# Number Of Test Cases: {len(test_cases)}"
-        code_cell_contents += f"\ntest_results = [None] * {len(test_cases)}"
-
         code_cell = nbf.v4.new_code_cell(code_cell_contents)
         notebook.cells.append(code_cell)
 
@@ -199,6 +195,82 @@ def create_jnb(path_to_hdlgen_file, output_filename=None, generic=False):
         markdown_cell = nbf.v4.new_markdown_cell(markdown_cell_contents)
         notebook.cells.append(markdown_cell)
 
+
+        # Test Set Up Python Code Block
+        markdown_cell = nbf.v4.new_markdown_cell("# Test Execution Set-Up Code")
+        notebook.cells.append(markdown_cell) 
+
+
+        code_cell_contents = "# Test Case Set Up"
+        code_cell_contents += f"\n# Number Of Test Cases: {len(test_cases)}"
+        code_cell_contents += f"\ntest_results = [None] * {len(test_cases)}"
+        
+        # The next section of code is difficult to read.
+        # We need to loop outputs 3 separate times in the next few lines of code.
+        # Therefore, all 3 strings are going to be made together now but injected into JNB
+        # At different points over the next 30 lines.
+
+        # 1) Create output signals array
+        # 2) Read each output signal signal.read(0)
+        # 3) Store results as test_results[test] = [signal1_val, signal2_val, signal3_val]
+        sub_signals = signals_line[1:-3]
+        sub_modes = mode_line[1:-3]
+
+        string1 = "\noutput_signals = ["
+        string2 = ""
+        string3 = "\n\t\ttest_results[test] = ["
+        for i in range(len(sub_signals)):
+                if sub_modes[i] == "out":
+                    string1 += "'"+sub_signals[i] + "', " # signal1, 
+                    string2 += "\n\t\t" + sub_signals[i] + "_val = " + sub_signals[i] + ".read(0)"    # reading each signal   <- Working perfectly
+                    string3 += sub_signals[i] + "_val , "
+
+        string1 = string1[:-2] + "]" # delete the last ", " and add "]" instead
+        string3 = string3[:-2] + "]" # delete the last 
+
+        # Loop Inputs
+        input_signals = ['a', 'b']
+        # Loop Outputs
+        code_cell_contents += string1
+                    
+        code_cell_contents += "\nexpected_results = ["
+        # [a,b],[c,d],[e,f],[g,h]]
+
+        
+
+        for test in test_cases:
+            code_cell_contents += " ["
+            for i in range(len(sub_signals)):
+                if sub_modes[i] == "out":
+                    code_cell_contents += f""
+                    code_cell_contents += f" {test[i+1]},"
+            code_cell_contents = code_cell_contents[:-1] + " ], "
+        code_cell_contents = code_cell_contents[:-2] + " ]"
+
+        code_cell_contents += "\n# Functions for Storing/Printing Test Results"
+        code_cell_contents += "\ndef color_test_passed(val):"
+        code_cell_contents += "\n\tcolor = 'green' if val else 'red'"
+        code_cell_contents += "\n\treturn f'background-color: {color}; color: white;'"
+        code_cell_contents += "\n\ndef save_and_print_test(test=None):"
+        code_cell_contents += "\n\tif None:"
+        code_cell_contents += "\n\t\tprint('No Test Number Provided')"
+        code_cell_contents += "\n\telif test >= 0 and test <= 11: # number of tests"
+        code_cell_contents += string2
+        code_cell_contents += string3
+        
+        code_cell_contents += "\n\t\tdf = pd.DataFrame({"
+        code_cell_contents += "\n\t\t\t'Signal': output_signals,"
+        code_cell_contents += "\n\t\t\t'Expected Result': expected_results[test],"
+        code_cell_contents += "\n\t\t\t'Observed Result': test_results[test],"
+        code_cell_contents += "\n\t\t\t'Test Passed?': [a == b for a, b in zip(expected_results[test], test_results[test])]"
+        code_cell_contents += "\n\t\t})"
+        code_cell_contents += "\n\t\treturn df.style.applymap(color_test_passed, subset=['Test Passed?'])"
+        code_cell_contents += "\n\telse:"
+        code_cell_contents += "\n\t\tprint('Invalid Test Number Provided')"
+
+        code_cell = nbf.v4.new_code_cell(code_cell_contents)
+        notebook.cells.append(code_cell)
+
         # Loop to Generate each test case
         test_number = 0
         delay_total = 0 
@@ -208,11 +280,18 @@ def create_jnb(path_to_hdlgen_file, output_filename=None, generic=False):
             # print(f"Generating for test case {test_number}")
             # print(test)
 
+            print(test)
+            filtered_test = list(filter(None, test))
+
             test_converted_to_decimal_from_radix = []
-            for val in range(1, len(test)-3):
-                radix_val = radix_line[val]
-                radix_form = radix_val[-1]
-                value = test[val]
+            for val in range(0, len(filtered_test)-3): # minus three to ignore note, test no, and delay.
+                print(radix_line)
+                radix_val = radix_line[val+1]   # This should be fine, +1 to skip "Radix" at start of line
+                radix_form = radix_val.strip()    # trim whatever whitespace that might be there
+                radix_form = radix_form[-1]        # Radix form is the last letter in value
+                
+                value = filtered_test[val]
+                
                 if radix_form == 'h':
                     # Convert for hexidecimal
                     # decimal_value = int(value, 16)
@@ -237,7 +316,7 @@ def create_jnb(path_to_hdlgen_file, output_filename=None, generic=False):
             code_cell_contents = "# Asserting Inputs\n" 
 
             
-            delay_total += float(test[-3])
+            delay_total += float(filtered_test[-3])
 
             sub_signals = signals_line[1:-3]
             sub_modes = mode_line[1:-3]
@@ -254,13 +333,18 @@ def create_jnb(path_to_hdlgen_file, output_filename=None, generic=False):
 
             # Break
             code_cell_contents += "\n\n# Recording Outputs"
-            code_cell_contents += "\ntst_res = []"
-            # Checking Output:
-            for i in range(len(sub_signals)):
-                if sub_modes[i] == "out":
-                    code_cell_contents += f"\ntst_res.append(True if {sub_signals[i]}.read(0) == {test_converted_to_decimal_from_radix[i]} else False)"
+            code_cell_contents += f"\nsave_and_print_test({test_number})"
+            # code_cell_contents += "\ntst_res = []"
+            # # Checking Output:
+            # for i in range(len(sub_signals)):
+            #     if sub_modes[i] == "out":
+            #         code_cell_contents += f"\ntst_res.append(True if {sub_signals[i]}.read(0) == {test_converted_to_decimal_from_radix[i]} else False)"
 
-            code_cell_contents += f"\ntest_results[{test_number}] = all(tst_res)"
+            # code_cell_contents += f"\ntest_results[{test_number}] = all(tst_res)"
+
+            # Code to print summary and present results.
+            #code_cell_contents += 
+
 
             test_number += 1    # Increment Test Number after use.
             code_cell = nbf.v4.new_code_cell(code_cell_contents)
@@ -269,29 +353,29 @@ def create_jnb(path_to_hdlgen_file, output_filename=None, generic=False):
 
         # Finally, presenting the results in a presentable fashion:
         # Title Markdown Cell
-        markdown_cell = nbf.v4.new_markdown_cell("# Test Results")
-        notebook.cells.append(markdown_cell)
+        # markdown_cell = nbf.v4.new_markdown_cell("# Test Results - Needs to be improved")
+        # notebook.cells.append(markdown_cell)
 
-        code_cell_contents = "import pandas as pd\n"
-        code_cell_contents += "\ndf = pd.DataFrame({'Result': test_results})"
-        code_cell_contents += "\npd.set_option('display.notebook_repr_html', False)"
-        code_cell_contents += "\ndef highlight_cells(val):"
-        code_cell_contents += "\n\tif val == True:"
-        code_cell_contents += "\n\t\treturn 'background-color: green'"
-        code_cell_contents += "\n\telif val == False:"
-        code_cell_contents += "\n\t\treturn 'background-color: red'"
-        code_cell_contents += "\n\telse:"
-        code_cell_contents += "\n\t\treturn 'background-color: darkorange'"
-        code_cell_contents += "\nstyled_df = df.style.applymap(highlight_cells, subset=['Result'])"
-        code_cell_contents += "\nstyled_df"
-        code_cell = nbf.v4.new_code_cell(code_cell_contents)
-        notebook.cells.append(code_cell)
+        # code_cell_contents = "import pandas as pd\n"
+        # code_cell_contents += "\ndf = pd.DataFrame({'Result': test_results})"
+        # code_cell_contents += "\npd.set_option('display.notebook_repr_html', False)"
+        # code_cell_contents += "\ndef highlight_cells(val):"
+        # code_cell_contents += "\n\tif val == True:"
+        # code_cell_contents += "\n\t\treturn 'background-color: green'"
+        # code_cell_contents += "\n\telif val == False:"
+        # code_cell_contents += "\n\t\treturn 'background-color: red'"
+        # code_cell_contents += "\n\telse:"
+        # code_cell_contents += "\n\t\treturn 'background-color: darkorange'"
+        # code_cell_contents += "\nstyled_df = df.style.applymap(highlight_cells, subset=['Result'])"
+        # code_cell_contents += "\nstyled_df"
+        # code_cell = nbf.v4.new_code_cell(code_cell_contents)
+        # notebook.cells.append(code_cell)
 
     else: 
         code_cell = nbf.v4.new_code_cell(code_cell_contents)
         notebook.cells.append(code_cell)
 
-    output_file = f'output\{name}.ipynb'
+    output_file = f'{output_filename}\{name}.ipynb'
     # if output_filename is not None:
     #     output_file = output_filename
 

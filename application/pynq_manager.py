@@ -6,6 +6,8 @@ import application.file_manager as file_manager
 import application.notebook_generator as nbg
 import xml.dom.minidom
 import os
+import shutil 
+
 # Define location of vivado exe, this might need to be the bat file we will see.
 # D:\Xilinx\Vivado\2019.1\bin\vivado.bat -mode tcl
 # vivado_cmd = "D:\\Xilinx\\Vivado\\2019.1\\bin\\vivado.bat"
@@ -23,17 +25,53 @@ class Pynq_Manager:
             projectManagerEdaTool = projectManagerEda.getElementsByTagName("tool")[0]
             projectManagerEdaToolDir = projectManagerEdaTool.getElementsByTagName("dir")[0]
             self.vivado_bat_path = projectManagerEdaToolDir.firstChild.data
+
+            projectManager = root.getElementsByTagName("projectManager")[0]
+            projectManagerSettings = projectManager.getElementsByTagName("settings")[0]
+            self.location = projectManagerSettings.getElementsByTagName("location")[0].firstChild.data
+            self.pynq_build_path = os.path.join(self.location, "PYNQBuild")
+            self.pynq_build_output_path = os.path.join(self.pynq_build_path, "output")
         else:
             self.vivado_bat_path = vivado_bat_path              # Path to vivado .bat file
+        
+        
 
     def get_board_config_exists(self):
         # vivado_bat_path = C:\Xilinx\Vivado\2019.1\bin\vivado.bat
+        # Add /data/boards/board_files/pynq-z2/
         vivado_dir = os.path.dirname(os.path.dirname(self.vivado_bat_path)) # Using this command twice removes /bin/vivado.bat
         # Add /data/boards/board_files/pynq-z2/
         board_path = vivado_dir + "/data/boards/board_files/pynq-z2/"
         # print(board_path)
         # Check if the path exists and return boolean
         board_files_exists = os.path.exists(board_path)
+
+        print(board_files_exists)
+        # Install the board
+        # - 1) Check folders exist
+        # - 2) Copy folder
+        # - 3) Thats all.
+        if not board_files_exists:
+            try:
+                print(os.path.dirname(board_path))
+                os.makedirs(os.path.dirname(os.path.dirname(board_path)))
+            except FileExistsError:
+                print("Board_files Vivado directory already exists, copying files")
+            
+            try:
+                # This is the way to fix paths which works for Linux or Windows - Not consistently used in this project
+                current_path = os.getcwd()
+                current_path = os.path.normpath(current_path).replace(os.sep, '/')
+
+                board_files_folder = os.path.join(current_path, "board_files")
+
+                # Copy the entire directory and its contents
+                shutil.copytree(board_files_folder, board_path)
+                print(f"Directory copied successfully from {board_files_folder} to {board_path}")
+            except shutil.Error as e:
+                print(f"Error: {e}")
+            except OSError as e:
+                print(f"Error: {e}")
         return board_files_exists
 
     def get_bd_exists(self):
@@ -98,8 +136,16 @@ class Pynq_Manager:
     def test_connection(self):
         file_manager.pwd()
 
+    def check_path_and_mkdir(self):
+        try:
+            os.makedirs(self.pynq_build_output_path)
+        except FileExistsError:
+            print("FEE: PYNQBuild/output exists already.")
+
     def generate_jnb(self, generic=False):
-        nbg.create_jnb(self.hdlgen_project_path, generic=generic)
+        self.check_path_and_mkdir()
+        dest_path = self.pynq_build_output_path
+        nbg.create_jnb(self.hdlgen_project_path, generic=generic, output_filename=dest_path)
 
 
 ## Read the docs : https://pysftp.readthedocs.io/en/release_0.2.9/cookbook.html#pysftp-connection-get
