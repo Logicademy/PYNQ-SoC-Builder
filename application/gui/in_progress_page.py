@@ -74,26 +74,8 @@ class In_Progress_Page(ctk.CTkFrame):
         self.progress_bar.start()
 
         pm_obj = pm.Pynq_Manager(self.app.hdlgen_path)
-        if not pm_obj.get_board_config_exists():
-            self.app.top_level_message = "Could not find PYNQ-Z2 board files in Vivado directory. Do you wish to continue? - Bitstream output may crash FPGA if not configured"
-            self.app.open_dialog()
-
-            # Wait for the user to click their response
-            self.app.toplevel_window.wait_window()
-
-            print(self.app.dialog_response)
-            response = self.app.dialog_response
-            if response == "yes":
-                self.add_to_log_box("\nCRITICAL: Project Not Configured for PYNQ-Z2 board, bitstream compilation may fail or generated bitstream may have crash or behave unexpectedly on FPGA.")
-                self.app.skip_board_config = True
-            elif response == "no":
-                # self.app.show_page(self.app.page1)
-                self.app.skip_board_config = False
-                self.add_to_log_box("\nClosing Project: PYNQ-Z2 Board Config Not Found - Quitting.")
-                return False
-            else:
-                print("Invalid response from Dialog, regenerate_bd = False (default)")
-
+        pm_obj.get_board_config_exists()
+        
         if self.app.mode == self.app.page1.mode_menu_options[0]:    # Run All
             thread = threading.Thread(target=self.run_all)
             thread.start()
