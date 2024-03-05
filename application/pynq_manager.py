@@ -111,8 +111,8 @@ class Pynq_Manager:
 
         return bd_exists
 
-    def generate_tcl(self, regenerate_bd=True, start_gui=True, keep_vivado_open=False, skip_board_config=False, io_map=None):
-        tcl_gen.generate_tcl(self.hdlgen_project_path, regenerate_bd=regenerate_bd, start_gui=start_gui, keep_vivado_open=keep_vivado_open, skip_board_config=skip_board_config, io_map=io_map)
+    def generate_tcl(self, regenerate_bd=True, start_gui=True, keep_vivado_open=False, skip_board_config=False, io_map=None, gui_app=None):
+        tcl_gen.generate_tcl(self.hdlgen_project_path, regenerate_bd=regenerate_bd, start_gui=start_gui, keep_vivado_open=keep_vivado_open, skip_board_config=skip_board_config, io_map=io_map, gui_application=gui_app)
 
     def run_vivado(self):
         # D:\Xilinx\Vivado\2019.1\bin\vivado.bat -mode tcl -source C:/masters/masters_automation/generate_script.tcl

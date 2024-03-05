@@ -257,12 +257,18 @@ verbose_prints = False # Not implemented yet.
 # 12. Run Synthesis, Implementation and Generate Bitstream
 
 
-def generate_tcl(path_to_hdlgen_project, regenerate_bd=True, start_gui=True, keep_vivado_open=False, skip_board_config=False, io_map=None):
+def generate_tcl(path_to_hdlgen_project, regenerate_bd=True, start_gui=True, keep_vivado_open=False, skip_board_config=False, io_map=None, gui_application=None):
+
+    if gui_application:
+        gui_application.add_to_log_box(f"\nRunning Generate Tcl Program")
+
+    # gui_application = None
+    # If a "gui_application" Tkinter class is passed, it is expected that there is a "add_to_log_box" function available.
 
     xdc_contents = "" # Instanciate the xdc_contents variable
 
     ########## Options ##########
-    experimental_import_contraints = True
+    experimental_import_contraints = True   # Marked for removal, contraints is no longer experimental.
 
     ########## Parsing .hdlgen file for required information ##########
     hdlgen = xml.dom.minidom.parse(path_to_hdlgen_project)
@@ -274,6 +280,10 @@ def generate_tcl(path_to_hdlgen_project, regenerate_bd=True, start_gui=True, kee
     name = projectManagerSettings.getElementsByTagName("name")[0].firstChild.data
     environment = projectManagerSettings.getElementsByTagName("environment")[0].firstChild.data
     location = projectManagerSettings.getElementsByTagName("location")[0].firstChild.data
+
+    if gui_application:
+        gui_application.add_to_log_box(f"\nLoaded HDLGen Project: {name} at {path_to_hdlgen_project}")
+
 
     # genFolder - VHDL Folders
     genFolder = root.getElementsByTagName("genFolder")[0]
@@ -292,6 +302,10 @@ def generate_tcl(path_to_hdlgen_project, regenerate_bd=True, start_gui=True, kee
     entityIOPorts = hdlDesign.getElementsByTagName("entityIOPorts")[0]
     signals = entityIOPorts.getElementsByTagName("signal")
 
+    if gui_application:
+        gui_application.add_to_log_box(f"\nHDLGen XML Loaded Successfully")
+
+
     all_ports = []
     for sig in signals:
         signame = sig.getElementsByTagName("name")[0]
@@ -301,6 +315,11 @@ def generate_tcl(path_to_hdlgen_project, regenerate_bd=True, start_gui=True, kee
         all_ports.append(
             [signame.firstChild.data, mode.firstChild.data, type.firstChild.data, desc.firstChild.data]
         )
+
+    if gui_application:
+        gui_application.add_to_log_box(f"\nFound Signals:")
+        for sig in all_ports:
+            gui_application.add_to_log_box(f"\n    {sig[0]}, {sig[1]}, {sig[2]}")
 
     # Derived Variables
     location = location.replace('\\', '/')
@@ -325,6 +344,9 @@ def generate_tcl(path_to_hdlgen_project, regenerate_bd=True, start_gui=True, kee
 
     # (2) Open Project
     file_contents += f"\nopen_project {path_to_xpr}"                # Open Project
+    
+    if gui_application:
+        gui_application.add_to_log_box(f"\nXPR Location: {path_to_xpr}")
 
     # Set Board Part (Project Parameter)
     if not skip_board_config:
@@ -333,9 +355,6 @@ def generate_tcl(path_to_hdlgen_project, regenerate_bd=True, start_gui=True, kee
     # Import Board Constraints
     if experimental_import_contraints:
         ## Need to find a way to check if the contraints already exist - if we learned Tcl error handling we could just always attempt to add it.
-
-
-
         # add_files -fileset constrs_12 -norecurse {{C:/repo/PYNQ-SoC-Builder/pynq-z2_v1.0.xdc/PYNQ-Z2 v1.0.xdc}}
         # import_files -fileset constrs_12 {{C:/repo/PYNQ-SoC-Builder/pynq-z2_v1.0.xdc/PYNQ-Z2 v1.0.xdc}}
         # export_ip_user_files -of_objects  [get_files {{C:/repo/HDLGen-ChatGPT/User_Projects/CB4CLED/VHDL/AMDprj/CB4CLED.srcs/constrs_12/imports/pynq-z2_v1.0.xdc/PYNQ-Z2 v1.0.xdc}}] -no_script -reset -force -quiet
@@ -453,6 +472,11 @@ def generate_tcl(path_to_hdlgen_project, regenerate_bd=True, start_gui=True, kee
     bd_exists = os.path.exists(path_to_bd_file_check)
     wrapper_exists = os.path.exists(path_to_wrapper_file_check)
 
+    if gui_application:
+            gui_application.add_to_log_box(f"\nExisting Block Design Found?: {bd_exists}")
+            gui_application.add_to_log_box(f"\nExisting HDL Wrapper Found?: {wrapper_exists}")
+            gui_application.add_to_log_box(f"\nRegenerate new BD?: {regenerate_bd}")
+
     if (wrapper_exists and bd_exists):
         print("-> Wrapper and BD exist")
         if regenerate_bd:
@@ -491,14 +515,22 @@ def generate_tcl(path_to_hdlgen_project, regenerate_bd=True, start_gui=True, kee
     if generate_new_bd_design:
         # (3) Create a new BD File
         file_contents += f"\ncreate_bd_file {bd_filename}"              # Create a new BD
-
+        if gui_application:
+                gui_application.add_to_log_box(f"\nCreating Block Design: {bd_filename}")
+        
+        
         # (4) Add Processor to BD
         file_contents += "\nadd_processing_unit"                        # Import Processing Unit to the BD
+        if gui_application:
+                gui_application.add_to_log_box(f"\nAdding Processing Unit")
+        
 
         # (5) Add User Created Model to BD
         file_contents += "\nset_property source_mgmt_mode All [current_project]"    # Setting automatic mode for source management
         file_contents += f"\nadd_module {module_source} {module_source}_0"  # Import the user-created module
-
+        if gui_application:
+                gui_application.add_to_log_box(f"\nImporting Module: {module_source}")
+        
         # Running this as safety
         file_contents += "\nupdate_compile_order -fileset sources_1"
         file_contents += "\nupdate_compile_order -fileset sim_1"
@@ -507,6 +539,11 @@ def generate_tcl(path_to_hdlgen_project, regenerate_bd=True, start_gui=True, kee
         # Before connecting to GPIO, make pin external if needed.
         # It should also only be completed if the io_map is supplied
         if io_map:
+
+            if gui_application:
+                gui_application.add_to_log_box(f"\nIO Map Present: {io_map}")
+        
+
             # io_configuration = {
             #     "led0":"count[0]",
             #     "led1":"count[1]",
@@ -768,15 +805,21 @@ def generate_tcl(path_to_hdlgen_project, regenerate_bd=True, start_gui=True, kee
     # Check does the /generated/ folder exist
     if not os.path.exists("./generated"):
         os.mkdir("generated")
+        if gui_application:
+            gui_application.add_to_log_box(f"\nDirectory '{os.getcwd()}/generated/' not found. Created successfully.")
 
     with open('generated/generate_script.tcl', 'w') as file:
         # Export Tcl Script
         file.write(file_contents)
         # print("generate_script.tcl generated!")
+        if gui_application:
+            gui_application.add_to_log_box(f"\nSuccessfully wrote Tcl Script to {os.getcwd()}/generated/generate_script.tcl")
 
     with open('generated/physical_constr.xdc', 'w') as file:
         # Export contraints file
         file.write(xdc_contents)
+        if gui_application:
+            gui_application.add_to_log_box(f"\nSuccessfully wrote constraints file to {os.getcwd()}/generated/physical_constr.xdc")
 
 
 def add_line_to_xdc(board_gpio, external_pin):

@@ -202,7 +202,7 @@ class In_Progress_Page(ctk.CTkFrame):
             else:
                 print("Invalid response from Dialog, regenerate_bd = False (default)")
         
-        pm_obj.generate_tcl(regenerate_bd=regenerate_bd, start_gui=start_gui, keep_vivado_open=keep_vivado_open, skip_board_config=self.app.skip_board_config, io_map=io_map)
+        pm_obj.generate_tcl(regenerate_bd=regenerate_bd, start_gui=start_gui, keep_vivado_open=keep_vivado_open, skip_board_config=self.app.skip_board_config, io_map=io_map, gui_app=self)
         
         if assert_complete:
             self.operation_completed()
