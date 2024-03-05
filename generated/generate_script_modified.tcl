@@ -29,37 +29,68 @@ connect_gpio_all_output_to_module_port wr FIFO4x64Top_0
 
 # add_axi_gpio_all_output dIn 64                                          ; # Problem Line
 # connect_gpio_all_output_to_module_port dIn FIFO4x64Top_0                ; # Problem Line
-add_axi_gpio_all_output dIn_0_31
-add_axi_gpio_all_output dIn_32_63
+
+
+
+##
+## TO CONNECT AN INPUT, WE CONCAT n SIGNALS TOGETHER
+##
+
+
+add_axi_gpio_all_output dIn_0_31    ; # Make two separate GPIO
+add_axi_gpio_all_output dIn_32_63   ; # Make two separate GPIO
 
 # We can't "connect_gpio_all_output_to_module_port" directly, we need a concat IP.
-add_concat_ip 2 dIn_concat
+add_concat_ip dIn_concat 2 ; # Create concat component
 
-connect_bd_net [get_bd_pins dIn_0_31/gpio_io_o] [get_bd_pins dIn_concat/In0]
-connect_bd_net [get_bd_pins dIn_32_63/gpio_io_o] [get_bd_pins dIn_concat/In1]
 
-# set_property -dict [list CONFIG.NUM_PORTS {3}] [get_bd_cells xlconcat_0] ; # default is 2 ports and auto mode, we are going to attempt to use auto mode.
-# Port 0 being LSB compared to port 1,2,3,4 etc.
+# Currently dealing with dIn (an ALL OUTPUT signal)
+connect_bd_net [get_bd_pins dIn_0_31/gpio_io_o] [get_bd_pins dIn_concat/In0]        ; # Connect GPIO to CONCAT
+connect_bd_net [get_bd_pins dIn_32_63/gpio_io_o] [get_bd_pins dIn_concat/In1]       ; # Connect GPIO to CONCAT
 
-# connect_bd_net [get_bd_pins Untitled_0/count] [get_bd_pins xlconcat_0/In0]
-# connect_bd_net [get_bd_pins Untitled_0/TC] [get_bd_pins xlconcat_0/In1]
-# connect_bd_net [get_bd_pins Untitled_0/ceo] [get_bd_pins xlconcat_0/In2]
+connect_bd_net [get_bd_pins dIn_concat/dout] [get_bd_pins FIFO4x64Top_0/dIn]        ; # Connect CONCAT to Input of component
 
+
+##### This is resonably fine above now.
+
+
+
+# Other signals that are not problematic
 add_axi_gpio_all_input full 1
 connect_gpio_all_input_to_module_port full FIFO4x64Top_0
 add_axi_gpio_all_input empty 1
 connect_gpio_all_input_to_module_port empty FIFO4x64Top_0
+# End
+
+
+##
+## TO CONNECT AN OUTPUT, WE SLICE n SIGNALS APPART INTO SEPARATE GPIO
+##
+
+
+# This is all mistaken, we need to SPLIT then in the reverse. 
 
 # add_axi_gpio_all_input dOut 64                                          ; # Problem Line
 # connect_gpio_all_input_to_module_port dOut FIFO4x64Top_0                ; # Problem Line
-add_axi_gpio_all_input dOut_0_31
-add_axi_gpio_all_input dOut_32_63
+
+add_axi_gpio_all_input dOut_0_31    ; # Make two separate GPIO
+add_axi_gpio_all_input dOut_32_63   ; # Make two separate GPIO
 
 # We can't "connect_gpio_all_output_to_module_port" directly, we need a concat IP.
-add_concat_ip 2 dIn_concat
+add_concat_ip 2 dOut_concat         ; # Create the new CONCAT IP
 
-connect_bd_net [get_bd_pins dOut_0_31/gpio_io_i] [get_bd_pins dIn_concat/In0]
-connect_bd_net [get_bd_pins dIn_32_63/gpio_io_i] [get_bd_pins dIn_concat/In1]
+connect_bd_net [get_bd_pins dOut_0_31/gpio_io_i] [get_bd_pins dOut_concat/In0]      ; # Connect GPIO to CONCAT
+connect_bd_net [get_bd_pins dOut_32_63/gpio_io_i] [get_bd_pins dOut_concat/In1]     ; # Connect CONCAT to GPIO
+
+connect_bd_net [get_bd_pins dOut_concat/dout] [get_bd_pins FIFO4x64Top_0/dIn]       ; # Connect Output of component to input of CONCAT
+
+
+
+
+
+
+
+
 
 
 
