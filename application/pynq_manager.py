@@ -46,14 +46,14 @@ class Pynq_Manager:
         # Check if the path exists and return boolean
         board_files_exists = os.path.exists(board_path)
 
-        print(board_files_exists)
+        # print(board_files_exists)
         # Install the board
         # - 1) Check folders exist
         # - 2) Copy folder
         # - 3) Thats all.
         if not board_files_exists:
             try:
-                print(os.path.dirname(board_path))
+                # print(os.path.dirname(board_path))
                 os.makedirs(os.path.dirname(os.path.dirname(board_path)))
             except FileExistsError:
                 print("Board_files Vivado directory already exists, copying files")
@@ -140,7 +140,7 @@ class Pynq_Manager:
         try:
             os.makedirs(self.pynq_build_output_path)
         except FileExistsError:
-            print("FEE: PYNQBuild/output exists already.")
+            print("PYNQBuild/output exists already.")
 
     def generate_jnb(self, generic=False):
         self.check_path_and_mkdir()

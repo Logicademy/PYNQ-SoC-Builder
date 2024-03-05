@@ -127,7 +127,7 @@ class Remote_Window(ctk.CTkToplevel):
             # Run a loop for each line in the CSV
             current_row = 1
             for link in csv_data:
-                print(link)
+                # print(link)
                 # link = [name, url]
                 button = ctk.CTkButton(self.popup_frame, text=link[0], width=140, command=lambda: self.button_press(link[1]) )
                 button.grid(row=current_row, column=0, pady=5, padx=5)

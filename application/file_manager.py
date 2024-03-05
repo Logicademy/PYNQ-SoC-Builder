@@ -99,7 +99,7 @@ class File_Manager:
         try:
             os.makedirs(self.pynq_build_output_path)
         except FileExistsError:
-            print("FEE: PYNQBuild/output exists already.")
+            print("PYNQBuild/output exists already.")
 
     def copy_to_dir(source_full_path, destination_full_path):
         shutil.copy(source_full_path, destination_full_path)

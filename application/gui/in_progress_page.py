@@ -269,7 +269,7 @@ class In_Progress_Page(ctk.CTkFrame):
             # Wait for the user to click their response
             self.app.toplevel_window.wait_window()
 
-            print(self.app.dialog_response)
+            # print(self.app.dialog_response)
             response = self.app.dialog_response
             if response == "yes":
                 regenerate_bd = True

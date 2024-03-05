@@ -121,7 +121,7 @@ class Application:
             # Wait for the user to click their response
             self.toplevel_window.wait_window()
 
-            print(self.dialog_response)
+            # print(self.dialog_response)
             response = self.dialog_response
             if response == "yes":
                 # terminate process, by continuing past this if block
