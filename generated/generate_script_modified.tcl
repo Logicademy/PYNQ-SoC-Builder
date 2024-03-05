@@ -94,15 +94,19 @@ connect_bd_net [get_bd_pins FIFO4x64Top_0/dOut] [get_bd_pins dOut_32_63_slice/Di
 
 
 
-add_axi_interconnect 1 8
+add_axi_interconnect 1 10   ; # Needed to add 2 to facilitate new GPIO ports.
 connect_bd_intf_net -boundary_type upper [get_bd_intf_pins axi_interconnect_0/M00_AXI] [get_bd_intf_pins clk/S_AXI]
 connect_bd_intf_net -boundary_type upper [get_bd_intf_pins axi_interconnect_0/M01_AXI] [get_bd_intf_pins rst/S_AXI]
 connect_bd_intf_net -boundary_type upper [get_bd_intf_pins axi_interconnect_0/M02_AXI] [get_bd_intf_pins rd/S_AXI]
 connect_bd_intf_net -boundary_type upper [get_bd_intf_pins axi_interconnect_0/M03_AXI] [get_bd_intf_pins wr/S_AXI]
-connect_bd_intf_net -boundary_type upper [get_bd_intf_pins axi_interconnect_0/M04_AXI] [get_bd_intf_pins dIn/S_AXI]
+# connect_bd_intf_net -boundary_type upper [get_bd_intf_pins axi_interconnect_0/M04_AXI] [get_bd_intf_pins dIn/S_AXI] - This signal no longer exists. It has been split.
+connect_bd_intf_net -boundary_type upper [get_bd_intf_pins axi_interconnect_0/M04_AXI] [get_bd_intf_pins dIn_0_31/S_AXI] ; # Connected GPIO port 0_31
+connect_bd_intf_net -boundary_type upper [get_bd_intf_pins axi_interconnect_0/M09_AXI] [get_bd_intf_pins dIn_32_63/S_AXI] ; # Connected GPIO port 32_63
 connect_bd_intf_net -boundary_type upper [get_bd_intf_pins axi_interconnect_0/M05_AXI] [get_bd_intf_pins full/S_AXI]
 connect_bd_intf_net -boundary_type upper [get_bd_intf_pins axi_interconnect_0/M06_AXI] [get_bd_intf_pins empty/S_AXI]
-connect_bd_intf_net -boundary_type upper [get_bd_intf_pins axi_interconnect_0/M07_AXI] [get_bd_intf_pins dOut/S_AXI]
+# connect_bd_intf_net -boundary_type upper [get_bd_intf_pins axi_interconnect_0/M07_AXI] [get_bd_intf_pins dOut/S_AXI] - This signal no longer exists. It has been split.
+connect_bd_intf_net -boundary_type upper [get_bd_intf_pins axi_interconnect_0/M07_AXI] [get_bd_intf_pins dOut_0_31/S_AXI] ; # Connected GPIO port 0_31
+connect_bd_intf_net -boundary_type upper [get_bd_intf_pins axi_interconnect_0/M10_AXI] [get_bd_intf_pins dOut_32_63/S_AXI] ; #  Connected GPIO port 32_63
 add_system_reset_ip
 connect_bd_intf_net [get_bd_intf_pins processing_system7_0/M_AXI_GP0] -boundary_type upper [get_bd_intf_pins axi_interconnect_0/S00_AXI]
 run_bd_automation_rule_processor
@@ -111,10 +115,14 @@ run_bd_automation_rule_io clk/s_axi_aclk
 run_bd_automation_rule_io rst/s_axi_aclk
 run_bd_automation_rule_io rd/s_axi_aclk
 run_bd_automation_rule_io wr/s_axi_aclk
-run_bd_automation_rule_io dIn/s_axi_aclk
+# run_bd_automation_rule_io dIn/s_axi_aclk
+run_bd_automation_rule_io dIn_0_31/s_axi_aclk
+run_bd_automation_rule_io dIn_32_63/s_axi_aclk
 run_bd_automation_rule_io full/s_axi_aclk
 run_bd_automation_rule_io empty/s_axi_aclk
-run_bd_automation_rule_io dOut/s_axi_aclk
+# run_bd_automation_rule_io dOut/s_axi_aclk
+run_bd_automation_rule_io dOut_0_31/s_axi_aclk
+run_bd_automation_rule_io dOut_32_63/s_axi_aclk
 run_bd_block_automation
 run_addr_editor_auto_assign
 validate_bd
