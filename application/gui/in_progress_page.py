@@ -132,11 +132,8 @@ class In_Progress_Page(ctk.CTkFrame):
         #   2) When program starts, we move to main loop of the logger.
         #   3) 
 
-        
-
-
-
         i = 0
+        j = 0
         while not self.app.build_running:
             i += 1
             # run_logger thread is called before the application starts, therefore we wait.
@@ -156,27 +153,80 @@ class In_Progress_Page(ctk.CTkFrame):
                 # Generate Tcl File Mode
                 pass
             elif self.current_running_mode == "run_viv":
-                self.add_to_log_box("\nExecuting Tcl Script in Vivado")
+                # self.add_to_log_box("\nExecuting Tcl Script in Vivado")
                 # Here we need to search for the various triggers
                 # Run Vivado Mode
-                pass
+                vivado_log_path = os.path.join(os.getcwd(), "vivado.log")
+
+                while not os.path.exists(vivado_log_path):
+                    self.add_to_log_box("\nWaiting for Vivado to launch...")
+                    time.sleep(1)
+
+
+
+                with open(vivado_log_path, 'r') as file:
+                    while True:
+                        line = file.readline()
+                        if not line:
+                            # End of file reached, wait for the next line to become available
+                            time.sleep(1)  # Adjust the sleep duration as needed
+                        else:
+                            # Process the line as needed
+                            # Look for specific indicators of whats happening.
+                            # line
+                            if line == "":
+                                # Protection for the next check, if empty string, skip.
+                                continue
+                            elif line[0] == "#":
+                                # If line starts with #, its from sourced file and we dont care.
+                                continue
+                            elif "open_project" in line:
+                                self.add_to_log_box("\nOpening Vivado Project")
+                                self.add_to_log_box("\n"+line)
+                            elif "create_bd_design" in line:
+                                self.add_to_log_box("\nCreate BD Design")
+                                self.add_to_log_box("\n"+line)
+                            elif "_0_0_synth_1" in line:
+                                self.add_to_log_box("\nStarting synthesis")
+                                self.add_to_log_box("\n"+line)
+                            elif "Launched impl_1..." in line:
+                                self.add_to_log_box("\nLaunching Implementation")
+                                self.add_to_log_box("\n"+line)
+                                self.add_to_log_box("\nSee nextline for log path:")
+                                self.add_to_log_box(file.readline())
+                            elif "Waiting for impl_1 to finish..." in line:
+                                self.add_to_log_box("\nWaiting for impl_1 to finish...see impl log tab for more details.")
+                                time.sleep(1)
+                            elif "write_bitstream completed successfully" in line:
+                                self.add_to_log_box("\nBitstream written successfully.")
+                            elif "exit" in line:
+                                self.add_to_log_box("\nExit command issued to Vivado. Waiting for Vivado to close.")
+                                # Stall the process until the flag is updated by other thread.
+                                while self.app.build_running:
+                                    pass
+                                break
             elif self.current_running_mode == "cpy_dir":
-                self.add_to_log_box("\nCopying Bitstream to <project>/PYNQBuild/output folder")
+                # To be handled by copy_dir API
+                # self.add_to_log_box("\nCopying Bitstream to <project>/PYNQBuild/output folder")
                 # Copy to Directory Mode
                 pass
             elif self.current_running_mode == "gen_jnb":
-                self.add_to_log_box("\nGenerating Jupyter Notebook")
+                # To be handled by copy_dir API
+                # self.add_to_log_box("\nGenerating Jupyter Notebook")
                 # Generate Jupyter Notebook Mode
                 pass
             elif self.current_running_mode == None:
+                # This mode should never be possible reach.
                 self.add_to_log_box("\nBuild commencing but no mode selected")
                 pass
             else:
+                self.add_to_log_box("\nError: Unaccessible code section reached")
                 pass
             time.sleep(1)    
 
         # Finally section
         # Run any closing code: Perhaps print a summary to the log.
+        self.add_to_log_box("\n\n===== Summary =====\nTime to build: MM:SS\netc.etc.etc.")
 
 
     def run_all(self):
