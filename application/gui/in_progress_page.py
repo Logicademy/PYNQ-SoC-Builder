@@ -69,6 +69,21 @@ class In_Progress_Page(ctk.CTkFrame):
         self.log_text_box.see(last_line_index)
 
     def run_pynq_manager(self):
+
+        # Find Vivado log file and delete it.
+        try:
+            os.remove(os.path.join(os.getcwd(), "vivado.log"))
+            print("Successfully deleted Vivado.log file")
+        except:
+            print("No vivado.log file to delete")
+
+        # Find Vivado jou file and delete it.
+        try:
+            os.remove(os.path.join(os.getcwd(), "vivado.jou"))
+            print("Successfully deleted Vivado.jou file")
+        except:
+            print("No vivado.jou file to delete")
+
         self.add_to_log_box(f"\n\nRunning in mode {self.app.mode} commencing at {time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))}")
         self.add_to_log_box(f"\nHDLGen Project: {self.app.hdlgen_path}")
         self.progress_bar.configure(mode="indeterminate", indeterminate_speed=0.4)
@@ -113,6 +128,10 @@ class In_Progress_Page(ctk.CTkFrame):
         #   1) Whilst the build_running flag is false, we wait. (Run logger called before program commences)
         #   2) When program starts, we move to main loop of the logger.
         #   3) 
+
+        
+
+
 
         i = 0
         while not self.app.build_running:
