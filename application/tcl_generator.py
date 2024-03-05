@@ -722,11 +722,11 @@ def generate_tcl(path_to_hdlgen_project, regenerate_bd=True, start_gui=True, kee
                 break
 
         # (7) Add the AXI Interconnect to the IP Block Design
-        file_contents += f"\nadd_axi_interconnect 1 {len(all_ports)}"
+        file_contents += f"\nadd_axi_interconnect 1 {len(created_signals)}"
 
         # Connect each GPIO to the Interconnect
-        for x in range(len(all_ports)):
-            file_contents += f"\nconnect_bd_intf_net -boundary_type upper [get_bd_intf_pins axi_interconnect_0/M{x:02d}_AXI] [get_bd_intf_pins {all_ports[x][0]}/S_AXI]"
+        for x in range(len(created_signals)):
+            file_contents += f"\nconnect_bd_intf_net -boundary_type upper [get_bd_intf_pins axi_interconnect_0/M{x:02d}_AXI] [get_bd_intf_pins {created_signals[x]}/S_AXI]"
             
 
         # (8) Add "Processor System Reset" IP
@@ -739,7 +739,7 @@ def generate_tcl(path_to_hdlgen_project, regenerate_bd=True, start_gui=True, kee
         # file_contents += "\nrun_bd_auto_connect"
         file_contents += "\nrun_bd_automation_rule_processor"
         file_contents += "\nrun_bd_automation_rule_interconnect"
-        for io in all_ports:
+        for io in created_signals:
             file_contents += f"\nrun_bd_automation_rule_io {io[0]}/s_axi_aclk" 
         
 
