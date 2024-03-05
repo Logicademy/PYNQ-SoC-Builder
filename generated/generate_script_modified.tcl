@@ -37,8 +37,8 @@ connect_gpio_all_output_to_module_port wr FIFO4x64Top_0
 ##
 
 
-add_axi_gpio_all_output dIn_0_31    ; # Make two separate GPIO
-add_axi_gpio_all_output dIn_32_63   ; # Make two separate GPIO
+add_axi_gpio_all_output dIn_0_31 32  ; # Make two separate GPIO
+add_axi_gpio_all_output dIn_32_63 32 ; # Make two separate GPIO
 
 # We can't "connect_gpio_all_output_to_module_port" directly, we need a concat IP.
 add_concat_ip dIn_concat 2 ; # Create concat component
@@ -73,8 +73,8 @@ connect_gpio_all_input_to_module_port empty FIFO4x64Top_0
 # add_axi_gpio_all_input dOut 64                                          ; # Problem Line
 # connect_gpio_all_input_to_module_port dOut FIFO4x64Top_0                ; # Problem Line
 
-add_axi_gpio_all_input dOut_0_31    ; # Make two separate GPIO
-add_axi_gpio_all_input dOut_32_63   ; # Make two separate GPIO
+add_axi_gpio_all_input dOut_0_31 32 ;  # Make two separate GPIO
+add_axi_gpio_all_input dOut_32_63 32 ; # Make two separate GPIO
 
 # We can't "connect_gpio_all_output_to_module_port" directly, we need a concat IP.
 # We need 1 SLICE per GPIO
