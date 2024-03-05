@@ -146,12 +146,82 @@ def create_jnb(path_to_hdlgen_file, output_filename=None, generic=False):
     code_cell_contents += "\nimport time"
     code_cell_contents += "\n\n# Import Overlay"
     code_cell_contents += f"\n{compName} = Overlay(\"{compName}.bit\")"
-    code_cell_contents += "\n# Inputs:"
-    for i in input_ports:
-        code_cell_contents += f"\n{i[0]} = {compName}.{i[0]}"
-    code_cell_contents += "\n# Outputs:"
-    for o in output_ports: 
-        code_cell_contents += f"\n{o[0]} = {compName}.{o[0]}"
+    
+    # This portion needs to be remodelled to support >32 bit signals which have been divided.
+
+    # code_cell_contents += "\n# Inputs:"
+    # for i in input_ports:
+    #     code_cell_contents += f"\n{i[0]} = {compName}.{i[0]}"
+    # code_cell_contents += "\n# Outputs:"
+    # for o in output_ports: 
+    #     code_cell_contents += f"\n{o[0]} = {compName}.{o[0]}"
+
+    split_signals = []  # This is the sublist which is used to declare all signals
+    large_output_signals = []   # This stores an array of arrays containing the split signals [ ["dIn_0_31", "dIn_32_63"], ["data_0_31", "data_32_63"] ]
+    large_input_signals = []    # This does the exact same but split for inputs.
+    small_output_signals = []   # Smaller signals that can be stored alone.
+    small_input_signals = []    # Smaller signals that can be stored alone (<32 bits)
+    
+    for io in all_ports:
+        gpio_name = io[0]   # GPIO Name
+        gpio_mode = io[1]   # GPIO Mode (in/out)
+        gpio_type = io[2]   # GPIO Type (single bit/bus/array)
+        # Parse GPIO Width 
+        if (gpio_type == "single bit"):
+                gpio_width = 1
+        elif (gpio_type[:3] == "bus"):
+            # <type>bus(31 downto 0)</type>     ## Example Type Value
+            substring = gpio_type[4:]           # substring = '31 downto 0)'
+            words = substring.split()           # words = ['31', 'downto', '0)']
+            gpio_width = int(words[0]) + 1           # words[0] = 31
+        elif (gpio_type[:5] == "array"):
+            print("ERROR: Array mode type is not yet supported :(")
+        else:
+            print("ERROR: Unknown GPIO Type")
+            print(gpio_type)
+
+        if gpio_width <= 32:
+            # If less than 32, declare signal as normal.
+            
+            split_signals.append([gpio_name, gpio_width])
+            if gpio_mode == "out":
+                small_output_signals.append(gpio_name)
+            elif gpio_mode == "in":
+                small_input_signals.append(gpio_name)
+
+
+        elif gpio_width > 32:
+            # If greater than 32, split signals and declare.
+            pin_counter = 0
+            output_split = [gpio_name]
+            input_split = [gpio_name]
+            while gpio_width - pin_counter > 0:
+                if gpio_width - pin_counter  > 32:
+                    split_signals.append([f"{gpio_name}_{pin_counter}_{pin_counter+31}", 32])
+                    if gpio_mode == "out":
+                        output_split.append(f"{gpio_name}_{pin_counter}_{pin_counter+31}")
+                    else:
+                        input_split.append(f"{gpio_name}_{pin_counter}_{pin_counter+31}")
+                    pin_counter += 32
+                elif gpio_width - pin_counter <= 32:
+                    split_signals.append([f"{gpio_name}_{pin_counter}_{gpio_width-1}", gpio_width-pin_counter])
+                    if gpio_mode == "out":
+                        output_split.append(f"{gpio_name}_{pin_counter}_{pin_counter+31}")
+                    else:
+                        input_split.append(f"{gpio_name}_{pin_counter}_{pin_counter+31}")
+                    pin_counter += gpio_width - pin_counter
+                    
+            if len(output_split) > 1:
+                large_output_signals.append(output_split)
+            if len(input_split) > 1:
+                large_input_signals.append(input_split)
+                    
+        
+    code_cell_contents += "\n# Declare Signal Objects"
+    for sig in split_signals:
+        code_cell_contents += f"\n{sig[0]} = {compName}.{sig[0]}"
+
+
     if clock_enabled:
         code_cell_contents += "\n# Set-Up Clock Function\ndef run_clock_pulse():"
         code_cell_contents += "\n\ttime.sleep(0.0000002)"
@@ -221,13 +291,11 @@ def create_jnb(path_to_hdlgen_file, output_filename=None, generic=False):
         output_radix = []
 
         string1 = "\noutput_signals = ["
-        string2 = ""
+        # string2 = ""
         string3 = "\n\t\ttest_results[test] = ["
         for i in range(len(sub_signals)):
                 if sub_modes[i] == "out":
                     string1 += "'"+sub_signals[i] + "', " # signal1, 
-                    string2 += "\n\t\t" + sub_signals[i] + "_val = " + sub_signals[i] + ".read(0)"    # reading each signal   <- Working perfectly
-                    
                     try:
                         if sub_radix[i][-1] == "h":
                             string3 += f"hex({sub_signals[i]}_val), "
@@ -242,8 +310,6 @@ def create_jnb(path_to_hdlgen_file, output_filename=None, generic=False):
         string1 = string1[:-2] + "]" # delete the last ", " and add "]" instead
         string3 = string3[:-2] + "]" # delete the last 
 
-        # Loop Inputs
-        input_signals = ['a', 'b']
         # Loop Outputs
         code_cell_contents += string1
                     
@@ -275,7 +341,38 @@ def create_jnb(path_to_hdlgen_file, output_filename=None, generic=False):
         code_cell_contents += "\n\tif None:"
         code_cell_contents += "\n\t\tprint('No Test Number Provided')"
         code_cell_contents += f"\n\telif test >= 0 and test <= {len(test_cases)-1}: # number of tests"
-        code_cell_contents += string2
+
+        read_signals_string = ""
+        
+        for sig in small_output_signals:
+            read_signals_string += "\n\t\t" + sig + "_val = " + sub_signals[i] + ".read(0)"    # reading each (small <32 bit) signal
+        
+        for sig_array in large_output_signals:
+            top_level_signal = sig_array[0]
+            for sig in sig_array[1:]:
+                read_signals_string += "\n\t\t" + sig + "_val = " + sub_signals[i] + ".read(0)"    # reading each (small <32 bit) signal
+            read_signals_string += "\n\t\t" + top_level_signal + "_val =" 
+            read_sigs_substring = ""
+            for x in range(1, len(sig_array)): # 1 as first element is top_level name
+                read_sigs_substring = f" | ({sig_array[x]}_val << {32*x})" + read_sigs_substring
+            read_signals_string += read_sigs_substring[2:]
+
+        # for i in range(len(sub_signals)):
+        #     if sub_modes[i] == "out":
+
+        #         # dOut_32_63_val = dOut_32_63.read(0)
+        #         # dOut_0_31_val = dOut_0_31.read(0)
+        #         # dOut_val = (dOut_32_63_val << 32) | dOut_0_31_val
+
+        #         # String 2 here 
+
+        #         read_signals_string += "\n\t\t" + sub_signals[i] + "_val = " + sub_signals[i] + ".read(0)"    # reading each signal   <- Working perfectly
+                    
+        
+        
+        
+        code_cell_contents += read_signals_string
+                
         code_cell_contents += string3
         
         code_cell_contents += "\n\t\tdf = pd.DataFrame({"
