@@ -345,16 +345,16 @@ def create_jnb(path_to_hdlgen_file, output_filename=None, generic=False):
         read_signals_string = ""
         
         for sig in small_output_signals:
-            read_signals_string += "\n\t\t" + sig + "_val = " + sub_signals[i] + ".read(0)"    # reading each (small <32 bit) signal
+            read_signals_string += "\n\t\t" + sig + "_val = " + sig + ".read(0)"    # reading each (small <32 bit) signal
         
         for sig_array in large_output_signals:
             top_level_signal = sig_array[0]
             for sig in sig_array[1:]:
-                read_signals_string += "\n\t\t" + sig + "_val = " + sub_signals[i] + ".read(0)"    # reading each (small <32 bit) signal
+                read_signals_string += "\n\t\t" + sig + "_val = " + sig + ".read(0)"    # reading each (small <32 bit) signal
             read_signals_string += "\n\t\t" + top_level_signal + "_val =" 
             read_sigs_substring = ""
             for x in range(1, len(sig_array)): # 1 as first element is top_level name
-                read_sigs_substring = f" | ({sig_array[x]}_val << {32*x})" + read_sigs_substring
+                read_sigs_substring = f" | ({sig_array[x]}_val << {32*x-1})" + read_sigs_substring
             read_signals_string += read_sigs_substring[2:]
 
         # for i in range(len(sub_signals)):
