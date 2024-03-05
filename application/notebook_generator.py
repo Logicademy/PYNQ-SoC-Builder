@@ -274,7 +274,7 @@ def create_jnb(path_to_hdlgen_file, output_filename=None, generic=False):
         code_cell_contents += "\n\ndef save_and_print_test(test=None):"
         code_cell_contents += "\n\tif None:"
         code_cell_contents += "\n\t\tprint('No Test Number Provided')"
-        code_cell_contents += "\n\telif test >= 0 and test <= 11: # number of tests"
+        code_cell_contents += f"\n\telif test >= 0 and test <= {len(test_cases)-1}: # number of tests"
         code_cell_contents += string2
         code_cell_contents += string3
         
