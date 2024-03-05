@@ -392,13 +392,18 @@ def create_jnb(path_to_hdlgen_file, output_filename=None, generic=False):
         test_number = 0
         delay_total = 0 
 
+
+        # signals_line
+        
+
         for test in test_cases:
 
             # print(f"Generating for test case {test_number}")
             # print(test)
-
+            
             filtered_test = list(filter(None, test))
 
+            test_converted_to_decimal_from_radix_dictionary = {}
             test_converted_to_decimal_from_radix = []
             for val in range(0, len(filtered_test)-3): # minus three to ignore note, test no, and delay.
                 radix_val = radix_line[val+1]   # This should be fine, +1 to skip "Radix" at start of line
@@ -406,17 +411,37 @@ def create_jnb(path_to_hdlgen_file, output_filename=None, generic=False):
                 radix_form = radix_form[-1]        # Radix form is the last letter in value
                 
                 value = filtered_test[val]
-                
+                signal_name = signals_line[val+1]
+
                 if radix_form == 'h':
+                    # If the signal is short, just story it, if the signal is large then we want to divide it into 32 bit chunks
+                    if signal_name in small_input_signals:
+                        test_converted_to_decimal_from_radix_dictionary[signal_name] = f"int(\"{value}\", 16)"
+                    else:
+                        radix_number = 64
+                        test_converted_to_decimal_from_radix_dictionary[signal_name] = hex_to_padded_chunks(value, radix_number)
+                    
+
                     # Convert for hexidecimal
                     # decimal_value = int(value, 16)
                     # test_converted_to_decimal_from_radix.append(str(decimal_value))
                     test_converted_to_decimal_from_radix.append(f"int(\"{value}\", 16)")
                 elif radix_form == 'b':
+                    if signal_name in small_input_signals:
+                        test_converted_to_decimal_from_radix_dictionary[signal_name] = f"int(\"{value}\", 2)"
                     # Convert for binary
                     # decimal_value = int(value, 2)
                     # test_converted_to_decimal_from_radix.append(str(decimal_value))
                     test_converted_to_decimal_from_radix.append(f"int(\"{value}\", 2)")
+                elif radix_form == "d":
+                    if signal_name in small_input_signals:
+                        test_converted_to_decimal_from_radix_dictionary[signal_name] = f"{value}"
+
+                    
+                    # Convert for binary
+                    # decimal_value = int(value, 2)
+                    # test_converted_to_decimal_from_radix.append(str(decimal_value))
+                    test_converted_to_decimal_from_radix.append(f"{value}")
                 else:
                     print(f"Warning: Could not detect radix form for: {radix_val}")
                 
@@ -436,9 +461,25 @@ def create_jnb(path_to_hdlgen_file, output_filename=None, generic=False):
             sub_signals = signals_line[1:-3]
             sub_modes = mode_line[1:-3]
 
-            for i in range(len(sub_signals)):
-                if sub_modes[i] == "in":
-                    code_cell_contents += f"{sub_signals[i]}.write(0, {test_converted_to_decimal_from_radix[i]})\n"
+            # for i in range(len(sub_signals)):
+            #     if sub_modes[i] == "in":
+            #         code_cell_contents += f"{sub_signals[i]}.write(0, {test_converted_to_decimal_from_radix[i]})\n"
+
+            # test_converted_to_decimal_from_radix_dictionary
+            for key, value in test_converted_to_decimal_from_radix_dictionary.items():
+                if isinstance(value, list):
+                    # Find the array in large_input_signals that has same name [1]
+                    for sig in large_input_signals:
+                        if sig[0] == key:
+                            # Found the signal names.
+                            for i in range(0, len(sig)-1):
+                                code_cell_contents += f"{sig[i+1]}.write(0, int(\"{value[i]}\", 16))\n"
+                    
+                    pass # deal with array
+                else:
+                    code_cell_contents += f"{key}.write(0, {value})\n"
+
+
 
             while delay_total >= 1 and clock_enabled:
                 # run clock 
@@ -499,5 +540,36 @@ def create_jnb(path_to_hdlgen_file, output_filename=None, generic=False):
         
     print(f"Notebook Generated at: {output_file}")
 
-# create_jnb("E:\\HDLGEN\\RISCV_RB\\RISCV_RB\\HDLGenPrj\\RISCV_RB.hdlgen")
-# create_jnb("C:\\hdlgen\\RISCV_RB_Demo\\RISCV_RB\\HDLGenPrj\\RISCV_RB.hdlgen")
+
+def hex_to_padded_chunks(hex_number, desired_bits):
+    # Convert hex to binary and remove the '0b' prefix
+    binary_representation = bin(int(hex_number, 16))[2:]
+    print(binary_representation)
+
+    # Ensure the binary representation has a length that is a multiple of 32
+    binary_representation = binary_representation.zfill(desired_bits)
+    print(binary_representation)
+
+    # Calculate the number of chunks needed
+    num_chunks = (len(binary_representation) + 31) // 32
+    print(num_chunks)
+
+    flipped_binary = binary_representation[::-1]
+
+    # Split the binary representation into 32-bit chunks and pad each chunk
+    chunks = [flipped_binary[i*32:(i+1)*32] for i in range(num_chunks)]
+    print(chunks)
+
+    flipped_chunks = chunks[::-1]
+    print(flipped_chunks)
+    
+    normalized_chunks = [element[::-1] for element in flipped_chunks]
+    print(normalized_chunks)
+    # Convert each padded chunk back to hexadecimal
+    # hex_chunks = [hex(int(chunk, 2))[2:].zfill(8) for chunk in padded_chunks]
+
+    hex_arrays = [hex(int(binary, 2))[2:].zfill(len(binary) // 4) for binary in normalized_chunks]
+
+    print(hex_arrays)
+
+    return hex_arrays
