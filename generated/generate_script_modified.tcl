@@ -101,12 +101,12 @@ connect_bd_intf_net -boundary_type upper [get_bd_intf_pins axi_interconnect_0/M0
 connect_bd_intf_net -boundary_type upper [get_bd_intf_pins axi_interconnect_0/M03_AXI] [get_bd_intf_pins wr/S_AXI]
 # connect_bd_intf_net -boundary_type upper [get_bd_intf_pins axi_interconnect_0/M04_AXI] [get_bd_intf_pins dIn/S_AXI] - This signal no longer exists. It has been split.
 connect_bd_intf_net -boundary_type upper [get_bd_intf_pins axi_interconnect_0/M04_AXI] [get_bd_intf_pins dIn_0_31/S_AXI] ; # Connected GPIO port 0_31
-connect_bd_intf_net -boundary_type upper [get_bd_intf_pins axi_interconnect_0/M09_AXI] [get_bd_intf_pins dIn_32_63/S_AXI] ; # Connected GPIO port 32_63
+connect_bd_intf_net -boundary_type upper [get_bd_intf_pins axi_interconnect_0/M08_AXI] [get_bd_intf_pins dIn_32_63/S_AXI] ; # Connected GPIO port 32_63
 connect_bd_intf_net -boundary_type upper [get_bd_intf_pins axi_interconnect_0/M05_AXI] [get_bd_intf_pins full/S_AXI]
 connect_bd_intf_net -boundary_type upper [get_bd_intf_pins axi_interconnect_0/M06_AXI] [get_bd_intf_pins empty/S_AXI]
 # connect_bd_intf_net -boundary_type upper [get_bd_intf_pins axi_interconnect_0/M07_AXI] [get_bd_intf_pins dOut/S_AXI] - This signal no longer exists. It has been split.
 connect_bd_intf_net -boundary_type upper [get_bd_intf_pins axi_interconnect_0/M07_AXI] [get_bd_intf_pins dOut_0_31/S_AXI] ; # Connected GPIO port 0_31
-connect_bd_intf_net -boundary_type upper [get_bd_intf_pins axi_interconnect_0/M10_AXI] [get_bd_intf_pins dOut_32_63/S_AXI] ; #  Connected GPIO port 32_63
+connect_bd_intf_net -boundary_type upper [get_bd_intf_pins axi_interconnect_0/M09_AXI] [get_bd_intf_pins dOut_32_63/S_AXI] ; #  Connected GPIO port 32_63
 add_system_reset_ip
 connect_bd_intf_net [get_bd_intf_pins processing_system7_0/M_AXI_GP0] -boundary_type upper [get_bd_intf_pins axi_interconnect_0/S00_AXI]
 run_bd_automation_rule_processor
