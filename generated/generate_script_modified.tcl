@@ -77,22 +77,20 @@ add_axi_gpio_all_input dOut_0_31    ; # Make two separate GPIO
 add_axi_gpio_all_input dOut_32_63   ; # Make two separate GPIO
 
 # We can't "connect_gpio_all_output_to_module_port" directly, we need a concat IP.
-add_concat_ip 2 dOut_concat         ; # Create the new CONCAT IP
+# We need 1 SLICE per GPIO
 
-connect_bd_net [get_bd_pins dOut_0_31/gpio_io_i] [get_bd_pins dOut_concat/In0]      ; # Connect GPIO to CONCAT
-connect_bd_net [get_bd_pins dOut_32_63/gpio_io_i] [get_bd_pins dOut_concat/In1]     ; # Connect CONCAT to GPIO
-
-connect_bd_net [get_bd_pins dOut_concat/dout] [get_bd_pins FIFO4x64Top_0/dIn]       ; # Connect Output of component to input of CONCAT
-
+# proc add_slice_ip {name dIn_width dIn_from dIn_downto dout_width} {
+add_slice_ip dOut_0_31_slice 64 31 0 32
+add_slice_ip dOut_32_63_slice 64 63 32 32
 
 
+connect_bd_net [get_bd_pins dOut_0_31/gpio_io_i] [get_bd_pins dOut_0_31_slice/Dout]      ; # Connecting GPIO to slices
+connect_bd_net [get_bd_pins dOut_32_63/gpio_io_i] [get_bd_pins dOut_32_63_slice/Dout]    ; # Connecting higher slice to GPIO
 
+connect_bd_net [get_bd_pins FIFO4x64Top_0/dOut] [get_bd_pins dOut_0_31_slice/Din]       ; # Connect Output of component to input of CONCAT
+connect_bd_net [get_bd_pins FIFO4x64Top_0/dOut] [get_bd_pins dOut_32_63_slice/Din]       ; # Connect Output of component to input of CONCAT
 
-
-
-
-
-
+# This section above is now valid as far as I know.
 
 
 
