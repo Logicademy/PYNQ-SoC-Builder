@@ -619,91 +619,12 @@ def generate_tcl(path_to_hdlgen_project, regenerate_bd=True, start_gui=True, kee
                 print(gpio_type)
 
 
-            if gpio_mode == "out":
+            if gpio_mode == "out" and int(gpio_width) <= 32:
                 print(gpio_name) 
-                ####### Detected the Suffix of the Signal and Connecting I/O
-                # proc make_external_connection {component bd_pin external_pin_name}
-                
-                #run_external_connection(#)
-                
-                ######################### Auto Connect based on Suffix #########################
-                ###### This commented codeblock auto connects based on suffix, for example _led. 
-                ###### On 17/02/24 decided that it is better approach to let user decide in SoC builder as HDLGen is too early to care about specific I/O ports.
-
-                # First: 
-                # io_suffix = ["_led", "_led0", "_led1", "_led2", "_led3", "_led01", "_led02", "_led03", "_led12", "_led13", "_led23", "_led3"]
-                # suffix_detected = None
-                # for suff in io_suffix:
-                #     if gpio_name.endswith(suff):
-                #         suffix_detected = suff
-                # if suffix_detected:
-                #     if suffix_detected == io_suffix[0]: #   _led
-                #         # Automatic assignment
-                #         # io_dictionary = {
-                #         #     'led0': None,
-                #         #     'led1': None,
-                #         #     'led2': None,
-                #         #     'led3': None
-                #         # }
-                        
-                #         # Count the number of LED IO available.
-                #         count = sum(value == None for value in io_dictionary.values())
-                #         if count > gpio_width:
-                #             print(f"The GPIO signal is greater the # of LED pins available - Assigning {count} LSBs.")
-                        
-                #         external_connection = gpio_name + "_ext"
-                #         file_contents += f"\nmake_external_connection {module_source}_0 {gpio_name} {external_connection}"
-
-                #         connections_made = 0
-                #         for key in io_dictionary.keys():    # Cycle thru each key in io dictionary
-                #             if io_dictionary[key] == None:  # If the I/O is available:
-                #                 board_gpio = key
-                #                 external_connection_pin = external_connection + "[" + str(connections_made) + "]"
-                #                 io_dictionary[key] = external_connection_pin               # Assign the connection (eg: "led0": "count_ext[0]")
-                #                 xdc_contents += add_line_to_xdc(board_gpio, external_connection_pin)        # Create connection in Physical Contraints File
-                #                 connections_made += 1
-
-                #         print("Summary of Connections:")
-                #         print(io_dictionary)
-
-                #         # Opportunity: Can use the following "highest consecutive sequence" code to try fit a signal consecutively instead.
-                #         # for value in io_dictionary.values():
-                #         #     if value == value_to_check:
-                #         #         current_sequence += 1
-                #         #         max_sequence = max(max_sequence, current_sequence)
-                #         #     else:
-                #         #         current_sequence = 0
- 
-                #         pass
-                #     elif suffix_detected == io_suffix[1]: # _led0
-                #         pass
-                #     elif suffix_detected == io_suffix[2]: # _led1
-                #         pass
-                #     elif suffix_detected == io_suffix[3]: # _led2
-                #         pass
-                #     elif suffix_detected == io_suffix[4]: # _led01
-                #         pass
-                #     elif suffix_detected == io_suffix[5]: # _led01
-                #         pass
-                #     elif suffix_detected == io_suffix[6]: # _led02
-                #         pass 
-                #     elif suffix_detected == io_suffix[7]: # _led03
-                #         pass
-                #     elif suffix_detected == io_suffix[8]: # _led12
-                #         pass
-                #     elif suffix_detected == io_suffix[9]: # _led13
-                #         pass
-                #     elif suffix_detected == io_suffix[10]: # _led23
-                #         pass
-                #     elif suffix_detected == io_suffix[11]: # _led3
-                #         pass
-                #     else:
-                #         print("ERROR: IO Out of range.")
-
                 file_contents += f"\nadd_axi_gpio_all_input {gpio_name} {gpio_width}"
                 # If the GPIO is added correctly, connect it to the User I/O
                 file_contents += f"\nconnect_gpio_all_input_to_module_port {gpio_name} {module_source}_0"
-            elif gpio_mode == "in":
+            elif gpio_mode == "in" and int(gpio_width) <= 32:
                 file_contents += f"\nadd_axi_gpio_all_output {gpio_name} {gpio_width}"
                 # If the GPIO is added correctly, connect it to the User I/O
                 file_contents += f"\nconnect_gpio_all_output_to_module_port {gpio_name} {module_source}_0"
