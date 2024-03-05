@@ -211,3 +211,10 @@ proc make_external_connection {component bd_pin external_pin_name} {
 	set ext_connector $bd_pin\_0
 	set_property name $external_pin_name [get_bd_ports $ext_connector]
 }
+
+proc add_concat_ip {num_ports name} {
+	startgroup
+	create_bd_cell -type ip -vlnv xilinx.com:ip:xlconcat:2.1 $name
+	endgroup
+	set_property -dict [list CONFIG.NUM_PORTS {$num_ports}] [get_bd_cells $name]
+}
