@@ -354,7 +354,7 @@ def create_jnb(path_to_hdlgen_file, output_filename=None, generic=False):
             read_signals_string += "\n\t\t" + top_level_signal + "_val =" 
             read_sigs_substring = ""
             for x in range(1, len(sig_array)): # 1 as first element is top_level name
-                read_sigs_substring = f" | ({sig_array[x]}_val << {32*x-1})" + read_sigs_substring
+                read_sigs_substring = f" | ({sig_array[x]}_val << {32*(x-1)})" + read_sigs_substring
             read_signals_string += read_sigs_substring[2:]
 
         # for i in range(len(sub_signals)):
