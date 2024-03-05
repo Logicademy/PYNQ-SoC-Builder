@@ -12,8 +12,7 @@ class In_Progress_Page(ctk.CTkFrame):
         self.app = app
         
         # Shared Variable:
-        self.current_running_mode = None
-
+        self.current_running_mode = None    # Used by logger thread to know what process is running
 
         # Title Row
         row_0_frame = ctk.CTkFrame(self, width=500, height=30, corner_radius=0)
@@ -44,7 +43,6 @@ class In_Progress_Page(ctk.CTkFrame):
         self.progress_bar.pack()
         self.progress_bar.stop()
 
-
         bottom_row_frame = ctk.CTkFrame(self, width=500, height=20)
         bottom_row_frame.grid(row=3, column=0, sticky="nsew")
 
@@ -55,8 +53,6 @@ class In_Progress_Page(ctk.CTkFrame):
         bottom_row_frame.columnconfigure(1,weight=1)
         copy_to_clip_button.grid(row=0, column=0)
         self.force_quit_button.grid(row=0, column=1,sticky="e")
-
-        # go_back_complete_button.grid(row=0, column=1,sticky="e")
 
     def copy_logs_to_clip(self):
         pyperclip.copy(self.log_data)
@@ -81,7 +77,6 @@ class In_Progress_Page(ctk.CTkFrame):
         # The logger will need to know: 
         #   - the current stage
         #   - if in vivado mode, the log file
-        #   - 
 
         if self.app.mode == self.app.page1.mode_menu_options[0]:    # Run All
             thread = threading.Thread(target=self.run_all)
@@ -106,7 +101,46 @@ class In_Progress_Page(ctk.CTkFrame):
         # This is the logger function, it will be run on it's own thread and be responsible for updating the log window.
         #   Variables:
         #       - self.add_to_log_box(string) -> Updates the log box
-        pass
+
+        # Function Steps:
+        #   1) Whilst the build_running flag is false, we wait. (Run logger called before program commences)
+        #   2) When program starts, we move to main loop of the logger.
+        #   3) 
+
+        i = 0
+        while not self.app.build_running:
+            i += 1
+            # run_logger thread is called before the application starts, therefore we wait.
+            # We check if build has started every tenth of a second, only posting a message every 1 second.
+            if i > 10:
+                i -= 10
+                self.add_to_log_box("Waiting for build to start...")
+            time.sleep(0.1)
+
+        while self.app.build_running:
+            # Main logger loop
+            if self.current_running_mode == "gen_tcl":
+                # Generate Tcl File Mode
+                pass
+            elif self.current_running_mode == "run_viv":
+                # Run Vivado Mode
+                pass
+            elif self.current_running_mode == "cpy_dir":
+                # Copy to Directory Mode
+                pass
+            elif self.current_running_mode == "gen_jnb":
+                # Generate Jupyter Notebook Mode
+                pass
+            elif self.current_running_mode == None:
+                pass
+            else:
+                pass
+            pass            
+
+        # Finally section
+        # Run any closing code: Perhaps print a summary to the log.
+
+
 
     def run_all(self):
         self.progress_bar.start()
