@@ -77,7 +77,10 @@ class In_Progress_Page(ctk.CTkFrame):
         # The logger will need to know: 
         #   - the current stage
         #   - if in vivado mode, the log file
+        logger_thread = threading.Thread(target=self.run_logger)
+        logger_thread.start()   # Start the logger thread
 
+        # Execute Program
         if self.app.mode == self.app.page1.mode_menu_options[0]:    # Run All
             thread = threading.Thread(target=self.run_all)
             thread.start()
@@ -141,7 +144,6 @@ class In_Progress_Page(ctk.CTkFrame):
         # Run any closing code: Perhaps print a summary to the log.
 
 
-
     def run_all(self):
         self.progress_bar.start()
         self.generate_tcl(False)    # False flag used to ask func not to assert complete after running
@@ -154,6 +156,9 @@ class In_Progress_Page(ctk.CTkFrame):
         regenerate_bd = True # Default
         # start_gui = True 
         # keep_vivado_open = False
+
+        # Setting mode for the logger thread
+        self.current_running_mode = "gen_tcl"
 
         # Checkbox_values shared variable is mapped as open_gui_var/keep_gui_open_var
         # self.app.checkbox_values = [open_gui_var.get(), keep_gui_open_var.get()]
@@ -194,11 +199,17 @@ class In_Progress_Page(ctk.CTkFrame):
             self.operation_completed()
 
     def run_vivado(self, assert_complete=True):
+        # Setting mode for the logger thread
+        self.current_running_mode = "run_viv"
+
         pm_obj = pm.Pynq_Manager(self.app.hdlgen_path)
         pm_obj.run_vivado()
         self.operation_completed()
 
     def copy_to_dir(self, assert_complete=True):
+        # Setting mode for the logger thread
+        self.current_running_mode = "cpy_dir"
+
         pm_obj = pm.Pynq_Manager(self.app.hdlgen_path)
         res = pm_obj.copy_to_dir()
         if not res:
@@ -208,6 +219,9 @@ class In_Progress_Page(ctk.CTkFrame):
             self.operation_completed()
 
     def generate_jnb(self, assert_complete=True):
+        # Setting mode for the logger thread
+        self.current_running_mode = "gen_jnb"
+
         generate_jnb = self.app.checkbox_values[2]
         use_testplan = self.app.checkbox_values[3]
         generic = not use_testplan
@@ -220,6 +234,9 @@ class In_Progress_Page(ctk.CTkFrame):
             self.operation_completed()
 
     def operation_completed(self):
+        # Setting mode for the logger thread back to default
+        self.current_running_mode = None
+
         self.force_quit_button.grid_forget()
         self.app.build_running = False
         self.go_back_complete_button.grid(row=0, column=1,sticky="e")
