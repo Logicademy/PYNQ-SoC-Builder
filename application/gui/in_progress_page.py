@@ -76,6 +76,14 @@ class In_Progress_Page(ctk.CTkFrame):
         pm_obj = pm.Pynq_Manager(self.app.hdlgen_path)
         pm_obj.get_board_config_exists()
         
+        # Set up the logging thread
+        # The logger will need to know: 
+        #   - the current stage
+        #   - if in vivado mode, the log file
+        #   - 
+
+
+
         if self.app.mode == self.app.page1.mode_menu_options[0]:    # Run All
             thread = threading.Thread(target=self.run_all)
             thread.start()
@@ -91,13 +99,20 @@ class In_Progress_Page(ctk.CTkFrame):
         elif self.app.mode == self.app.page1.mode_menu_options[4]:  # Generate JNB
             thread = threading.Thread(target=self.generate_jnb)
             thread.start()
-        elif self.app.mode == self.app.page1.mode_menu_options[5]:  # Generate Generic JNB
-            # thread = threading.Thread(target=self.run_all)
-            # thread.start()
-            self.add_to_log_box("Not yet implemented in Pynq_Manager.py")
+        # Delete mode
+        # elif self.app.mode == self.app.page1.mode_menu_options[5]:  # Generate Generic JNB
+        #     # thread = threading.Thread(target=self.run_all)
+        #     # thread.start()
+        #     self.add_to_log_box("Not yet implemented in Pynq_Manager.py")
+        
         self.app.build_running = True
         return True
 
+    def run_logger(self):
+        # This is the logger function, it will be run on it's own thread and be responsible for updating the log window.
+        #
+        #
+        pass
 
     def run_all(self):
         self.progress_bar.start()

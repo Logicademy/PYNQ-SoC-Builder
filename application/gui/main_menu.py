@@ -63,7 +63,7 @@ class Main_Menu(ctk.CTkFrame):
         mode_font = ("Segoe UI", 16)
         mode_label = ctk.CTkLabel(self.row_2_frame, text="Mode", font=mode_font, pady=5, width=20)
 
-        self.mode_menu_options = ["Run All", "Generate Tcl", "Run Vivado", "Copy Bitstream", "Gen JNB /w Testplan", "Gen JNB w/o Testplan"]
+        self.mode_menu_options = ["Run All", "Generate Tcl", "Run Vivado", "Copy Bitstream", "Gen Jupyter Notebook"]
         mode_menu_var = ctk.StringVar(self)
         mode_menu_var.set(self.mode_menu_options[0])
 
