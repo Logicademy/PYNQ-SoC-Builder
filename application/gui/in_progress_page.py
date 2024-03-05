@@ -63,6 +63,10 @@ class In_Progress_Page(ctk.CTkFrame):
         self.log_text_box.delete("0.0", "end")  # delete all text
         self.log_text_box.insert("0.0", self.log_data) # repost all text
         self.log_text_box.configure(state="disabled")
+            # Get the last line index
+        last_line_index = self.log_text_box.index('end-1c linestart')
+        # Scroll to the last line
+        self.log_text_box.see(last_line_index)
 
     def run_pynq_manager(self):
         self.add_to_log_box(f"\n\nRunning in mode {self.app.mode} commencing at {time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))}")
@@ -123,22 +127,27 @@ class In_Progress_Page(ctk.CTkFrame):
         while self.app.build_running:
             # Main logger loop
             if self.current_running_mode == "gen_tcl":
+                self.add_to_log_box("\nGenerating Tcl Script for Vivado")
                 # Generate Tcl File Mode
                 pass
             elif self.current_running_mode == "run_viv":
+                self.add_to_log_box("\nExecuting Tcl Script in Vivado")
                 # Run Vivado Mode
                 pass
             elif self.current_running_mode == "cpy_dir":
+                self.add_to_log_box("\nCopying Bitstream to <project>/PYNQBuild/output folder")
                 # Copy to Directory Mode
                 pass
             elif self.current_running_mode == "gen_jnb":
+                self.add_to_log_box("\nGenerating Jupyter Notebook")
                 # Generate Jupyter Notebook Mode
                 pass
             elif self.current_running_mode == None:
+                self.add_to_log_box("\nBuild commencing but no mode selected")
                 pass
             else:
                 pass
-            pass            
+            time.sleep(1)    
 
         # Finally section
         # Run any closing code: Perhaps print a summary to the log.
