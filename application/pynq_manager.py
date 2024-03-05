@@ -46,14 +46,14 @@ class Pynq_Manager:
         # Check if the path exists and return boolean
         board_files_exists = os.path.exists(board_path)
 
-        print(board_files_exists)
+        # print(board_files_exists)
         # Install the board
         # - 1) Check folders exist
         # - 2) Copy folder
         # - 3) Thats all.
         if not board_files_exists:
             try:
-                print(os.path.dirname(board_path))
+                # print(os.path.dirname(board_path))
                 os.makedirs(os.path.dirname(os.path.dirname(board_path)))
             except FileExistsError:
                 print("Board_files Vivado directory already exists, copying files")
@@ -111,8 +111,8 @@ class Pynq_Manager:
 
         return bd_exists
 
-    def generate_tcl(self, regenerate_bd=True, start_gui=True, keep_vivado_open=False, skip_board_config=False, io_map=None):
-        tcl_gen.generate_tcl(self.hdlgen_project_path, regenerate_bd=regenerate_bd, start_gui=start_gui, keep_vivado_open=keep_vivado_open, skip_board_config=skip_board_config, io_map=io_map)
+    def generate_tcl(self, regenerate_bd=True, start_gui=True, keep_vivado_open=False, skip_board_config=False, io_map=None, gui_app=None):
+        tcl_gen.generate_tcl(self.hdlgen_project_path, regenerate_bd=regenerate_bd, start_gui=start_gui, keep_vivado_open=keep_vivado_open, skip_board_config=skip_board_config, io_map=io_map, gui_application=gui_app)
 
     def run_vivado(self):
         # D:\Xilinx\Vivado\2019.1\bin\vivado.bat -mode tcl -source C:/masters/masters_automation/generate_script.tcl
@@ -140,7 +140,7 @@ class Pynq_Manager:
         try:
             os.makedirs(self.pynq_build_output_path)
         except FileExistsError:
-            print("FEE: PYNQBuild/output exists already.")
+            print("PYNQBuild/output exists already.")
 
     def generate_jnb(self, generic=False):
         self.check_path_and_mkdir()

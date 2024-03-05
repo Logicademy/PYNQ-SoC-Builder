@@ -132,7 +132,7 @@ class Main_Menu(ctk.CTkFrame):
                                     variable=gen_jnb_var, onvalue="on", offvalue="off", width=140, )
         gen_jnb_check_box.grid(row=0, column=0, pady=5, padx=5, sticky = 'nswe')
 
-        use_testplan_var = ctk.StringVar(value="off")
+        use_testplan_var = ctk.StringVar(value="on")
         use_testplan_check_box = ctk.CTkCheckBox(jnb_subframe, text="Use Testplan", command=checkbox_event,
                                     variable=use_testplan_var, onvalue="on", offvalue="off", width=140)
         use_testplan_check_box.grid(row=1, column=0, pady=5, padx=5, sticky = 'nswe')

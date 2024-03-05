@@ -56,7 +56,7 @@ def create_jnb(path_to_hdlgen_file, output_filename=None, generic=False):
         elif port[1] == "out":
             output_ports.append(port)
         else:
-            print("Line 91 NBG: Invalid Port")
+            print("Line 59 NBG: Invalid Port")
 
 
     # Retrieve TB Data from HDLGen
@@ -300,12 +300,10 @@ def create_jnb(path_to_hdlgen_file, output_filename=None, generic=False):
             # print(f"Generating for test case {test_number}")
             # print(test)
 
-            print(test)
             filtered_test = list(filter(None, test))
 
             test_converted_to_decimal_from_radix = []
             for val in range(0, len(filtered_test)-3): # minus three to ignore note, test no, and delay.
-                print(radix_line)
                 radix_val = radix_line[val+1]   # This should be fine, +1 to skip "Radix" at start of line
                 radix_form = radix_val.strip()    # trim whatever whitespace that might be there
                 radix_form = radix_form[-1]        # Radix form is the last letter in value
@@ -323,7 +321,7 @@ def create_jnb(path_to_hdlgen_file, output_filename=None, generic=False):
                     # test_converted_to_decimal_from_radix.append(str(decimal_value))
                     test_converted_to_decimal_from_radix.append(f"int(\"{value}\", 2)")
                 else:
-                    print(f"Warning: Could not detect radix form properly for: {radix_val}")
+                    print(f"Warning: Could not detect radix form for: {radix_val}")
                 
             # print(test_converted_to_decimal_from_radix)
 

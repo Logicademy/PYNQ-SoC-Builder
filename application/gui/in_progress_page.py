@@ -10,9 +10,9 @@ class In_Progress_Page(ctk.CTkFrame):
     def __init__(self, app):
         ctk.CTkFrame.__init__(self, app.root)
         self.app = app
-        # self.configure(["-width", "500"])
-        # self.configure(["-height", "240"])
-
+        
+        # Shared Variable:
+        self.current_running_mode = None    # Used by logger thread to know what process is running
 
         # Title Row
         row_0_frame = ctk.CTkFrame(self, width=500, height=30, corner_radius=0)
@@ -43,7 +43,6 @@ class In_Progress_Page(ctk.CTkFrame):
         self.progress_bar.pack()
         self.progress_bar.stop()
 
-
         bottom_row_frame = ctk.CTkFrame(self, width=500, height=20)
         bottom_row_frame.grid(row=3, column=0, sticky="nsew")
 
@@ -55,8 +54,6 @@ class In_Progress_Page(ctk.CTkFrame):
         copy_to_clip_button.grid(row=0, column=0)
         self.force_quit_button.grid(row=0, column=1,sticky="e")
 
-        # go_back_complete_button.grid(row=0, column=1,sticky="e")
-
     def copy_logs_to_clip(self):
         pyperclip.copy(self.log_data)
 
@@ -66,8 +63,30 @@ class In_Progress_Page(ctk.CTkFrame):
         self.log_text_box.delete("0.0", "end")  # delete all text
         self.log_text_box.insert("0.0", self.log_data) # repost all text
         self.log_text_box.configure(state="disabled")
+            # Get the last line index
+        last_line_index = self.log_text_box.index('end-1c linestart')
+        # Scroll to the last line
+        self.log_text_box.see(last_line_index)
 
     def run_pynq_manager(self):
+
+        # Find Vivado log file and delete it.
+        try:
+            os.remove(os.path.join(os.getcwd(), "vivado.log"))
+            print("Successfully deleted Vivado.log file")
+        except FileNotFoundError:
+            print("No vivado.log file to delete")
+        except Exception as e:
+            print(f"An error occured: {e}")
+        # Find Vivado jou file and delete it.
+        try:
+            os.remove(os.path.join(os.getcwd(), "vivado.jou"))
+            print("Successfully deleted Vivado.jou file")
+        except FileNotFoundError:
+            print("No vivado.jou file to delete")
+        except Exception as e:
+            print(f"An error occured: {e}")
+
         self.add_to_log_box(f"\n\nRunning in mode {self.app.mode} commencing at {time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))}")
         self.add_to_log_box(f"\nHDLGen Project: {self.app.hdlgen_path}")
         self.progress_bar.configure(mode="indeterminate", indeterminate_speed=0.4)
@@ -80,10 +99,10 @@ class In_Progress_Page(ctk.CTkFrame):
         # The logger will need to know: 
         #   - the current stage
         #   - if in vivado mode, the log file
-        #   - 
+        logger_thread = threading.Thread(target=self.run_logger)
+        logger_thread.start()   # Start the logger thread
 
-
-
+        # Execute Program
         if self.app.mode == self.app.page1.mode_menu_options[0]:    # Run All
             thread = threading.Thread(target=self.run_all)
             thread.start()
@@ -99,20 +118,116 @@ class In_Progress_Page(ctk.CTkFrame):
         elif self.app.mode == self.app.page1.mode_menu_options[4]:  # Generate JNB
             thread = threading.Thread(target=self.generate_jnb)
             thread.start()
-        # Delete mode
-        # elif self.app.mode == self.app.page1.mode_menu_options[5]:  # Generate Generic JNB
-        #     # thread = threading.Thread(target=self.run_all)
-        #     # thread.start()
-        #     self.add_to_log_box("Not yet implemented in Pynq_Manager.py")
         
         self.app.build_running = True
         return True
 
     def run_logger(self):
         # This is the logger function, it will be run on it's own thread and be responsible for updating the log window.
-        #
-        #
-        pass
+        #   Variables:
+        #       - self.add_to_log_box(string) -> Updates the log box
+
+        # Function Steps:
+        #   1) Whilst the build_running flag is false, we wait. (Run logger called before program commences)
+        #   2) When program starts, we move to main loop of the logger.
+        #   3) 
+
+        i = 0
+        j = 0
+        while not self.app.build_running:
+            i += 1
+            # run_logger thread is called before the application starts, therefore we wait.
+            # We check if build has started every tenth of a second, only posting a message every 1 second.
+            # All modules (except the run vivado) will simply access the "add to log box" api themselves.
+            # Only Vivado run will use this thread to print relevant messages.
+
+            if i > 10:
+                i -= 10
+                self.add_to_log_box("Waiting for build to start...")
+            time.sleep(0.1)
+
+        while self.app.build_running:
+            # Main logger loop
+            if self.current_running_mode == "gen_tcl":
+                # self.add_to_log_box("\nGenerating Tcl Script for Vivado")
+                # Generate Tcl File Mode
+                pass
+            elif self.current_running_mode == "run_viv":
+                # self.add_to_log_box("\nExecuting Tcl Script in Vivado")
+                # Here we need to search for the various triggers
+                # Run Vivado Mode
+                vivado_log_path = os.path.join(os.getcwd(), "vivado.log")
+
+                while not os.path.exists(vivado_log_path):
+                    self.add_to_log_box("\nWaiting for Vivado to launch...")
+                    time.sleep(1)
+
+
+
+                with open(vivado_log_path, 'r') as file:
+                    while True:
+                        line = file.readline()
+                        if not line:
+                            # End of file reached, wait for the next line to become available
+                            time.sleep(1)  # Adjust the sleep duration as needed
+                        else:
+                            # Process the line as needed
+                            # Look for specific indicators of whats happening.
+                            # line
+                            if line == "":
+                                # Protection for the next check, if empty string, skip.
+                                continue
+                            elif line[0] == "#":
+                                # If line starts with #, its from sourced file and we dont care.
+                                continue
+                            elif "open_project" in line:
+                                self.add_to_log_box("\nOpening Vivado Project")
+                                self.add_to_log_box("\n"+line)
+                            elif "create_bd_design" in line:
+                                self.add_to_log_box("\nCreate BD Design")
+                                self.add_to_log_box("\n"+line)
+                            elif "_0_0_synth_1" in line:
+                                self.add_to_log_box("\nStarting synthesis")
+                                self.add_to_log_box("\n"+line)
+                            elif "Launched impl_1..." in line:
+                                self.add_to_log_box("\nLaunching Implementation")
+                                self.add_to_log_box("\n"+line)
+                                self.add_to_log_box("\nSee nextline for log path:")
+                                self.add_to_log_box(file.readline())
+                            elif "Waiting for impl_1 to finish..." in line:
+                                self.add_to_log_box("\nWaiting for impl_1 to finish...see impl log tab for more details.")
+                                time.sleep(1)
+                            elif "write_bitstream completed successfully" in line:
+                                self.add_to_log_box("\nBitstream written successfully.")
+                            elif "exit" in line:
+                                self.add_to_log_box("\nExit command issued to Vivado. Waiting for Vivado to close.")
+                                # Stall the process until the flag is updated by other thread.
+                                while self.app.build_running:
+                                    pass
+                                break
+            elif self.current_running_mode == "cpy_dir":
+                # To be handled by copy_dir API
+                # self.add_to_log_box("\nCopying Bitstream to <project>/PYNQBuild/output folder")
+                # Copy to Directory Mode
+                pass
+            elif self.current_running_mode == "gen_jnb":
+                # To be handled by copy_dir API
+                # self.add_to_log_box("\nGenerating Jupyter Notebook")
+                # Generate Jupyter Notebook Mode
+                pass
+            elif self.current_running_mode == None:
+                # This mode should never be possible reach.
+                self.add_to_log_box("\nBuild commencing but no mode selected")
+                pass
+            else:
+                self.add_to_log_box("\nError: Unaccessible code section reached")
+                pass
+            time.sleep(1)    
+
+        # Finally section
+        # Run any closing code: Perhaps print a summary to the log.
+        self.add_to_log_box("\n\n===== Summary =====\nTime to build: MM:SS\netc.etc.etc.")
+
 
     def run_all(self):
         self.progress_bar.start()
@@ -126,6 +241,9 @@ class In_Progress_Page(ctk.CTkFrame):
         regenerate_bd = True # Default
         # start_gui = True 
         # keep_vivado_open = False
+
+        # Setting mode for the logger thread
+        self.current_running_mode = "gen_tcl"
 
         # Checkbox_values shared variable is mapped as open_gui_var/keep_gui_open_var
         # self.app.checkbox_values = [open_gui_var.get(), keep_gui_open_var.get()]
@@ -151,7 +269,7 @@ class In_Progress_Page(ctk.CTkFrame):
             # Wait for the user to click their response
             self.app.toplevel_window.wait_window()
 
-            print(self.app.dialog_response)
+            # print(self.app.dialog_response)
             response = self.app.dialog_response
             if response == "yes":
                 regenerate_bd = True
@@ -160,17 +278,24 @@ class In_Progress_Page(ctk.CTkFrame):
             else:
                 print("Invalid response from Dialog, regenerate_bd = False (default)")
         
-        pm_obj.generate_tcl(regenerate_bd=regenerate_bd, start_gui=start_gui, keep_vivado_open=keep_vivado_open, skip_board_config=self.app.skip_board_config, io_map=io_map)
+        pm_obj.generate_tcl(regenerate_bd=regenerate_bd, start_gui=start_gui, keep_vivado_open=keep_vivado_open, skip_board_config=self.app.skip_board_config, io_map=io_map, gui_app=self)
         
         if assert_complete:
             self.operation_completed()
 
     def run_vivado(self, assert_complete=True):
+        # Setting mode for the logger thread
+        self.current_running_mode = "run_viv"
+
         pm_obj = pm.Pynq_Manager(self.app.hdlgen_path)
         pm_obj.run_vivado()
-        self.operation_completed()
+        if assert_complete:
+            self.operation_completed()
 
     def copy_to_dir(self, assert_complete=True):
+        # Setting mode for the logger thread
+        self.current_running_mode = "cpy_dir"
+
         pm_obj = pm.Pynq_Manager(self.app.hdlgen_path)
         res = pm_obj.copy_to_dir()
         if not res:
@@ -180,6 +305,9 @@ class In_Progress_Page(ctk.CTkFrame):
             self.operation_completed()
 
     def generate_jnb(self, assert_complete=True):
+        # Setting mode for the logger thread
+        self.current_running_mode = "gen_jnb"
+
         generate_jnb = self.app.checkbox_values[2]
         use_testplan = self.app.checkbox_values[3]
         generic = not use_testplan
@@ -192,6 +320,9 @@ class In_Progress_Page(ctk.CTkFrame):
             self.operation_completed()
 
     def operation_completed(self):
+        # Setting mode for the logger thread back to default
+        self.current_running_mode = None
+
         self.force_quit_button.grid_forget()
         self.app.build_running = False
         self.go_back_complete_button.grid(row=0, column=1,sticky="e")
