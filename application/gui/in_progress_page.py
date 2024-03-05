@@ -141,6 +141,9 @@ class In_Progress_Page(ctk.CTkFrame):
             i += 1
             # run_logger thread is called before the application starts, therefore we wait.
             # We check if build has started every tenth of a second, only posting a message every 1 second.
+            # All modules (except the run vivado) will simply access the "add to log box" api themselves.
+            # Only Vivado run will use this thread to print relevant messages.
+
             if i > 10:
                 i -= 10
                 self.add_to_log_box("Waiting for build to start...")
@@ -149,11 +152,12 @@ class In_Progress_Page(ctk.CTkFrame):
         while self.app.build_running:
             # Main logger loop
             if self.current_running_mode == "gen_tcl":
-                self.add_to_log_box("\nGenerating Tcl Script for Vivado")
+                # self.add_to_log_box("\nGenerating Tcl Script for Vivado")
                 # Generate Tcl File Mode
                 pass
             elif self.current_running_mode == "run_viv":
                 self.add_to_log_box("\nExecuting Tcl Script in Vivado")
+                # Here we need to search for the various triggers
                 # Run Vivado Mode
                 pass
             elif self.current_running_mode == "cpy_dir":
@@ -235,7 +239,8 @@ class In_Progress_Page(ctk.CTkFrame):
 
         pm_obj = pm.Pynq_Manager(self.app.hdlgen_path)
         pm_obj.run_vivado()
-        self.operation_completed()
+        if assert_complete:
+            self.operation_completed()
 
     def copy_to_dir(self, assert_complete=True):
         # Setting mode for the logger thread
