@@ -74,15 +74,18 @@ class In_Progress_Page(ctk.CTkFrame):
         try:
             os.remove(os.path.join(os.getcwd(), "vivado.log"))
             print("Successfully deleted Vivado.log file")
-        except:
+        except FileNotFoundError:
             print("No vivado.log file to delete")
-
+        except Exception as e:
+            print(f"An error occured: {e}")
         # Find Vivado jou file and delete it.
         try:
             os.remove(os.path.join(os.getcwd(), "vivado.jou"))
             print("Successfully deleted Vivado.jou file")
-        except:
+        except FileNotFoundError:
             print("No vivado.jou file to delete")
+        except Exception as e:
+            print(f"An error occured: {e}")
 
         self.add_to_log_box(f"\n\nRunning in mode {self.app.mode} commencing at {time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))}")
         self.add_to_log_box(f"\nHDLGen Project: {self.app.hdlgen_path}")
