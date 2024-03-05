@@ -223,5 +223,5 @@ proc add_slice_ip {name dIn_width dIn_from dIn_downto dout_width} {
 	startgroup
 	create_bd_cell -type ip -vlnv xilinx.com:ip:xlslice:1.0 $name	
 	endgroup
-	set_property -dict [list CONFIG.DIN_FROM $dIn_from CONFIG.DIN_WIDTH $dInWidth CONFIG.DIN_TO $dIn_downto CONFIG.DOUT_WIDTH $dout_width] [get_bd_cells $name]
+	set_property -dict [list CONFIG.DIN_FROM $dIn_from CONFIG.DIN_WIDTH $dIn_width CONFIG.DIN_TO $dIn_downto CONFIG.DOUT_WIDTH $dout_width] [get_bd_cells $name]
 }
