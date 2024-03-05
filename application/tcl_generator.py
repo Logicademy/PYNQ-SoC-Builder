@@ -665,10 +665,10 @@ def generate_tcl(path_to_hdlgen_project, regenerate_bd=True, start_gui=True, kee
                     file_contents += f"\nadd_slice_ip {sub_sig[0]}_slice {gpio_width} {sub_sig[3]} {sub_sig[2]} {sub_sig[1]}"
                 # 3) Connect Component to Slices
                 for sub_sig in split_signal_dict:
-                    file_contents += f"connect_bd_net [get_bd_pins {module_source}_0/{gpio_name}] [get_bd_pins {sub_sig[0]}_slice/Din]"
+                    file_contents += f"\nconnect_bd_net [get_bd_pins {module_source}_0/{gpio_name}] [get_bd_pins {sub_sig[0]}_slice/Din]"
                 # 4) Connect the Slices to GPIO
                 for sub_sig in split_signal_dict:
-                    file_contents += f"connect_bd_net [get_bd_pins {sub_sig[0]}/gpio_io_i] [get_bd_pins {sub_sig[0]}_slice/Dout]"
+                    file_contents += f"\nconnect_bd_net [get_bd_pins {sub_sig[0]}/gpio_io_i] [get_bd_pins {sub_sig[0]}_slice/Dout]"
                 # 5) Add signals to created_signals dictionary - Required by interconnect steps later.
                 for sub_sig in split_signal_dict:
                     created_signals.append(sub_sig[0])
@@ -741,7 +741,7 @@ def generate_tcl(path_to_hdlgen_project, regenerate_bd=True, start_gui=True, kee
         file_contents += "\nrun_bd_automation_rule_processor"
         file_contents += "\nrun_bd_automation_rule_interconnect"
         for io in created_signals:
-            file_contents += f"\nrun_bd_automation_rule_io {io[0]}/s_axi_aclk" 
+            file_contents += f"\nrun_bd_automation_rule_io {io}/s_axi_aclk" 
         
 
         # Run block automation tool
