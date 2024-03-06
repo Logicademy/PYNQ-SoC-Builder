@@ -819,8 +819,8 @@ def generate_connections(module_source, all_ports_parsed, io_map, gui_applicatio
     # For now lets assume we are working with a single port from all_ports_pased
     for signal in all_ports_parsed:
         gpio_name = signal[0]
-        gpio_mode = signal[1][1]
-        gpio_width = signal[1][2]
+        gpio_mode = signal[1]
+        gpio_width = signal[2]
 
         # Add GPIO block for the component - This is a given and will always be done first.
         #file_contents += add gpio
