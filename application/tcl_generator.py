@@ -716,7 +716,7 @@ def connect_slice_to_gpio(bit, gpio_mode, gpio_name, gpio_width, slice_number, m
         file_contents += "\nstartgroup"
         file_contents += f"\nmake_bd_pins_external  [get_bd_pins {gpio_name}_{slice_number}_slice/Dout]"
         file_contents += "\nendgroup"
-        file_contents += f"\nset_property name {gpio_name}_{slice_number}_ext [get_bd_ports Dout_1]"
+        file_contents += f"\nset_property name {gpio_name}_{slice_number}_ext [get_bd_ports Dout_0]"
 
     elif gpio_mode == "out":
         file_contents += f"\nconnect_bd_net [get_bd_pins {module_source}/{gpio_name}] [get_bd_pins {gpio_name}_{slice_number}_slice/Din]"
@@ -728,7 +728,7 @@ def connect_slice_to_gpio(bit, gpio_mode, gpio_name, gpio_width, slice_number, m
         file_contents += "\nstartgroup"
         file_contents += f"\nmake_bd_pins_external  [get_bd_pins {gpio_name}_{slice_number}_slice/Dout]"
         file_contents += "\nendgroup"
-        file_contents += f"\nset_property name {gpio_name}_{slice_number}_ext [get_bd_ports Dout_1]"
+        file_contents += f"\nset_property name {gpio_name}_{slice_number}_ext [get_bd_ports Dout_0]"
 
 
     return file_contents
