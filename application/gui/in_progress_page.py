@@ -205,6 +205,8 @@ class In_Progress_Page(ctk.CTkFrame):
                                 while self.app.build_running:
                                     pass
                                 break
+                            if self.current_running_mode != "run_viv":
+                                    break
             elif self.current_running_mode == "cpy_dir":
                 # To be handled by copy_dir API
                 # self.add_to_log_box("\nCopying Bitstream to <project>/PYNQBuild/output folder")
@@ -217,7 +219,7 @@ class In_Progress_Page(ctk.CTkFrame):
                 pass
             elif self.current_running_mode == None:
                 # This mode should never be possible reach.
-                self.add_to_log_box("\nBuild commencing but no mode selected")
+                self.add_to_log_box("\nBuild Idle.")
                 pass
             else:
                 self.add_to_log_box("\nError: Unaccessible code section reached")

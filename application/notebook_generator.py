@@ -601,32 +601,32 @@ def create_jnb(path_to_hdlgen_file, output_filename=None, generic=False):
 def hex_to_padded_chunks(hex_number, desired_bits):
     # Convert hex to binary and remove the '0b' prefix
     binary_representation = bin(int(hex_number, 16))[2:]
-    print(binary_representation)
+    # print(binary_representation)
 
     # Ensure the binary representation has a length that is a multiple of 32
     binary_representation = binary_representation.zfill(desired_bits)
-    print(binary_representation)
+    # print(binary_representation)
 
     # Calculate the number of chunks needed
     num_chunks = (len(binary_representation) + 31) // 32
-    print(num_chunks)
+    # print(num_chunks)
 
     flipped_binary = binary_representation[::-1]
 
     # Split the binary representation into 32-bit chunks and pad each chunk
     chunks = [flipped_binary[i*32:(i+1)*32] for i in range(num_chunks)]
-    print(chunks)
+    # print(chunks)
 
     flipped_chunks = chunks[::-1]
-    print(flipped_chunks)
+    # print(flipped_chunks)
     
     normalized_chunks = [element[::-1] for element in flipped_chunks]
-    print(normalized_chunks)
+    # print(normalized_chunks)
     # Convert each padded chunk back to hexadecimal
     # hex_chunks = [hex(int(chunk, 2))[2:].zfill(8) for chunk in padded_chunks]
 
     hex_arrays = [hex(int(binary, 2))[2:].zfill(len(binary) // 4) for binary in normalized_chunks]
 
-    print(hex_arrays)
+    # print(hex_arrays)
 
     return hex_arrays
