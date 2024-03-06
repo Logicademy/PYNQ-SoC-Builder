@@ -531,121 +531,124 @@ def generate_tcl(path_to_hdlgen_project, regenerate_bd=True, start_gui=True, kee
 
 
         # (6) Add AXI GPIO for each input/output
-        for io in all_ports_parsed:
-            gpio_name = io[0]   # GPIO Name
-            gpio_mode = io[1]   # GPIO Mode (in/out)
-            gpio_width = io[2]   # GPIO Type (single bit/bus/array)
+        # for io in all_ports_parsed:
+        #     gpio_name = io[0]   # GPIO Name
+        #     gpio_mode = io[1]   # GPIO Mode (in/out)
+        #     gpio_width = io[2]   # GPIO Type (single bit/bus/array)
 
-            # New Notes for New Feature:
-            # Tcl commands to create external connection and to rename the connection
-            # startgroup
-            # make_bd_pins_external  [get_bd_pins CB4CLED_0/count]
-            # endgroup
-            # connect_bd_net [get_bd_pins count/gpio_io_i] [get_bd_pins CB4CLED_0/count]
-            # set_property name NEWNAME [get_bd_ports count_0]
-            # dunno what makegroup does but no need worry about it
+        #     # New Notes for New Feature:
+        #     # Tcl commands to create external connection and to rename the connection
+        #     # startgroup
+        #     # make_bd_pins_external  [get_bd_pins CB4CLED_0/count]
+        #     # endgroup
+        #     # connect_bd_net [get_bd_pins count/gpio_io_i] [get_bd_pins CB4CLED_0/count]
+        #     # set_property name NEWNAME [get_bd_ports count_0]
+        #     # dunno what makegroup does but no need worry about it
                 
-            # Implemented as proc make_external_connection {component bd_pin external_pin_name}
+        #     # Implemented as proc make_external_connection {component bd_pin external_pin_name}
 
-            if gpio_mode == "out" and int(gpio_width) <= 32:
-                print(gpio_name) 
-                file_contents += f"\nadd_axi_gpio_all_input {gpio_name} {gpio_width}"
-                # If the GPIO is added correctly, connect it to the User I/O
-                file_contents += f"\nconnect_gpio_all_input_to_module_port {gpio_name} {module_source}_0"
-                created_signals.append(gpio_name)
-            elif gpio_mode == "in" and int(gpio_width) <= 32:
-                file_contents += f"\nadd_axi_gpio_all_output {gpio_name} {gpio_width}"
-                # If the GPIO is added correctly, connect it to the User I/O
-                file_contents += f"\nconnect_gpio_all_output_to_module_port {gpio_name} {module_source}_0"
-                created_signals.append(gpio_name)
-            elif gpio_mode == "out" and int(gpio_width) > 32:
-                print(gpio_name + " is greater than 32 bits. I/O will be split.")
-                gpio_width_int = int(gpio_width)
+        #     if gpio_mode == "out" and int(gpio_width) <= 32:
+        #         print(gpio_name) 
+        #         file_contents += f"\nadd_axi_gpio_all_input {gpio_name} {gpio_width}"
+        #         # If the GPIO is added correctly, connect it to the User I/O
+        #         file_contents += f"\nconnect_gpio_all_input_to_module_port {gpio_name} {module_source}_0"
+        #         created_signals.append(gpio_name)
+        #     elif gpio_mode == "in" and int(gpio_width) <= 32:
+        #         file_contents += f"\nadd_axi_gpio_all_output {gpio_name} {gpio_width}"
+        #         # If the GPIO is added correctly, connect it to the User I/O
+        #         file_contents += f"\nconnect_gpio_all_output_to_module_port {gpio_name} {module_source}_0"
+        #         created_signals.append(gpio_name)
+        #     elif gpio_mode == "out" and int(gpio_width) > 32:
+        #         print(gpio_name + " is greater than 32 bits. I/O will be split.")
+        #         gpio_width_int = int(gpio_width)
 
-                # Splitting up the GPIO is similar as for the gpio_mode == "in" below.
-                # Except we store X downto Y values as well.
-                split_signal_dict = []
-                pin_counter = 0
-                while gpio_width_int - pin_counter > 0:
-                    if gpio_width_int - pin_counter  > 32:
-                        split_signal_dict.append([f"{gpio_name}_{pin_counter+31}_{pin_counter}", 32, pin_counter, pin_counter+31])
-                        pin_counter += 32
-                    elif gpio_width_int - pin_counter <= 32:
-                        split_signal_dict.append([f"{gpio_name}_{gpio_width_int-1}_{pin_counter}", gpio_width_int-pin_counter, pin_counter, gpio_width_int-1])
-                        pin_counter += gpio_width_int - pin_counter
-                # From here is different.
-                # 1) Make n separate ALL INPUT GPIO.
-                # 2) Add a Slice IP for each of the GPIO signals created.
-                    # Configure as: add_slice_ip {name dIn_width dIn_from dIn_downto dout_width}
-                # 3) Connect Component to Slices
-                # 4) Connect Slices to GPIOs.
-                # 5) Add new slice signals to created_signals map.
+        #         # Splitting up the GPIO is similar as for the gpio_mode == "in" below.
+        #         # Except we store X downto Y values as well.
+        #         split_signal_dict = []
+        #         pin_counter = 0
+        #         while gpio_width_int - pin_counter > 0:
+        #             if gpio_width_int - pin_counter  > 32:
+        #                 split_signal_dict.append([f"{gpio_name}_{pin_counter+31}_{pin_counter}", 32, pin_counter, pin_counter+31])
+        #                 pin_counter += 32
+        #             elif gpio_width_int - pin_counter <= 32:
+        #                 split_signal_dict.append([f"{gpio_name}_{gpio_width_int-1}_{pin_counter}", gpio_width_int-pin_counter, pin_counter, gpio_width_int-1])
+        #                 pin_counter += gpio_width_int - pin_counter
+        #         # From here is different.
+        #         # 1) Make n separate ALL INPUT GPIO.
+        #         # 2) Add a Slice IP for each of the GPIO signals created.
+        #             # Configure as: add_slice_ip {name dIn_width dIn_from dIn_downto dout_width}
+        #         # 3) Connect Component to Slices
+        #         # 4) Connect Slices to GPIOs.
+        #         # 5) Add new slice signals to created_signals map.
                 
                 
-                # 1) Add GPIO
-                for sub_sig in split_signal_dict:
-                    file_contents += f"\nadd_axi_gpio_all_input {sub_sig[0]} {sub_sig[1]}"
-                # 2) Add Slices
-                for sub_sig in split_signal_dict:
-                    file_contents += f"\nadd_slice_ip {sub_sig[0]}_slice {gpio_width} {sub_sig[3]} {sub_sig[2]} {sub_sig[1]}"
-                # 3) Connect Component to Slices
-                for sub_sig in split_signal_dict:
-                    file_contents += f"\nconnect_bd_net [get_bd_pins {module_source}_0/{gpio_name}] [get_bd_pins {sub_sig[0]}_slice/Din]"
-                # 4) Connect the Slices to GPIO
-                for sub_sig in split_signal_dict:
-                    file_contents += f"\nconnect_bd_net [get_bd_pins {sub_sig[0]}/gpio_io_i] [get_bd_pins {sub_sig[0]}_slice/Dout]"
-                # 5) Add signals to created_signals dictionary - Required by interconnect steps later.
-                for sub_sig in split_signal_dict:
-                    created_signals.append(sub_sig[0])
+        #         # 1) Add GPIO
+        #         for sub_sig in split_signal_dict:
+        #             file_contents += f"\nadd_axi_gpio_all_input {sub_sig[0]} {sub_sig[1]}"
+        #         # 2) Add Slices
+        #         for sub_sig in split_signal_dict:
+        #             file_contents += f"\nadd_slice_ip {sub_sig[0]}_slice {gpio_width} {sub_sig[3]} {sub_sig[2]} {sub_sig[1]}"
+        #         # 3) Connect Component to Slices
+        #         for sub_sig in split_signal_dict:
+        #             file_contents += f"\nconnect_bd_net [get_bd_pins {module_source}_0/{gpio_name}] [get_bd_pins {sub_sig[0]}_slice/Din]"
+        #         # 4) Connect the Slices to GPIO
+        #         for sub_sig in split_signal_dict:
+        #             file_contents += f"\nconnect_bd_net [get_bd_pins {sub_sig[0]}/gpio_io_i] [get_bd_pins {sub_sig[0]}_slice/Dout]"
+        #         # 5) Add signals to created_signals dictionary - Required by interconnect steps later.
+        #         for sub_sig in split_signal_dict:
+        #             created_signals.append(sub_sig[0])
 
-            elif gpio_mode == "in" and int(gpio_width) > 32:
-                print(gpio_name + " is greater than 32 bits. I/O will be split.")
-                gpio_width_int = int(gpio_width)
+        #     elif gpio_mode == "in" and int(gpio_width) > 32:
+        #         print(gpio_name + " is greater than 32 bits. I/O will be split.")
+        #         gpio_width_int = int(gpio_width)
                 
-                # First: Make n (two or more) GPIO for each 32 bit block + remainder.
-                # Second: Add a concat block with n ports 
-                # Third: Connect output of concat (merged signal) to the component
-                # Fourth: Connect n GPIO to n inputs to concat IP.
+        #         # First: Make n (two or more) GPIO for each 32 bit block + remainder.
+        #         # Second: Add a concat block with n ports 
+        #         # Third: Connect output of concat (merged signal) to the component
+        #         # Fourth: Connect n GPIO to n inputs to concat IP.
 
-                # Fifth: Add our new signals to an updated all_ports map for later.
+        #         # Fifth: Add our new signals to an updated all_ports map for later.
                 
-                # Precurser: Make an array similar to all_ports that will store config.
-                split_signal_dict = []
-                pin_counter = 0
-                while gpio_width_int - pin_counter > 0:
-                    if gpio_width_int - pin_counter  > 32:
-                        split_signal_dict.append([f"{gpio_name}_{pin_counter+31}_{pin_counter}", 32])
-                        pin_counter += 32
-                    elif gpio_width_int - pin_counter <= 32:
-                        split_signal_dict.append([f"{gpio_name}_{gpio_width_int-1}_{pin_counter}", gpio_width_int-pin_counter])
-                        pin_counter += gpio_width_int - pin_counter
+        #         # Precurser: Make an array similar to all_ports that will store config.
+        #         split_signal_dict = []
+        #         pin_counter = 0
+        #         while gpio_width_int - pin_counter > 0:
+        #             if gpio_width_int - pin_counter  > 32:
+        #                 split_signal_dict.append([f"{gpio_name}_{pin_counter+31}_{pin_counter}", 32])
+        #                 pin_counter += 32
+        #             elif gpio_width_int - pin_counter <= 32:
+        #                 split_signal_dict.append([f"{gpio_name}_{gpio_width_int-1}_{pin_counter}", gpio_width_int-pin_counter])
+        #                 pin_counter += gpio_width_int - pin_counter
 
-                # Now we have formed a split signal map, we can follow the steps.
+        #         # Now we have formed a split signal map, we can follow the steps.
 
-                # 1 Make N GPIO blocks
-                for sub_sig in split_signal_dict:
-                    file_contents += f"\nadd_axi_gpio_all_output {sub_sig[0]} {sub_sig[1]}"
+        #         # 1 Make N GPIO blocks
+        #         for sub_sig in split_signal_dict:
+        #             file_contents += f"\nadd_axi_gpio_all_output {sub_sig[0]} {sub_sig[1]}"
                 
-                # 2 Import Concat IP
-                # name_concat for IP name, length of our split signal dict is the number of items we need to support.
-                file_contents += f"\nadd_concat_ip {gpio_name}_concat {len(split_signal_dict)}"
+        #         # 2 Import Concat IP
+        #         # name_concat for IP name, length of our split signal dict is the number of items we need to support.
+        #         file_contents += f"\nadd_concat_ip {gpio_name}_concat {len(split_signal_dict)}"
 
-                # 3 Connecting the CONCAT block to Comp
-                file_contents += f"\nconnect_bd_net [get_bd_pins {gpio_name}_concat/dout] [get_bd_pins {module_source}_0/{gpio_name}]"
+        #         # 3 Connecting the CONCAT block to Comp
+        #         file_contents += f"\nconnect_bd_net [get_bd_pins {gpio_name}_concat/dout] [get_bd_pins {module_source}_0/{gpio_name}]"
 
-                # 4 Connect GPIO to CONCAT
-                port_count = 0
-                for sub_sig in split_signal_dict:
-                    file_contents += f"\nconnect_bd_net [get_bd_pins {sub_sig[0]}/gpio_io_o] [get_bd_pins {gpio_name}_concat/In{port_count}]"
-                    port_count += 1
+        #         # 4 Connect GPIO to CONCAT
+        #         port_count = 0
+        #         for sub_sig in split_signal_dict:
+        #             file_contents += f"\nconnect_bd_net [get_bd_pins {sub_sig[0]}/gpio_io_o] [get_bd_pins {gpio_name}_concat/In{port_count}]"
+        #             port_count += 1
 
-                # final signals 
-                for sub_sig in split_signal_dict:
-                    created_signals.append(sub_sig[0]) 
+        #         # final signals 
+        #         for sub_sig in split_signal_dict:
+        #             created_signals.append(sub_sig[0]) 
 
-            else:
-                print("Error Adding GPIO Connection, in/out not specified correctly")
-                break
+        #     else:
+        #         print("Error Adding GPIO Connection, in/out not specified correctly")
+        #         break
+
+        file_contents, created_signals = generate_connections(module_source, all_ports_parsed, io_map, gui_application)
+
 
         # (7) Add the AXI Interconnect to the IP Block Design
         file_contents += f"\nadd_axi_interconnect 1 {len(created_signals)}"
@@ -1103,7 +1106,7 @@ def generate_connections(module_source, all_ports_parsed, io_map, gui_applicatio
 
     # imagine we somehow swap the key and value of the dictionary:
     # Now check: Is our signal in the swapped dictionary?
-    
+    return file_contents, interconnect_signals
 
 
 ########################################################################
