@@ -270,14 +270,14 @@ verbose_prints = False # Not implemented yet.
 #   a. Set created wrapper as top
 # 12. Run Synthesis, Implementation and Generate Bitstream
 
-
 def generate_tcl(path_to_hdlgen_project, regenerate_bd=True, start_gui=True, keep_vivado_open=False, skip_board_config=False, io_map=None, gui_application=None):
+
+    xdc_contents =  "" # Initalise the xdc_contents variable - To be moved to generate connections area.
 
     # For logging to console window - Look for GUI_APP and use the add_to_log_box API - Seen throughout this project/script.
     if gui_application:
         gui_application.add_to_log_box(f"\nRunning Generate Tcl Program")
 
-    xdc_contents = "" # Initalise the xdc_contents variable
     file_contents = ""
     ###################################################################
     ########## Parsing .hdlgen file for required information ##########
@@ -696,10 +696,50 @@ def generate_tcl(path_to_hdlgen_project, regenerate_bd=True, start_gui=True, kee
     #++++++++# END OF MAIN FUNCTION #++++++++#
     #++++++++++++++++++++++++++++++++++++++++#
 
+
+def generate_all_input_external_gpio(gpio_name, gpio_width, module_source, occurences, gui_application=None):
+    file_contents = ""
+    if gui_application:
+        gui_application.add_to_log_box(f"\nConnecting {gpio_name} to {occurences[0][1]}")
+    # In this configuration, we need to:
+    #   1) Add an ALL INPUT GPIO, 
+    #   2) make the pin of the COMPONENT external
+    #   3) and connect to component.
+    file_contents += f"\nadd_axi_gpio_all_input {gpio_name} {gpio_width}"
+    # Need to make the GPIO external then move 
+    # startgroup \n make_bd_pins_external  [get_bd_pins A/gpio_io_o] \n endgroup
+
+    file_contents += f"\nstartgroup\nmake_bd_pins_external  [get_bd_pins RISCV_ALU_0/ALUOut]\nendgroup"
+    file_contents += f"\nset_property name {gpio_name}_ext [get_bd_ports {gpio_name}_0]"
+    
+    # If the GPIO is added correctly, connect it to the User I/O
+    file_contents += f"\nconnect_gpio_all_input_to_module_port {gpio_name} {module_source}_0"
+    return file_contents
+
+def generate_all_output_external_gpio(gpio_name, gpio_width, module_source, occurences, gui_application=None):
+    file_contents = ""
+    if gui_application:
+        gui_application.add_to_log_box(f"\nConnecting {gpio_name} to {occurences[0][1]}")
+    # In this configuration, we need to:
+    #   1) Add an ALL OUTPUT GPIO, 
+    #   2) make the pin of the GPIO external, 
+    #   3) and connect to component.
+    file_contents += f"\nadd_axi_gpio_all_output {gpio_name} {gpio_width}"
+    # Need to make the GPIO external then move 
+    # startgroup \n make_bd_pins_external  [get_bd_pins A/gpio_io_o] \n endgroup
+
+    file_contents += f"\nstartgroup\nmake_bd_pins_external [get_bd_pins {gpio_name}/gpio_io_o]\nendgroup"
+    file_contents += f"\nset_property name {gpio_name}_ext [get_bd_ports gpio_io_o_0]"
+    
+    # If the GPIO is added correctly, connect it to the User I/O
+    file_contents += f"\nconnect_gpio_all_output_to_module_port {gpio_name} {module_source}_0"
+    return file_contents
+
 ##########################################
 ########## Generate Connections ##########
 ##########################################
 def generate_connections(module_source, all_ports_parsed, io_map, gui_application=None):
+    xdc_constraints = ""
     file_contents = ""
     interconnect_signals = []
 
@@ -829,9 +869,8 @@ def generate_connections(module_source, all_ports_parsed, io_map, gui_applicatio
             for sub_sig in split_signal_dict:
                 interconnect_signals.append(sub_sig[0]) 
 
-
-
         pass # No I/O in this port;
+
     elif gpio_width == 1 and len(occurences) > 0:
         # Currently just assuming that only 1 I/O per pin.
         # If its more that should only be a change in the XDC file anyways. :) (if same mode)
@@ -842,32 +881,34 @@ def generate_connections(module_source, all_ports_parsed, io_map, gui_applicatio
                 gui_application.add_to_log_box("\nDon't know how to configure inputs yet. Skipping.")
             pass
         elif gpio_mode == "in" and pynq_constraints_mode[occurences[0][1]]=="out":
-            if gui_application:
-                gui_application.add_to_log_box(f"\nConnecting {gpio_name} to {occurences[0][1]}")
-            # In this configuration, we need to:
-            #   1) Add an ALL OUTPUT GPIO, 
-            #   2) make the pin of the GPIO external, 
-            #   3) and connect to component.
-            pass
+            file_contents += generate_all_output_external_gpio(gpio_name, gpio_width, module_source, occurences, gui_application)
+            interconnect_signals.append(gpio_name)
+
+            # XDC Constraints
+            
+
         elif gpio_mode == "out" and pynq_constraints_mode[occurences[0][1]]=="in":
             # This mode is not possible, and should be ignored.
             pass
         elif gpio_mode == "out" and pynq_constraints_mode[occurences[0][1]]=="out":
-            if gui_application:
-                gui_application.add_to_log_box(f"\nConnecting {gpio_name} to {occurences[0][1]}")
-            # In this configuration, we need to:
-            #   1) Add an ALL OUTPUT GPIO, 
-            #   2) make the pin of the COMPONENT external
-            #   3) and connect to component.
-            pass
-
+            file_contents += generate_all_input_external_gpio(gpio_name, gpio_width, module_source, occurences, gui_application)
+            interconnect_signals.append(gpio_name)
+            # run XDC constraints 
+            # # # # # # # # # # #
 
         pass # if the GPIO_width is 1. Make that port external
-    elif gpio_width == len(occurences):
+    elif gpio_width == len(occurences) and gpio_width <= 32:    # It wouldn't be possible but ok to add check anyways for readability.
         # if gpio width == len(occurences) then we have fully routed a signal and don't need to slice.
         # 1) Add GPIO,
         # 2) Connect
-        # 3) 
+        
+        # Reusing same code as if it was gpio_width = 1
+        if gpio_mode == "out":
+            file_contents += generate_all_input_external_gpio(gpio_name, gpio_width, module_source, occurences, gui_application)
+        elif gpio_mode == "in":
+            file_contents += generate_all_output_external_gpio(gpio_name, gpio_width, module_source, occurences, gui_application)
+
+
         pass
     elif gpio_width > 1 and len(occurences) > 1:
         # Need to slice signals. 
