@@ -398,40 +398,11 @@ def generate_tcl(path_to_hdlgen_project, regenerate_bd=True, start_gui=True, kee
     file_contents += path_to_constraints
     file_contents += "}"
 
-    # Constaints do not exist - Import now:
-
-    # file_contents += f"\nset path_to_constraints \"{path_to_constraints}\""
-    # file_contents += "\nadd_files -fileset constrs_1 -norecurse $path_to_constraints"
-    # file_contents += "\nimport_files -fileset constrs_1 $path_to_constraints"
-
-
-    # Completed: If the contraints fileset does not exist: Import it.
-    # Next: If the constraints fileset already exists: Re-import it.
-
-    # Get the list of files in the "contr_1" fileset
-    # set fileset_name "contr_1"
-    # set file_list [get_files -of_objects [get_filesets $fileset_name]]
-
-    # # Specify the file you want to check
-    # set target_file "myfile.vhd"
-
-    # # Check if the file exists in the fileset
-    # if {[lsearch -exact $file_list $target_file] >= 0} {
-    #     puts "File $target_file exists in fileset $fileset_name."
-    # } else {
-    #     puts "File $target_file does not exist in fileset $fileset_name."
-    # }
-    
-
     #########################################################################################################
-    
-    ################### Experimental Check if Block Design Exists (and a Wrapper Exists) ####################
 
     generate_new_bd_design = regenerate_bd   # Default Consignment
     delete_old_bd_design = False             # Default Consignment
 
-    # Need to check if block design actually exists already,
-    # And does a wrapper exist
     
     # Wrapper Path:
     # D:/HDLGen-ChatGPT/User_Projects/Fearghal_November/RISCV_RB/VHDL/AMDprj/RISCV_RB.srcs/sources_1/bd/RISCV_RB_bd/hdl/RISCV_RB_bd_wrapper.vhd
