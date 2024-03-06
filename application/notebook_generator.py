@@ -481,7 +481,31 @@ def create_jnb(path_to_hdlgen_file, output_filename=None, generic=False):
             # print(test_converted_to_decimal_from_radix)
 
             # Create title cell.
-            markdown_cell = nbf.v4.new_markdown_cell(f"**Test Case: {test_number}**")
+            
+
+            # Testbench Plan Cell
+            markdown_cell_contents = f"**Test Case: {test_number}**\n\n"
+            # Row 1 Signals:
+            markdown_cell_contents += "| "
+            for s in signals_line:
+                markdown_cell_contents += s + " | "
+            markdown_cell_contents += "\n|"
+            for s in signals_line:
+                markdown_cell_contents += ":----:|"
+            # Row 2 Mode:
+            markdown_cell_contents += "\n| "
+            for m in mode_line:
+                markdown_cell_contents += m + " | "
+            # Row 3 Radix:
+            markdown_cell_contents += "\n| "
+            for r in radix_line:
+                markdown_cell_contents += r + " | "
+            # Row 4+ Test Cases:
+            markdown_cell_contents += "\n| "
+            for t in test_cases[test_number]:
+                markdown_cell_contents += t + " | "
+
+            markdown_cell = nbf.v4.new_markdown_cell(markdown_cell_contents)
             notebook.cells.append(markdown_cell)
 
             # Code Cell:
