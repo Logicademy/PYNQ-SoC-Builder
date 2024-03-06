@@ -719,7 +719,7 @@ def connect_slice_to_gpio(bit, gpio_mode, gpio_name, gpio_width, slice_number, m
         file_contents += f"\nset_property name {gpio_name}_{slice_number}_ext [get_bd_ports Dout_0]"
 
     elif gpio_mode == "out":
-        file_contents += f"\nconnect_bd_net [get_bd_pins {module_source}/{gpio_name}] [get_bd_pins {gpio_name}_{slice_number}_slice/Din]"
+        file_contents += f"\nconnect_bd_net [get_bd_pins {module_source}_0/{gpio_name}] [get_bd_pins {gpio_name}_{slice_number}_slice/Din]"
 
         file_contents += "\nstartgroup"
         file_contents += f"\nset_property -dict [list CONFIG.DIN_TO {bit} CONFIG.DIN_FROM {bit} CONFIG.DIN_WIDTH {gpio_width} CONFIG.DIN_FROM {bit} CONFIG.DOUT_WIDTH 1] [get_bd_cells {gpio_name}_{slice_number}_slice]"
