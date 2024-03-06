@@ -282,11 +282,6 @@ def create_jnb(path_to_hdlgen_file, output_filename=None, generic=False):
         code_cell_contents += f"\n# Number Of Test Cases: {len(test_cases)}"
         code_cell_contents += f"\ntest_results = [None] * {len(test_cases)}"
         
-        # The next section of code is difficult to read.
-        # We need to loop outputs 3 separate times in the next few lines of code.
-        # Therefore, all 3 strings are going to be made together now but injected into JNB
-        # At different points over the next 30 lines.
-
         # 1) Create output signals array
         # 2) Read each output signal signal.read(0)
         # 3) Store results as test_results[test] = [signal1_val, signal2_val, signal3_val]
@@ -295,28 +290,22 @@ def create_jnb(path_to_hdlgen_file, output_filename=None, generic=False):
         sub_radix = radix_line[1:-3]  
         output_radix = []
 
-        string1 = "\noutput_signals = ["
-        # string2 = ""
-        string3 = "\n\t\ttest_results[test] = ["
+        # Generate output_signals = ["signal1", "signal2", "signal3"...]
+        output_signals_string = "\noutput_signals = ["
         for i in range(len(sub_signals)):
                 if sub_modes[i] == "out":
-                    string1 += "'"+sub_signals[i] + "', " # signal1, 
-                    try:
-                        if sub_radix[i][-1] == "h":
-                            string3 += f"hex({sub_signals[i]}_val), "
-                        elif sub_radix[i][-1] == "b":
-                            string3 += f"bin({sub_signals[i]}_val), "
-                        if sub_radix[i][-1] == "d":
-                            string3 += f"str({sub_signals[i]}_val), "
-                    except Exception:
-                        pass                    
-                    output_radix.append(sub_radix[i])
+                    output_signals_string += "'"+sub_signals[i] + "', " # signal1, 
+        output_signals_string = output_signals_string[:-2] + "]" # delete the last ", " and add "]" instead
+        code_cell_contents += output_signals_string
 
-        string1 = string1[:-2] + "]" # delete the last ", " and add "]" instead
-        string3 = string3[:-2] + "]" # delete the last 
+
+
+
+
+
+
 
         # Loop Outputs
-        code_cell_contents += string1
                     
         code_cell_contents += "\nexpected_results = ["
         
@@ -342,6 +331,25 @@ def create_jnb(path_to_hdlgen_file, output_filename=None, generic=False):
         code_cell_contents += "\ndef color_test_passed(val):"
         code_cell_contents += "\n\tcolor = 'green' if val else 'red'"
         code_cell_contents += "\n\treturn f'background-color: {color}; color: white;'"
+
+        code_cell_contents += "\n\n# Pad Hex or Binary Values to Same Length as Reference"
+        #### PAD HEX OR BINARY VALUES
+        # Twp different functions were made to do this. I choose first as it was shorter.
+        # The second option accepts number of bits instead of a comparative view. I think comparative is better for this.
+        code_cell_contents += "\ndef pad_hex_or_bin(val_to_pad, comparison_val):"
+        code_cell_contents += "\n\tpadded_hex = f\"{val_to_pad[:2]}{val_to_pad[2:].zfill(len(comparison_val[2:]))}\" # Pad if necessary"
+        code_cell_contents += "\n\treturn padded_hex"
+
+        # def pad_hex_or_bin(val_to_pad, bits)
+        #     if val_to_pad[1] == "x":
+        #         padded_hex = f"0x{val_to_pad[2:].zfill(bits // 4 + 1 if bits % 4 > 1 else bits // 4)}"
+        #     elif val_to_pad[1] == "b": # pad
+        #         padded_hex = f"0b{val_to_pad[2:].zfill(bits)}"
+        #     else
+        #         return val_to_pad # If its neither binary or hex just return number again
+
+
+
         code_cell_contents += "\n\ndef save_and_print_test(test=None):"
         code_cell_contents += "\n\tif None:"
         code_cell_contents += "\n\t\tprint('No Test Number Provided')"
@@ -362,6 +370,8 @@ def create_jnb(path_to_hdlgen_file, output_filename=None, generic=False):
                 read_sigs_substring = f" | ({sig_array[x]}_val << {32*(x-1)})" + read_sigs_substring
             read_signals_string += read_sigs_substring[2:]
 
+        code_cell_contents += read_signals_string
+
         # for i in range(len(sub_signals)):
         #     if sub_modes[i] == "out":
 
@@ -374,11 +384,29 @@ def create_jnb(path_to_hdlgen_file, output_filename=None, generic=False):
         #         read_signals_string += "\n\t\t" + sub_signals[i] + "_val = " + sub_signals[i] + ".read(0)"    # reading each signal   <- Working perfectly
                     
         
-        
-        
-        code_cell_contents += read_signals_string
-                
-        code_cell_contents += string3
+        test_results_string = "\n\t\ttest_results[test] = ["
+        out_count = 0
+        for i in range(len(sub_signals)):
+                if sub_modes[i] == "out":
+                    try:
+                        if sub_radix[i][-1] == "h":
+                            test_results_string += f"pad_hex_or_bin(hex({sub_signals[i]}_val), expected_results[test][{out_count}]), "
+                        elif sub_radix[i][-1] == "b":
+                            test_results_string += f"pad_hex_or_bin(bin({sub_signals[i]}_val), expected_results[test][{out_count}]), "
+                        if sub_radix[i][-1] == "d":
+                            test_results_string += f"str({sub_signals[i]}_val), "
+                        out_count += 1
+                    except Exception:
+                        pass                    
+                    output_radix.append(sub_radix[i])
+
+        test_results_string = test_results_string[:-2] + "]" # delete the last 
+
+
+
+
+
+        code_cell_contents += test_results_string
         
         code_cell_contents += "\n\t\tdf = pd.DataFrame({"
         code_cell_contents += "\n\t\t\t'Signal': output_signals,"
