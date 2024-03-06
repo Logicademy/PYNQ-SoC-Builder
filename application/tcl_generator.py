@@ -748,7 +748,7 @@ def generate_all_input_external_gpio(gpio_name, gpio_width, module_source, occur
     # Need to make the GPIO external then move 
     # startgroup \n make_bd_pins_external  [get_bd_pins A/gpio_io_o] \n endgroup
 
-    file_contents += f"\nstartgroup\nmake_bd_pins_external [get_bd_pins {module_source}/{gpio_name}]\nendgroup"
+    file_contents += f"\nstartgroup\nmake_bd_pins_external [get_bd_pins {module_source}_0/{gpio_name}]\nendgroup"
     file_contents += f"\nset_property name {gpio_name}_ext [get_bd_ports {gpio_name}_0]"
     
     # If the GPIO is added correctly, connect it to the User I/O
@@ -1099,7 +1099,7 @@ def generate_connections(module_source, all_ports_parsed, io_map, gui_applicatio
                     # 3) make it external.
 
                     # Just like normal, make the inital connection.
-                    connect_slice_to_gpio(bit, gpio_mode, gpio_name, gpio_width, slice_number, module_source)
+                    file_contents += connect_slice_to_gpio(bit, gpio_mode, gpio_name, gpio_width, slice_number, module_source)
                     # Add External Port to XDC.
 
                     slice_number += 1   # must be called every time above API is used to ensure there is never any name collisions
