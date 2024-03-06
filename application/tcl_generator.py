@@ -694,7 +694,6 @@ def generate_tcl(path_to_hdlgen_project, regenerate_bd=True, start_gui=True, kee
     file_contents += generate_bitstream(path_to_bd_export,path_to_bd_file)
     file_contents += save_and_quit(start_gui, keep_vivado_open)
     write_tcl_file(file_contents, gui_application)
-    write_xdc_file(file_contents, gui_application)
 
     #++++++++++++++++++++++++++++++++++++++++#
     #++++++++# END OF MAIN FUNCTION #++++++++#
@@ -800,7 +799,7 @@ def generate_all_output_no_ext_gpio(gpio_name, gpio_width, module_source, gui_ap
 ########## Generate Connections ##########
 ##########################################
 def generate_connections(module_source, all_ports_parsed, io_map, gui_application=None):
-    xdc_constraints = ""
+    xdc_contents = ""
     file_contents = ""
     interconnect_signals = []
     slice_number = 0 # Used to ensure all connections are unique
@@ -1107,6 +1106,7 @@ def generate_connections(module_source, all_ports_parsed, io_map, gui_applicatio
 
         # imagine we somehow swap the key and value of the dictionary:
         # Now check: Is our signal in the swapped dictionary?
+    write_xdc_file(xdc_contents, gui_application)
     return file_contents, interconnect_signals
 
 
