@@ -748,7 +748,7 @@ def generate_all_input_external_gpio(gpio_name, gpio_width, module_source, occur
     # Need to make the GPIO external then move 
     # startgroup \n make_bd_pins_external  [get_bd_pins A/gpio_io_o] \n endgroup
 
-    file_contents += f"\nstartgroup\nmake_bd_pins_external  [get_bd_pins RISCV_ALU_0/ALUOut]\nendgroup"
+    file_contents += f"\nstartgroup\nmake_bd_pins_external [get_bd_pins {module_source}/{gpio_name}]\nendgroup"
     file_contents += f"\nset_property name {gpio_name}_ext [get_bd_ports {gpio_name}_0]"
     
     # If the GPIO is added correctly, connect it to the User I/O
@@ -943,7 +943,7 @@ def generate_connections(module_source, all_ports_parsed, io_map, gui_applicatio
                 interconnect_signals.append(gpio_name)
                 # XDC Constraints
                 
-            elif gpio_mode == "out" and pynq_constraints_mode[occurences[0][1]]=="in":
+            elif gpio_mode == "out" and pynq_constraints_mode[occurences[0][0]]=="in":
                 # This mode is not possible, and should be ignored.
                 if gui_application:
                     gui_application.add_to_log_box(f"\n{gpio_name} as an output and IO as input is not possible. Configuring without I/O")
@@ -951,7 +951,7 @@ def generate_connections(module_source, all_ports_parsed, io_map, gui_applicatio
                 # Add signal to the list of GPIO to be connected to interconnect (needed for block automation)
                 interconnect_signals.append(gpio_name)
                 pass
-            elif gpio_mode == "out" and pynq_constraints_mode[occurences[0][1]]=="out":
+            elif gpio_mode == "out" and pynq_constraints_mode[occurences[0][0]]=="out":
                 file_contents += generate_all_input_external_gpio(gpio_name, gpio_width, module_source, occurences, gui_application)
                 interconnect_signals.append(gpio_name)
                 # run XDC constraints 
@@ -962,37 +962,59 @@ def generate_connections(module_source, all_ports_parsed, io_map, gui_applicatio
             # if gpio width == len(occurences) then we have fully routed a signal and don't need to slice.
             # 1) Add GPIO,
             # 2) Connect
-            if gpio_mode == "in" and pynq_constraints_mode[occurences[0][1]]=="in":
+            interconnect_signals.append(gpio_name)
+            # for occur in occurences:
+            # board_io = occur[0]
+            # signal_pin = occur[1]
+            force_continue = False
+            last_occur_io_mode = pynq_constraints_mode[occurences[0][0]]
+            for occur in occurences:
+                if pynq_constraints_mode[occur[0]] != last_occur_io_mode:
+                    print("=========Does not support mixed INPUT and OUTPUT for GPIO same GPIO at this time=======")
+                    if gui_application:
+                        gui_application.add_to_log_box("\n=========Does not support mixed INPUT and OUTPUT for GPIO same GPIO at this time=======")
+                        file_contents += generate_all_output_no_ext_gpio(gpio_name, gpio_width, module_source, gui_application)
+                        force_continue = True
+                else:
+                    last_occur_io_mode = pynq_constraints_mode[occur[0]]
+
+            # last_occur_io_mode - Right now only out or in exclusively is allowed. Therefore last checked is also valid.
+            if force_continue:
+                continue # Continue to next signal
+
+
+
+            if gpio_mode == "in" and last_occur_io_mode=="in":
                 # Do not know yet what happens if you have two drivers. Probably not good.
                 if gui_application:
                     gui_application.add_to_log_box("\nDon't know how to configure inputs yet. Skipping IO")
                 file_contents += generate_all_output_no_ext_gpio(gpio_name, gpio_width, module_source, gui_application)
                 # Add signal to the list of GPIO to be connected to interconnect (needed for block automation)
-                interconnect_signals.append(gpio_name)
-            elif gpio_mode == "in" and pynq_constraints_mode[occurences[0][1]]=="out":
+                
+            elif gpio_mode == "in" and last_occur_io_mode=="out":
                 file_contents += generate_all_output_external_gpio(gpio_name, gpio_width, module_source, occurences, gui_application)
-                interconnect_signals.append(gpio_name)
                 # Generate XDC
-            elif gpio_mode == "out" and pynq_constraints_mode[occurences[0][1]]=="in":
+            elif gpio_mode == "out" and last_occur_io_mode=="in":
                 # This mode is not possible, and should be ignored.
                 if gui_application:
                     gui_application.add_to_log_box(f"\n{gpio_name} as an output and IO as input is not possible. Configuring without I/O")
                 file_contents += generate_all_input_no_ext_gpio(gpio_name, gpio_width, module_source, gui_application)
                 # Add signal to the list of GPIO to be connected to interconnect (needed for block automation)
-                interconnect_signals.append(gpio_name)
-            elif gpio_mode == "out" and pynq_constraints_mode[occurences[0][1]]=="out":
+            elif gpio_mode == "out" and last_occur_io_mode=="out":
                 file_contents += generate_all_input_external_gpio(gpio_name, gpio_width, module_source, occurences, gui_application)
-                interconnect_signals.append(gpio_name)
                 # Generate XDC
-            pass
+            
 
 
-        elif gpio_width > 1 and len(occurences) > 1 and gpio_width > len(occurences):
+        elif gpio_width > 0 and len(occurences) > 0 and gpio_width > len(occurences):
             # Need to slice signals -> equal case caught above.
 
             # IMPROVEMENT: We could reduce number of IP used by combining neighbouring bits into a single slice IP. I won't for sake of development time right now.
             # occurences in the form of [signal[x], bit] -> (We know that there cannot be just a single signal as gpio_width > 1 )
-            file_contents += generate_all_output_no_ext_gpio(gpio_name, gpio_width, module_source, gui_application)
+            if gpio_mode == "in":
+                file_contents += generate_all_output_no_ext_gpio(gpio_name, gpio_width, module_source, gui_application)
+            elif gpio_mode == "out":
+                file_contents += generate_all_input_no_ext_gpio(gpio_name, gpio_width, module_source, gui_application)
             interconnect_signals.append(gpio_name)  # Add to interconnect as normal.
             
             for occur in occurences:
@@ -1044,9 +1066,8 @@ def generate_connections(module_source, all_ports_parsed, io_map, gui_applicatio
                     # This mode is not possible, and should be ignored.
                     if gui_application:
                         gui_application.add_to_log_box(f"\n{gpio_name} as an output and IO as input is not possible. Configuring without I/O")
-                    file_contents += generate_all_input_no_ext_gpio(gpio_name, gpio_width, module_source, gui_application)
+                    
                     # Add signal to the list of GPIO to be connected to interconnect (needed for block automation)
-                    interconnect_signals.append(gpio_name)
                     pass # not possible
                 elif gpio_mode == "out" and pynq_constraints_mode[board_io]=="out":
                     # think LED on count
@@ -1078,12 +1099,10 @@ def generate_connections(module_source, all_ports_parsed, io_map, gui_applicatio
                     # 3) make it external.
 
                     # Just like normal, make the inital connection.
-                    file_contents += generate_all_output_no_ext_gpio(gpio_name, gpio_width, module_source, gui_application)
                     connect_slice_to_gpio(bit, gpio_mode, gpio_name, gpio_width, slice_number, module_source)
                     # Add External Port to XDC.
 
                     slice_number += 1   # must be called every time above API is used to ensure there is never any name collisions
-                    interconnect_signals.append(gpio_name)  # Add to interconnect as normal.
                     pass
                 pass
 
