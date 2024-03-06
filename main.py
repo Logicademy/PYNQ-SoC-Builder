@@ -44,7 +44,13 @@ class Application:
             "led0":"None",
             "led1":"None",
             "led2":"None",
-            "led3":"None"
+            "led3":"None",
+            "led4_b":"None",
+            "led4_g":"None",
+            "led4_r":"None",
+            "led5_b":"None",
+            "led5_g":"None",
+            "led5_r":"None"
         }
 
         # Shared Tcl Generator Flags
