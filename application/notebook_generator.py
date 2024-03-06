@@ -201,9 +201,9 @@ def create_jnb(path_to_hdlgen_file, output_filename=None, generic=False):
                     signal_width = 32
                     split_signals.append([signal_name, signal_width])
                     if gpio_mode == "out":
-                        output_split.append()
+                        output_split.append(signal_name)
                     else:
-                        input_split.append()
+                        input_split.append(signal_name)
                     pin_counter += 32
                 elif gpio_width - pin_counter <= 32:
                     # signal_name = gpioName_X_downto_Y -> gpio_name_X_Y
