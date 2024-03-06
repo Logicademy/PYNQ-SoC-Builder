@@ -696,7 +696,9 @@ def generate_tcl(path_to_hdlgen_project, regenerate_bd=True, start_gui=True, kee
     #++++++++# END OF MAIN FUNCTION #++++++++#
     #++++++++++++++++++++++++++++++++++++++++#
 
-
+###########################################################################################
+########## Generate Tcl Code to Add and Connect All Input GPIO with External Pin ##########
+###########################################################################################
 def generate_all_input_external_gpio(gpio_name, gpio_width, module_source, occurences, gui_application=None):
     file_contents = ""
     if gui_application:
@@ -716,6 +718,9 @@ def generate_all_input_external_gpio(gpio_name, gpio_width, module_source, occur
     file_contents += f"\nconnect_gpio_all_input_to_module_port {gpio_name} {module_source}_0"
     return file_contents
 
+############################################################################################
+########## Generate Tcl Code to Add and Connect All Output GPIO with External Pin ##########
+############################################################################################
 def generate_all_output_external_gpio(gpio_name, gpio_width, module_source, occurences, gui_application=None):
     file_contents = ""
     if gui_application:
@@ -734,6 +739,22 @@ def generate_all_output_external_gpio(gpio_name, gpio_width, module_source, occu
     # If the GPIO is added correctly, connect it to the User I/O
     file_contents += f"\nconnect_gpio_all_output_to_module_port {gpio_name} {module_source}_0"
     return file_contents
+
+##############################################################################################
+########## Generate Tcl Code to Add and Connect All Input GPIO with No External Pin ##########
+##############################################################################################
+def generate_all_input_no_ext_gpio(gpio_name, gpio_width, module_source, gui_application=None):
+    file_contents = f"\nadd_axi_gpio_all_input {gpio_name} {gpio_width}"
+    file_contents += f"\nconnect_gpio_all_input_to_module_port {gpio_name} {module_source}_0"
+    return file_contents 
+
+###############################################################################################
+########## Generate Tcl Code to Add and Connect All Output GPIO with No External Pin ##########
+###############################################################################################
+def generate_all_output_no_ext_gpio(gpio_name, gpio_width, module_source, gui_application=None):
+    file_contents = f"\nadd_axi_gpio_all_input {gpio_name} {gpio_width}"
+    file_contents += f"\nconnect_gpio_all_input_to_module_port {gpio_name} {module_source}_0"
+    return file_contents 
 
 ##########################################
 ########## Generate Connections ##########
@@ -878,17 +899,22 @@ def generate_connections(module_source, all_ports_parsed, io_map, gui_applicatio
         if gpio_mode == "in" and pynq_constraints_mode[occurences[0][1]]=="in":
             # Do not know yet what happens if you have two drivers. Probably not good.
             if gui_application:
-                gui_application.add_to_log_box("\nDon't know how to configure inputs yet. Skipping.")
-            pass
+                gui_application.add_to_log_box("\nDon't know how to configure inputs yet. Skipping IO config.")
+            file_contents += generate_all_output_no_ext_gpio(gpio_name, gpio_width, module_source, gui_application)
+            # Add signal to the list of GPIO to be connected to interconnect (needed for block automation)
+            interconnect_signals.append(gpio_name)
         elif gpio_mode == "in" and pynq_constraints_mode[occurences[0][1]]=="out":
             file_contents += generate_all_output_external_gpio(gpio_name, gpio_width, module_source, occurences, gui_application)
             interconnect_signals.append(gpio_name)
-
             # XDC Constraints
             
-
         elif gpio_mode == "out" and pynq_constraints_mode[occurences[0][1]]=="in":
             # This mode is not possible, and should be ignored.
+            if gui_application:
+                gui_application.add_to_log_box(f"\n{gpio_name} as an output and IO as input is not possible. Configuring without I/O")
+            file_contents += generate_all_input_no_ext_gpio(gpio_name, gpio_width, module_source, gui_application)
+            # Add signal to the list of GPIO to be connected to interconnect (needed for block automation)
+            interconnect_signals.append(gpio_name)
             pass
         elif gpio_mode == "out" and pynq_constraints_mode[occurences[0][1]]=="out":
             file_contents += generate_all_input_external_gpio(gpio_name, gpio_width, module_source, occurences, gui_application)
@@ -901,30 +927,70 @@ def generate_connections(module_source, all_ports_parsed, io_map, gui_applicatio
         # if gpio width == len(occurences) then we have fully routed a signal and don't need to slice.
         # 1) Add GPIO,
         # 2) Connect
-        
-        # Reusing same code as if it was gpio_width = 1
-        if gpio_mode == "out":
-            file_contents += generate_all_input_external_gpio(gpio_name, gpio_width, module_source, occurences, gui_application)
-        elif gpio_mode == "in":
+        if gpio_mode == "in" and pynq_constraints_mode[occurences[0][1]]=="in":
+            # Do not know yet what happens if you have two drivers. Probably not good.
+            if gui_application:
+                gui_application.add_to_log_box("\nDon't know how to configure inputs yet. Skipping IO")
+            file_contents += generate_all_output_no_ext_gpio(gpio_name, gpio_width, module_source, gui_application)
+            # Add signal to the list of GPIO to be connected to interconnect (needed for block automation)
+            interconnect_signals.append(gpio_name)
+        elif gpio_mode == "in" and pynq_constraints_mode[occurences[0][1]]=="out":
             file_contents += generate_all_output_external_gpio(gpio_name, gpio_width, module_source, occurences, gui_application)
+            interconnect_signals.append(gpio_name)
+            # Generate XDC
+        elif gpio_mode == "out" and pynq_constraints_mode[occurences[0][1]]=="in":
+            # This mode is not possible, and should be ignored.
+            if gui_application:
+                gui_application.add_to_log_box(f"\n{gpio_name} as an output and IO as input is not possible. Configuring without I/O")
+            file_contents += generate_all_input_no_ext_gpio(gpio_name, gpio_width, module_source, gui_application)
+            # Add signal to the list of GPIO to be connected to interconnect (needed for block automation)
+            interconnect_signals.append(gpio_name)
+        elif gpio_mode == "out" and pynq_constraints_mode[occurences[0][1]]=="out":
+            file_contents += generate_all_input_external_gpio(gpio_name, gpio_width, module_source, occurences, gui_application)
+            interconnect_signals.append(gpio_name)
+            # Generate XDC
+        pass
 
 
+    elif gpio_width > 1 and len(occurences) > 1 and gpio_width > len(occurences):
+        # Need to slice signals -> equal case caught above.
+
+        # IMPROVEMENT: We could reduce number of IP used by combining neighbouring bits into a single slice IP. I won't for sake of development time right now.
+        # occurences in the form of [signal[x], bit] -> (We know that there cannot be just a single signal as gpio_width > 1 )
+
+        if gpio_mode == "in" and pynq_constraints_mode[occurences[0][1]]=="in":
+            # Do not know yet what happens if you have two drivers. Probably not good.
+            if gui_application:
+                gui_application.add_to_log_box("\nDon't know how to configure inputs yet. Skipping IO")
+            file_contents += generate_all_output_no_ext_gpio(gpio_name, gpio_width, module_source, gui_application)
+            # Add signal to the list of GPIO to be connected to interconnect (needed for block automation)
+            interconnect_signals.append(gpio_name)
+        elif gpio_mode == "in" and pynq_constraints_mode[occurences[0][1]]=="out":
+            pass
+        elif gpio_mode == "out" and pynq_constraints_mode[occurences[0][1]]=="in":
+            pass # not possible
+        elif gpio_mode == "out" and pynq_constraints_mode[occurences[0][1]]=="out":
+            pass
         pass
-    elif gpio_width > 1 and len(occurences) > 1:
-        # Need to slice signals. 
-        pass
+
+
+    elif gpio_width > 1 and len(occurences) > 1 and gpio_width < len(occurences):
+        if gui_application:
+            gui_application.add_to_log_box("\nMore occurences than GPIO, not applicable for now. Ignoring - No External Connection")
+        if gpio_mode == "out":
+            file_contents += generate_all_input_no_ext_gpio(gpio_name, gpio_width, module_source, gui_application)
+        elif gpio_mode == "in":
+            file_contents += generate_all_output_no_ext_gpio(gpio_name, gpio_width, module_source, gui_application)
+        interconnect_signals.append(gpio_name)
+
+    else:
+        if gui_application:
+            gui_application.add_to_log_box(f"\nEdge Case Detected. {gpio_name} {gpio_width} {occurences}")
+        print(f"\nEdge Case Detected. {gpio_name} {gpio_width} {occurences}")
 
     # imagine we somehow swap the key and value of the dictionary:
     # Now check: Is our signal in the swapped dictionary?
     
-
-def make_full_connection_external(gpio_name, gpio_mode):
-    file_contents = ""
-
-    return file_contents
-    
-
-
 
 
 ########################################################################
