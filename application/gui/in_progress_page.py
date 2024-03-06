@@ -205,6 +205,8 @@ class In_Progress_Page(ctk.CTkFrame):
                                 while self.app.build_running:
                                     pass
                                 break
+                            if self.current_running_mode != "run_viv":
+                                    break
             elif self.current_running_mode == "cpy_dir":
                 # To be handled by copy_dir API
                 # self.add_to_log_box("\nCopying Bitstream to <project>/PYNQBuild/output folder")
