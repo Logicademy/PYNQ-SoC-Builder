@@ -696,6 +696,42 @@ def generate_tcl(path_to_hdlgen_project, regenerate_bd=True, start_gui=True, kee
     #++++++++# END OF MAIN FUNCTION #++++++++#
     #++++++++++++++++++++++++++++++++++++++++#
 
+##################################################################################
+########## Generate Tcl Code to Slice GPIO PIN in GPIO_MODE = IN or OUT ##########
+##################################################################################
+
+def connect_slice_to_gpio(bit, gpio_mode, gpio_name, gpio_width, slice_number, module_source):
+    file_contents = "\nstartgroup"
+    file_contents += f"\ncreate_bd_cell -type ip -vlnv xilinx.com:ip:xlslice:1.0 {gpio_name}_{slice_number}_slice"
+    file_contents += "\nendgroup"
+
+    if gpio_mode == "in":
+        file_contents += f"\nconnect_bd_net [get_bd_pins {gpio_name}/gpio_io_o] [get_bd_pins {gpio_name}_{slice_number}_slice/Din]"
+
+        file_contents += "\nstartgroup"
+        file_contents += f"\nset_property -dict [list CONFIG.DIN_TO {bit} CONFIG.DIN_FROM {bit} CONFIG.DIN_WIDTH {gpio_width} CONFIG.DIN_FROM {bit} CONFIG.DOUT_WIDTH 1] [get_bd_cells {gpio_name}_{slice_number}_slice]"
+        file_contents += "\nendgroup"
+
+        file_contents += "\nstartgroup"
+        file_contents += f"\nmake_bd_pins_external  [get_bd_pins {gpio_name}_{slice_number}_slice/Dout]"
+        file_contents += "\nendgroup"
+        file_contents += f"\nset_property name {gpio_name}_{slice_number}_ext [get_bd_ports Dout_1]"
+
+    elif gpio_mode == "out":
+        file_contents += f"\nconnect_bd_net [get_bd_pins {module_source}/{gpio_name}] [get_bd_pins {gpio_name}_{slice_number}_slice/Din]"
+
+        file_contents += "\nstartgroup"
+        file_contents += f"\nset_property -dict [list CONFIG.DIN_TO {bit} CONFIG.DIN_FROM {bit} CONFIG.DIN_WIDTH {gpio_width} CONFIG.DIN_FROM {bit} CONFIG.DOUT_WIDTH 1] [get_bd_cells {gpio_name}_{slice_number}_slice]"
+        file_contents += "\nendgroup"
+
+        file_contents += "\nstartgroup"
+        file_contents += f"\nmake_bd_pins_external  [get_bd_pins {gpio_name}_{slice_number}_slice/Dout]"
+        file_contents += "\nendgroup"
+        file_contents += f"\nset_property name {gpio_name}_{slice_number}_ext [get_bd_ports Dout_1]"
+
+
+    return file_contents
+
 ###########################################################################################
 ########## Generate Tcl Code to Add and Connect All Input GPIO with External Pin ##########
 ###########################################################################################
@@ -763,6 +799,7 @@ def generate_connections(module_source, all_ports_parsed, io_map, gui_applicatio
     xdc_constraints = ""
     file_contents = ""
     interconnect_signals = []
+    slice_number = 0 # Used to ensure all connections are unique
 
     # Assuming our component exists, and the processing unit and then nothing else.
 
@@ -966,10 +1003,80 @@ def generate_connections(module_source, all_ports_parsed, io_map, gui_applicatio
             # Add signal to the list of GPIO to be connected to interconnect (needed for block automation)
             interconnect_signals.append(gpio_name)
         elif gpio_mode == "in" and pynq_constraints_mode[occurences[0][1]]=="out":
+            # think LED on selOPALU
+            
+            # Define the regular expression pattern
+            pattern = r'\[(\d+)\]'
+            # Use re.search to find the pattern in the string
+            match = re.search(pattern, occurences[0][0])
+
+            # Check if the pattern is found
+            if match:
+                # Extract the number from the matched group
+                extracted_number = match.group(1)
+                print("Extracted number:", extracted_number)
+            else:
+                print("No match found - Assuming bit 0.")
+                
+            
+            bit = 0
+            try:
+                bit = int(extracted_number)
+            except Exception:
+                if gui_application:
+                    gui_application.add_to_log_box("\nCould not find specifed bit, assuming bit 0.")
+            
+            # Procedure
+            # 1) Do GPIO connection as normal.
+            # 2) Add and configure slice component, 
+            # 3) make it external.
+
+            # Just like normal, make the inital connection.
+            file_contents += generate_all_input_no_ext_gpio(gpio_name, gpio_width, module_source, gui_application)
+            connect_slice_to_gpio(bit, gpio_mode, gpio_name, gpio_width, slice_number, module_source)
+            # Add External Port to XDC.
+
+            slice_number += 1   # must be called every time above API is used to ensure there is never any name collisions
+            interconnect_signals.append(gpio_name)  # Add to interconnect as normal.
             pass
         elif gpio_mode == "out" and pynq_constraints_mode[occurences[0][1]]=="in":
             pass # not possible
         elif gpio_mode == "out" and pynq_constraints_mode[occurences[0][1]]=="out":
+            # think LED on count
+            
+            # Define the regular expression pattern
+            pattern = r'\[(\d+)\]'
+            # Use re.search to find the pattern in the string
+            match = re.search(pattern, occurences[0][0])
+
+            # Check if the pattern is found
+            if match:
+                # Extract the number from the matched group
+                extracted_number = match.group(1)
+                print("Extracted number:", extracted_number)
+            else:
+                print("No match found - Assuming bit 0.")
+                
+            
+            bit = 0
+            try:
+                bit = int(extracted_number)
+            except Exception:
+                if gui_application:
+                    gui_application.add_to_log_box("\nCould not find specifed bit, assuming bit 0.")
+            
+            # Procedure
+            # 1) Do GPIO connection as normal.
+            # 2) Add and configure slice component, 
+            # 3) make it external.
+
+            # Just like normal, make the inital connection.
+            file_contents += generate_all_output_no_ext_gpio(gpio_name, gpio_width, module_source, gui_application)
+            connect_slice_to_gpio(bit, gpio_mode, gpio_name, gpio_width, slice_number, module_source)
+            # Add External Port to XDC.
+
+            slice_number += 1   # must be called every time above API is used to ensure there is never any name collisions
+            interconnect_signals.append(gpio_name)  # Add to interconnect as normal.
             pass
         pass
 
