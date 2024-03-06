@@ -643,10 +643,10 @@ def generate_tcl(path_to_hdlgen_project, regenerate_bd=True, start_gui=True, kee
                 pin_counter = 0
                 while gpio_width_int - pin_counter > 0:
                     if gpio_width_int - pin_counter  > 32:
-                        split_signal_dict.append([f"{gpio_name}_{pin_counter}_{pin_counter+31}", 32, pin_counter, pin_counter+31])
+                        split_signal_dict.append([f"{gpio_name}_{pin_counter+31}_{pin_counter}", 32, pin_counter, pin_counter+31])
                         pin_counter += 32
                     elif gpio_width_int - pin_counter <= 32:
-                        split_signal_dict.append([f"{gpio_name}_{pin_counter}_{gpio_width_int-1}", gpio_width_int-pin_counter, pin_counter, gpio_width_int-1])
+                        split_signal_dict.append([f"{gpio_name}_{gpio_width_int-1}_{pin_counter}", gpio_width_int-pin_counter, pin_counter, gpio_width_int-1])
                         pin_counter += gpio_width_int - pin_counter
                 # From here is different.
                 # 1) Make n separate ALL INPUT GPIO.
@@ -689,10 +689,10 @@ def generate_tcl(path_to_hdlgen_project, regenerate_bd=True, start_gui=True, kee
                 pin_counter = 0
                 while gpio_width_int - pin_counter > 0:
                     if gpio_width_int - pin_counter  > 32:
-                        split_signal_dict.append([f"{gpio_name}_{pin_counter}_{pin_counter+31}", 32])
+                        split_signal_dict.append([f"{gpio_name}_{pin_counter+31}_{pin_counter}", 32])
                         pin_counter += 32
                     elif gpio_width_int - pin_counter <= 32:
-                        split_signal_dict.append([f"{gpio_name}_{pin_counter}_{gpio_width_int-1}", gpio_width_int-pin_counter])
+                        split_signal_dict.append([f"{gpio_name}_{gpio_width_int-1}_{pin_counter}", gpio_width_int-pin_counter])
                         pin_counter += gpio_width_int - pin_counter
 
                 # Now we have formed a split signal map, we can follow the steps.

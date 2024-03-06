@@ -197,18 +197,23 @@ def create_jnb(path_to_hdlgen_file, output_filename=None, generic=False):
             input_split = [gpio_name]
             while gpio_width - pin_counter > 0:
                 if gpio_width - pin_counter  > 32:
-                    split_signals.append([f"{gpio_name}_{pin_counter}_{pin_counter+31}", 32])
+                    signal_name = f"{gpio_name}_{pin_counter+31}_{pin_counter}"
+                    signal_width = 32
+                    split_signals.append([signal_name, signal_width])
                     if gpio_mode == "out":
-                        output_split.append(f"{gpio_name}_{pin_counter}_{pin_counter+31}")
+                        output_split.append()
                     else:
-                        input_split.append(f"{gpio_name}_{pin_counter}_{pin_counter+31}")
+                        input_split.append()
                     pin_counter += 32
                 elif gpio_width - pin_counter <= 32:
-                    split_signals.append([f"{gpio_name}_{pin_counter}_{gpio_width-1}", gpio_width-pin_counter])
+                    # signal_name = gpioName_X_downto_Y -> gpio_name_X_Y
+                    signal_name = f"{gpio_name}_{gpio_width-1}_{pin_counter}"
+                    signal_width = gpio_width-pin_counter
+                    split_signals.append([signal_name, signal_width])
                     if gpio_mode == "out":
-                        output_split.append(f"{gpio_name}_{pin_counter}_{pin_counter+31}")
+                        output_split.append(signal_name)
                     else:
-                        input_split.append(f"{gpio_name}_{pin_counter}_{pin_counter+31}")
+                        input_split.append(signal_name)
                     pin_counter += gpio_width - pin_counter
                     
             if len(output_split) > 1:
