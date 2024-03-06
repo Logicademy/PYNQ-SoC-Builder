@@ -359,8 +359,9 @@ def generate_tcl(path_to_hdlgen_project, regenerate_bd=True, start_gui=True, kee
     ##############################################
     ########## Open Project / Start GUI ##########
     ##############################################
-
+    print(file_contents)
     file_contents += source_generate_procs()
+    print(file_contents)
 
     # Additional Step: Set if GUI should be opened
     if start_gui:
@@ -647,8 +648,8 @@ def generate_tcl(path_to_hdlgen_project, regenerate_bd=True, start_gui=True, kee
         #         print("Error Adding GPIO Connection, in/out not specified correctly")
         #         break
 
-        file_contents, created_signals = generate_connections(module_source, all_ports_parsed, io_map, gui_application)
-
+        returned_contents, created_signals = generate_connections(module_source, all_ports_parsed, io_map, gui_application)
+        file_contents += returned_contents
 
         # (7) Add the AXI Interconnect to the IP Block Design
         file_contents += f"\nadd_axi_interconnect 1 {len(created_signals)}"
@@ -825,13 +826,13 @@ def generate_connections(module_source, all_ports_parsed, io_map, gui_applicatio
     
     # Next - Take the array of keys and cycle thru the dictionary - if there is a match,
     occurences = []
-    
-    for key, value in io_map.items():
-        if io_map[key] == gpio_name:
-            occurences.append([key, io_map[key]])
-        elif io_map[key][:-2] == gpio_name:
-            occurences.append([key, io_map[key]])
-    
+    if io_map:
+        for key, value in io_map.items():
+            if io_map[key] == gpio_name:
+                occurences.append([key, io_map[key]])
+            elif io_map[key][:-2] == gpio_name:
+                occurences.append([key, io_map[key]])
+        
     # Now we need to know: Target IO port (i.e. LED0) and the bit that is to be connected.
     # Lets assume ONLY 1 can be configured right now.
     if len(occurences) == 0:
