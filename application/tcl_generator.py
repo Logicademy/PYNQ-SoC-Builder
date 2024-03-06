@@ -211,6 +211,29 @@ pynq_constraints = {
     "crypto_sda": "set_property -dict { PACKAGE_PIN J15   IOSTANDARD LVCMOS33 } [get_ports { signal_name }];"
 }
 
+pynq_constraints_mode = {
+    # switches
+    "sw0": "in",
+    "sw1": "in",
+    # RGB LEDs
+    "led4_b": "out",
+    "led4_g": "out",
+    "led4_r": "out",
+    "led5_b": "out",
+    "led5_g": "out",
+    "led5_r": "out",
+    # LEDs
+    "led0": "out",
+    "led1": "out",
+    "led2": "out",
+    "led3": "out",
+    # Buttons
+    "btn0": "in",
+    "btn1": "in",
+    "btn2": "in",
+    "btn3": "in"
+}
+
 io_full_dictionary = {key: None for key in pynq_constraints.keys()}
 
 
@@ -302,6 +325,14 @@ def generate_tcl(path_to_hdlgen_project, regenerate_bd=True, start_gui=True, kee
         all_ports.append(
             [signame.firstChild.data, mode.firstChild.data, type.firstChild.data, desc.firstChild.data]
         )
+    # All ports recieved as in HDLGen XML.
+    #    signame = sig.getElementsByTagName("name")[0]
+    #    mode = sig.getElementsByTagName("mode")[0]
+    #    type = sig.getElementsByTagName("type")[0]
+    #    desc = sig.getElementsByTagName("description")[0]
+    # Job here is to convert into:
+    # [signal_name, gpio_mode, gpio_width]
+    all_ports_parsed = parse_all_ports(all_ports)
 
     if gui_application:
         gui_application.add_to_log_box(f"\nFound Signals:")
@@ -405,29 +436,23 @@ def generate_tcl(path_to_hdlgen_project, regenerate_bd=True, start_gui=True, kee
     elif (not wrapper_exists and not bd_exists):
         print("-> Wrapper and BD not found, generating these components...")
 
-    if delete_old_bd_design:
-        file_contents += f"\ndelete_file {path_to_wrapper_file_check}"  # Wrapper deletes first
-        file_contents += f"\ndelete_file {path_to_bd_file_check}"  # then the BD design
-    
-        # export_ip_user_files -of_objects  [get_files D:/HDLGen-ChatGPT/User_Projects/Fearghal_November/RISCV_RB/VHDL/AMDprj/RISCV_RB.srcs/sources_1/bd/RISCV_RB_bd/hdl/RISCV_RB_bd_wrapper.vhd] -no_script -reset -force -quiet
-        # remove_files  D:/HDLGen-ChatGPT/User_Projects/Fearghal_November/RISCV_RB/VHDL/AMDprj/RISCV_RB.srcs/sources_1/bd/RISCV_RB_bd/hdl/RISCV_RB_bd_wrapper.vhd
-        # file delete -force D:/HDLGen-ChatGPT/User_Projects/Fearghal_November/RISCV_RB/VHDL/AMDprj/RISCV_RB.srcs/sources_1/bd/RISCV_RB_bd/hdl/RISCV_RB_bd_wrapper.vhd
-        # update_compile_order -fileset sources_1
 
-        # export_ip_user_files -of_objects  [get_files D:/HDLGen-ChatGPT/User_Projects/Fearghal_November/RISCV_RB/VHDL/AMDprj/RISCV_RB.srcs/sources_1/bd/RISCV_RB_bd/RISCV_RB_bd.bd] -no_script -reset -force -quiet
-        # remove_files  D:/HDLGen-ChatGPT/User_Projects/Fearghal_November/RISCV_RB/VHDL/AMDprj/RISCV_RB.srcs/sources_1/bd/RISCV_RB_bd/RISCV_RB_bd.bd
-        # file delete -force D:/HDLGen-ChatGPT/User_Projects/Fearghal_November/RISCV_RB/VHDL/AMDprj/RISCV_RB.srcs/sources_1/bd/RISCV_RB_bd
-        # update_compile_order -fileset sources_1 // this wont cause a fail but also isn't neccessary.
+    if delete_old_bd_design:
+        if gui_application:
+            gui_application.add_to_log_box("\nRemoving Old Block Design")
+        # TODO: This could have safety checks to in event that one or other doesn't exist.
+        file_contents += f"\ndelete_file {path_to_wrapper_file_check}"  # Wrapper deletes first
+        file_contents += f"\ndelete_file {path_to_bd_file_check}"       # then the BD design
 
     if generate_new_bd_design:
-
+        if gui_application:
+            gui_application.add_to_log_box("\nGenerating New Block Design")
         created_signals = [] # This is an array of all signals that are created (this is cos >32 bit signals are divided)
 
         # (3) Create a new BD File
         file_contents += f"\ncreate_bd_file {bd_filename}"              # Create a new BD
         if gui_application:
                 gui_application.add_to_log_box(f"\nCreating Block Design: {bd_filename}")
-        
         
         # (4) Add Processor to BD
         file_contents += "\nadd_processing_unit"                        # Import Processing Unit to the BD
@@ -448,6 +473,12 @@ def generate_tcl(path_to_hdlgen_project, regenerate_bd=True, start_gui=True, kee
         # Just before (6) we need to make any port that will use I/O an external port.
         # Before connecting to GPIO, make pin external if needed.
         # It should also only be completed if the io_map is supplied
+
+
+
+        ##############################################################
+        ########## START OF GENERATION CONNECTIONS FUNCTION ##########
+        ##############################################################
         if io_map:
 
             if gui_application:
@@ -499,10 +530,10 @@ def generate_tcl(path_to_hdlgen_project, regenerate_bd=True, start_gui=True, kee
 
 
         # (6) Add AXI GPIO for each input/output
-        for io in all_ports:
+        for io in all_ports_parsed:
             gpio_name = io[0]   # GPIO Name
             gpio_mode = io[1]   # GPIO Mode (in/out)
-            gpio_type = io[2]   # GPIO Type (single bit/bus/array)
+            gpio_width = io[2]   # GPIO Type (single bit/bus/array)
 
             # New Notes for New Feature:
             # Tcl commands to create external connection and to rename the connection
@@ -514,20 +545,6 @@ def generate_tcl(path_to_hdlgen_project, regenerate_bd=True, start_gui=True, kee
             # dunno what makegroup does but no need worry about it
                 
             # Implemented as proc make_external_connection {component bd_pin external_pin_name}
-
-            if (gpio_type == "single bit"):
-                gpio_width = 1
-            elif (gpio_type[:3] == "bus"):
-                # <type>bus(31 downto 0)</type>     ## Example Type Value
-                substring = gpio_type[4:]           # substring = '31 downto 0)'
-                words = substring.split()           # words = ['31', 'downto', '0)']
-                gpio_width = int(words[0]) + 1           # words[0] = 31
-            elif (gpio_type[:5] == "array"):
-                print("ERROR: Array mode type is not yet supported :(")
-            else:
-                print("ERROR: Unknown GPIO Type")
-                print(gpio_type)
-
 
             if gpio_mode == "out" and int(gpio_width) <= 32:
                 print(gpio_name) 
@@ -678,6 +695,16 @@ def generate_tcl(path_to_hdlgen_project, regenerate_bd=True, start_gui=True, kee
     #++++++++# END OF MAIN FUNCTION #++++++++#
     #++++++++++++++++++++++++++++++++++++++++#
 
+##########################################
+########## Generate Connections ##########
+##########################################
+def generate_connections(component_name, all_ports_parsed, io_map):
+    file_contents = ""
+    # Assuming our component exists, and the processing unit and then nothing else.
+
+    # Generate each signal as per IO map - not following the all_ports
+
+    # 
 
 
 
@@ -685,9 +712,37 @@ def generate_tcl(path_to_hdlgen_project, regenerate_bd=True, start_gui=True, kee
 
 
 
+########################################################################
+########## Parse all ports format from XML into useful format ##########
+########################################################################
+def parse_all_ports(all_ports):
+    # All ports recieved as in HDLGen XML.
+    #    signame = sig.getElementsByTagName("name")[0]
+    #    mode = sig.getElementsByTagName("mode")[0]
+    #    type = sig.getElementsByTagName("type")[0]
+    #    desc = sig.getElementsByTagName("description")[0]
+    # Job here is to convert into:
+    # [signal_name, gpio_mode, gpio_width]
+    new_array = []
+    for io in all_ports:
+        gpio_name = io[0]   # GPIO Name
+        gpio_mode = io[1]   # GPIO Mode (in/out)
+        gpio_type = io[2]   # GPIO Type (single bit/bus/array)
 
-
-
+        if (gpio_type == "single bit"):
+            gpio_width = 1
+        elif (gpio_type[:3] == "bus"):
+            # <type>bus(31 downto 0)</type> - Example Type Value
+            substring = gpio_type[4:]           # substring = '31 downto 0)'
+            words = substring.split()           # words = ['31', 'downto', '0)']
+            gpio_width = int(words[0]) + 1      # eg. words[0] = 31
+        elif (gpio_type[:5] == "array"):
+            print("ERROR: Array mode type is not yet supported :(")
+        else:
+            print("ERROR: Unknown GPIO Type")
+            print(gpio_type)
+        new_array.append([gpio_name, gpio_mode, gpio_width])
+    return new_array
 
 #################################################
 ########## Import XDC Constraints File ##########
