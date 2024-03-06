@@ -931,14 +931,14 @@ def generate_connections(module_source, all_ports_parsed, io_map, gui_applicatio
             # Currently just assuming that only 1 I/O per pin.
             # If its more that should only be a change in the XDC file anyways. :) (if same mode)
             
-            if gpio_mode == "in" and pynq_constraints_mode[occurences[0][1]]=="in":
+            if gpio_mode == "in" and pynq_constraints_mode[occurences[0][0]]=="in":
                 # Do not know yet what happens if you have two drivers. Probably not good.
                 if gui_application:
                     gui_application.add_to_log_box("\nDon't know how to configure inputs yet. Skipping IO config.")
                 file_contents += generate_all_output_no_ext_gpio(gpio_name, gpio_width, module_source, gui_application)
                 # Add signal to the list of GPIO to be connected to interconnect (needed for block automation)
                 interconnect_signals.append(gpio_name)
-            elif gpio_mode == "in" and pynq_constraints_mode[occurences[0][1]]=="out":
+            elif gpio_mode == "in" and pynq_constraints_mode[occurences[0][0]]=="out":
                 file_contents += generate_all_output_external_gpio(gpio_name, gpio_width, module_source, occurences, gui_application)
                 interconnect_signals.append(gpio_name)
                 # XDC Constraints
