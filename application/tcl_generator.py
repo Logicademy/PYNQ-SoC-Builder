@@ -826,9 +826,9 @@ def generate_connections(module_source, all_ports_parsed, io_map, gui_applicatio
         occurences = []
         if io_map:
             for key, value in io_map.items():
-                if gpio_name in io_map[key]:
+                if gpio_name == io_map[key].split('[')[0]:
                     occurences.append([key, io_map[key]])
-                elif  gpio_name in io_map[key]:
+                elif  gpio_name == io_map[key].split('[')[0]:
                     occurences.append([key, io_map[key]])
             
         # Now we need to know: Target IO port (i.e. LED0) and the bit that is to be connected.
@@ -993,6 +993,7 @@ def generate_connections(module_source, all_ports_parsed, io_map, gui_applicatio
             # IMPROVEMENT: We could reduce number of IP used by combining neighbouring bits into a single slice IP. I won't for sake of development time right now.
             # occurences in the form of [signal[x], bit] -> (We know that there cannot be just a single signal as gpio_width > 1 )
             file_contents += generate_all_output_no_ext_gpio(gpio_name, gpio_width, module_source, gui_application)
+            interconnect_signals.append(gpio_name)  # Add to interconnect as normal.
             
             for occur in occurences:
                 board_io = occur[0]
@@ -1034,11 +1035,10 @@ def generate_connections(module_source, all_ports_parsed, io_map, gui_applicatio
                     # 3) make it external.
 
                     # Just like normal, make the inital connection.
-                    connect_slice_to_gpio(bit, gpio_mode, gpio_name, gpio_width, slice_number, module_source)
+                    file_contents += connect_slice_to_gpio(bit, gpio_mode, gpio_name, gpio_width, slice_number, module_source)
                     # Add External Port to XDC.
 
                     slice_number += 1   # must be called every time above API is used to ensure there is never any name collisions
-                    interconnect_signals.append(gpio_name)  # Add to interconnect as normal.
                     pass
                 elif gpio_mode == "out" and pynq_constraints_mode[board_io]=="in":
                     # This mode is not possible, and should be ignored.
