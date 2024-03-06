@@ -481,10 +481,8 @@ def generate_tcl(path_to_hdlgen_project, regenerate_bd=True, start_gui=True, kee
         ##############################################################
         ########## START OF GENERATION CONNECTIONS FUNCTION ##########
         ##############################################################
-        if io_map:
-
-            if gui_application:
-                gui_application.add_to_log_box(f"\nIO Map Present: {io_map}")
+        if io_map and gui_application:
+            gui_application.add_to_log_box(f"\nIO Map Present: {io_map}")
         
 
             # io_configuration = {
@@ -495,40 +493,40 @@ def generate_tcl(path_to_hdlgen_project, regenerate_bd=True, start_gui=True, kee
             # }
             # Goal: ["count", "TC"] <= we then make these external
             
-            io_config_values = io_map.values()  # Take values from dictionary
-            io_config_values = [item for item in io_config_values if item != "None"] # Remove all instances of "None"
+            # io_config_values = io_map.values()  # Take values from dictionary
+            # io_config_values = [item for item in io_config_values if item != "None"] # Remove all instances of "None"
 
-            ports_to_make_external = []
-            for value in io_config_values:
-                if value.endswith(']'):
-                    res_set = value.split('[')  # Remove [x] from end if present. We can't make individual bits from a signal external. Only entire signal.
-                    ports_to_make_external.append(res_set[0])
-                else:
-                    ports_to_make_external.append(value)
+            # ports_to_make_external = []
+            # for value in io_config_values:
+            #     if value.endswith(']'):
+            #         res_set = value.split('[')  # Remove [x] from end if present. We can't make individual bits from a signal external. Only entire signal.
+            #         ports_to_make_external.append(res_set[0])
+            #     else:
+            #         ports_to_make_external.append(value)
 
             # Remove duplicates ["count", "count", "TC"]
-            ports_to_make_external = list(set(ports_to_make_external))
+            # ports_to_make_external = list(set(ports_to_make_external))
 
             # print(ports_to_make_external) # 
 
-            for port in ports_to_make_external:
-                # Make port external
-                file_contents += f"\nmake_external_connection {module_source}_0 {port} {port + '_ext'}"
+            # for port in ports_to_make_external:
+            #     # Make port external
+            #     file_contents += f"\nmake_external_connection {module_source}_0 {port} {port + '_ext'}"
 
             # Each connection must then be added to the XDC file.
             # print(io_map)
-            for key, value in io_map.items():
-                if value == 'None':
-                    # If there is no connection selected for the IO, skip to the next IO
-                    continue
+            # for key, value in io_map.items():
+            #     if value == 'None':
+            #         # If there is no connection selected for the IO, skip to the next IO
+            #         continue
 
-                if value.endswith(']'): # if it ends with ] then its > 1 bits.
-                    split = value.split("[")
-                    board_gpio = key
-                    external_connection_pin = split[0] + "_ext[" + split[1]
-                    xdc_contents += add_line_to_xdc(board_gpio, external_connection_pin)
-                else:
-                    xdc_contents += add_line_to_xdc(key, value+"_ext")
+            #     if value.endswith(']'): # if it ends with ] then its > 1 bits.
+            #         split = value.split("[")
+            #         board_gpio = key
+            #         external_connection_pin = split[0] + "_ext[" + split[1]
+            #         xdc_contents += add_line_to_xdc(board_gpio, external_connection_pin)
+            #     else:
+            #         xdc_contents += add_line_to_xdc(key, value+"_ext")
 
 
         # (6) Add AXI GPIO for each input/output
@@ -741,7 +739,7 @@ def connect_slice_to_gpio(bit, gpio_mode, gpio_name, gpio_width, slice_number, m
 def generate_all_input_external_gpio(gpio_name, gpio_width, module_source, occurences, gui_application=None):
     file_contents = ""
     if gui_application:
-        gui_application.add_to_log_box(f"\nConnecting {gpio_name} to {occurences[0][1]}")
+        gui_application.add_to_log_box(f"\nConnecting {gpio_name} to {occurences[0][1]} in 'all_intput_external' mode")
     # In this configuration, we need to:
     #   1) Add an ALL INPUT GPIO, 
     #   2) make the pin of the COMPONENT external
@@ -763,7 +761,7 @@ def generate_all_input_external_gpio(gpio_name, gpio_width, module_source, occur
 def generate_all_output_external_gpio(gpio_name, gpio_width, module_source, occurences, gui_application=None):
     file_contents = ""
     if gui_application:
-        gui_application.add_to_log_box(f"\nConnecting {gpio_name} to {occurences[0][1]}")
+        gui_application.add_to_log_box(f"\nConnecting {gpio_name} to {occurences[0][1]} in 'all_output_external' mode")
     # In this configuration, we need to:
     #   1) Add an ALL OUTPUT GPIO, 
     #   2) make the pin of the GPIO external, 
