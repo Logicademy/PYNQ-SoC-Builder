@@ -211,16 +211,6 @@ pynq_constraints = {
     "crypto_sda": "set_property -dict { PACKAGE_PIN J15   IOSTANDARD LVCMOS33 } [get_ports { signal_name }];"
 }
 
-# io_connection_dictionary = {key: None for key in io_suffix}
-# {'_led': None, '_led0': None, '_led1': None, '_led2': None, '_led3': None, '_led01': None, '_led02': None, '_led03': None, '_led12': None, '_led13': None, '_led23': None}
-
-io_dictionary = {
-    'led0': None,
-    'led1': None,
-    'led2': None,
-    'led3': None
-}
-
 io_full_dictionary = {key: None for key in pynq_constraints.keys()}
 
 
@@ -266,9 +256,6 @@ def generate_tcl(path_to_hdlgen_project, regenerate_bd=True, start_gui=True, kee
     # If a "gui_application" Tkinter class is passed, it is expected that there is a "add_to_log_box" function available.
 
     xdc_contents = "" # Instanciate the xdc_contents variable
-
-    ########## Options ##########
-    experimental_import_contraints = True   # Marked for removal, contraints is no longer experimental.
 
     ########## Parsing .hdlgen file for required information ##########
     hdlgen = xml.dom.minidom.parse(path_to_hdlgen_project)
@@ -353,98 +340,88 @@ def generate_tcl(path_to_hdlgen_project, regenerate_bd=True, start_gui=True, kee
         file_contents += f"\nset_property board_part tul.com.tw:pynq-z2:part0:1.0 [current_project]"
 
     # Import Board Constraints
-    if experimental_import_contraints:
-        ## Need to find a way to check if the contraints already exist - if we learned Tcl error handling we could just always attempt to add it.
-        # add_files -fileset constrs_12 -norecurse {{C:/repo/PYNQ-SoC-Builder/pynq-z2_v1.0.xdc/PYNQ-Z2 v1.0.xdc}}
-        # import_files -fileset constrs_12 {{C:/repo/PYNQ-SoC-Builder/pynq-z2_v1.0.xdc/PYNQ-Z2 v1.0.xdc}}
-        # export_ip_user_files -of_objects  [get_files {{C:/repo/HDLGen-ChatGPT/User_Projects/CB4CLED/VHDL/AMDprj/CB4CLED.srcs/constrs_12/imports/pynq-z2_v1.0.xdc/PYNQ-Z2 v1.0.xdc}}] -no_script -reset -force -quiet
-        # remove_files  -fileset constrs_12 {{C:/repo/HDLGen-ChatGPT/User_Projects/CB4CLED/VHDL/AMDprj/CB4CLED.srcs/constrs_12/imports/pynq-z2_v1.0.xdc/PYNQ-Z2 v1.0.xdc}}
-        # file delete -force {C:/repo/HDLGen-ChatGPT/User_Projects/CB4CLED/VHDL/AMDprj/CB4CLED.srcs/constrs_12/imports/pynq-z2_v1.0.xdc/PYNQ-Z2 v1.0.xdc}
+    ## Need to find a way to check if the contraints already exist - if we learned Tcl error handling we could just always attempt to add it.
+    # add_files -fileset constrs_12 -norecurse {{C:/repo/PYNQ-SoC-Builder/pynq-z2_v1.0.xdc/PYNQ-Z2 v1.0.xdc}}
+    # import_files -fileset constrs_12 {{C:/repo/PYNQ-SoC-Builder/pynq-z2_v1.0.xdc/PYNQ-Z2 v1.0.xdc}}
+    # export_ip_user_files -of_objects  [get_files {{C:/repo/HDLGen-ChatGPT/User_Projects/CB4CLED/VHDL/AMDprj/CB4CLED.srcs/constrs_12/imports/pynq-z2_v1.0.xdc/PYNQ-Z2 v1.0.xdc}}] -no_script -reset -force -quiet
+    # remove_files  -fileset constrs_12 {{C:/repo/HDLGen-ChatGPT/User_Projects/CB4CLED/VHDL/AMDprj/CB4CLED.srcs/constrs_12/imports/pynq-z2_v1.0.xdc/PYNQ-Z2 v1.0.xdc}}
+    # file delete -force {C:/repo/HDLGen-ChatGPT/User_Projects/CB4CLED/VHDL/AMDprj/CB4CLED.srcs/constrs_12/imports/pynq-z2_v1.0.xdc/PYNQ-Z2 v1.0.xdc}
 
-        # Specify the name of the constraint
-        file_contents += "\nset constraint_name \"constrs_1\""
+    # Specify the name of the constraint
+    file_contents += "\nset constraint_name \"constrs_1\""
 
-        # Check if the constraint exists
+    # Check if the constraint exists
 
-        ############# Steps to delete existing XDC file #############
-        # export_ip_user_files -of_objects  [get_files {{C:/repo/HDLGen-ChatGPT/User_Projects/Backup_led_Working_io_mapping/CB4CLED/VHDL/AMDprj/CB4CLED.srcs/constrs_1/imports/pynq-z2_v1.0.xdc/PYNQ-Z2 v1.0.xdc}}] -no_script -reset -force -quiet
-        # remove_files  -fileset constrs_1 {{C:/repo/HDLGen-ChatGPT/User_Projects/Backup_led_Working_io_mapping/CB4CLED/VHDL/AMDprj/CB4CLED.srcs/constrs_1/imports/pynq-z2_v1.0.xdc/PYNQ-Z2 v1.0.xdc}}
-        # file delete -force {C:/repo/HDLGen-ChatGPT/User_Projects/Backup_led_Working_io_mapping/CB4CLED/VHDL/AMDprj/CB4CLED.srcs/constrs_1/imports/pynq-z2_v1.0.xdc/PYNQ-Z2 v1.0.xdc} 
+    ############# Steps to delete existing XDC file #############
+    # export_ip_user_files -of_objects  [get_files {{C:/repo/HDLGen-ChatGPT/User_Projects/Backup_led_Working_io_mapping/CB4CLED/VHDL/AMDprj/CB4CLED.srcs/constrs_1/imports/pynq-z2_v1.0.xdc/PYNQ-Z2 v1.0.xdc}}] -no_script -reset -force -quiet
+    # remove_files  -fileset constrs_1 {{C:/repo/HDLGen-ChatGPT/User_Projects/Backup_led_Working_io_mapping/CB4CLED/VHDL/AMDprj/CB4CLED.srcs/constrs_1/imports/pynq-z2_v1.0.xdc/PYNQ-Z2 v1.0.xdc}}
+    # file delete -force {C:/repo/HDLGen-ChatGPT/User_Projects/Backup_led_Working_io_mapping/CB4CLED/VHDL/AMDprj/CB4CLED.srcs/constrs_1/imports/pynq-z2_v1.0.xdc/PYNQ-Z2 v1.0.xdc} 
 
-        ############# Steps to add new XDC file (note: Copy XDC to project is enabled by import_files command) #############
-        # add_files -fileset constrs_1 -norecurse {{C:/repo/PYNQ-SoC-Builder/pynq-z2_v1.0.xdc/PYNQ-Z2 v1.0.xdc}}
-        # import_files -fileset constrs_1 {{C:/repo/PYNQ-SoC-Builder/pynq-z2_v1.0.xdc/PYNQ-Z2 v1.0.xdc}}
+    ############# Steps to add new XDC file (note: Copy XDC to project is enabled by import_files command) #############
+    # add_files -fileset constrs_1 -norecurse {{C:/repo/PYNQ-SoC-Builder/pynq-z2_v1.0.xdc/PYNQ-Z2 v1.0.xdc}}
+    # import_files -fileset constrs_1 {{C:/repo/PYNQ-SoC-Builder/pynq-z2_v1.0.xdc/PYNQ-Z2 v1.0.xdc}}
 
-        ############# Steps to check if constraints exist ############# 
-        # file exists C:/repo/HDLGen-ChatGPT/User_Projects/Backup_led_Working_io_mapping/CB4CLED/VHDL/AMDprj/CB4CLED.srcs/constrs_1/imports/pynq-z2_v1.0.xdc
-        # file exists - path to xdc.
+    ############# Steps to check if constraints exist ############# 
+    # file exists C:/repo/HDLGen-ChatGPT/User_Projects/Backup_led_Working_io_mapping/CB4CLED/VHDL/AMDprj/CB4CLED.srcs/constrs_1/imports/pynq-z2_v1.0.xdc
+    # file exists - path to xdc.
 
-        # Step 1: Check if file exists:
-        path_to_xdc = environment + "/" + AMDproj_folder_rel_path + "/" + name + ".srcs/constrs_1/imports/generated/"    # hotfix changed to environment
-        full_path_to_xdc = path_to_xdc + "physical_constr.xdc"
-        file_contents += f"\nset xdc_exists [file exists {full_path_to_xdc}]"
-        
-        # Step 2: If file exists - Delete it.
-        file_contents += "\nif {$xdc_exists} {"
-        
-        file_contents += "\n    export_ip_user_files -of_objects  [get_files {{"
-        file_contents += full_path_to_xdc
-        file_contents += "}}] -no_script -reset -force -quiet"
+    # Step 1: Check if file exists:
+    path_to_xdc = environment + "/" + AMDproj_folder_rel_path + "/" + name + ".srcs/constrs_1/imports/generated/"    # hotfix changed to environment
+    full_path_to_xdc = path_to_xdc + "physical_constr.xdc"
+    file_contents += f"\nset xdc_exists [file exists {full_path_to_xdc}]"
+    
+    # Step 2: If file exists - Delete it.
+    file_contents += "\nif {$xdc_exists} {"
+    
+    file_contents += "\n    export_ip_user_files -of_objects  [get_files {{"
+    file_contents += full_path_to_xdc
+    file_contents += "}}] -no_script -reset -force -quiet"
 
-        file_contents += "\n    remove_files  -fileset constrs_1 {{"
-        file_contents += full_path_to_xdc
-        file_contents += "}}"
+    file_contents += "\n    remove_files  -fileset constrs_1 {{"
+    file_contents += full_path_to_xdc
+    file_contents += "}}"
 
-        file_contents += "\n    file delete -force {"
-        file_contents += full_path_to_xdc
-        file_contents += "}"
-        
-        file_contents += "\n}"
+    file_contents += "\n    file delete -force {"
+    file_contents += full_path_to_xdc
+    file_contents += "}"
+    
+    file_contents += "\n}"
 
-        # Step 3: Add XDC file
-        path_to_constraints = friendly_current_dir + "/generated/physical_constr.xdc"       # This needs to be updated with generated constraints
+    # Step 3: Add XDC file
+    path_to_constraints = friendly_current_dir + "/generated/physical_constr.xdc"       # This needs to be updated with generated constraints
 
-        file_contents += "\nadd_files -fileset constrs_1 -norecurse {"
-        file_contents += path_to_constraints
-        file_contents += "}"
+    file_contents += "\nadd_files -fileset constrs_1 -norecurse {"
+    file_contents += path_to_constraints
+    file_contents += "}"
 
-        file_contents += "\nimport_files -force -fileset constrs_1 {"   # -force flag will overwrite physical_constr.xdc if it exists and somehow wasn't deleted.
-        file_contents += path_to_constraints
-        file_contents += "}"
+    file_contents += "\nimport_files -force -fileset constrs_1 {"   # -force flag will overwrite physical_constr.xdc if it exists and somehow wasn't deleted.
+    file_contents += path_to_constraints
+    file_contents += "}"
 
-        # Constaints do not exist - Import now:
+    # Constaints do not exist - Import now:
 
-        # file_contents += f"\nset path_to_constraints \"{path_to_constraints}\""
-        # file_contents += "\nadd_files -fileset constrs_1 -norecurse $path_to_constraints"
-        # file_contents += "\nimport_files -fileset constrs_1 $path_to_constraints"
-
-
-        # Completed: If the contraints fileset does not exist: Import it.
-        # Next: If the constraints fileset already exists: Re-import it.
-
-        # Get the list of files in the "contr_1" fileset
-        # set fileset_name "contr_1"
-        # set file_list [get_files -of_objects [get_filesets $fileset_name]]
-
-        # # Specify the file you want to check
-        # set target_file "myfile.vhd"
-
-        # # Check if the file exists in the fileset
-        # if {[lsearch -exact $file_list $target_file] >= 0} {
-        #     puts "File $target_file exists in fileset $fileset_name."
-        # } else {
-        #     puts "File $target_file does not exist in fileset $fileset_name."
-        # }
+    # file_contents += f"\nset path_to_constraints \"{path_to_constraints}\""
+    # file_contents += "\nadd_files -fileset constrs_1 -norecurse $path_to_constraints"
+    # file_contents += "\nimport_files -fileset constrs_1 $path_to_constraints"
 
 
+    # Completed: If the contraints fileset does not exist: Import it.
+    # Next: If the constraints fileset already exists: Re-import it.
 
+    # Get the list of files in the "contr_1" fileset
+    # set fileset_name "contr_1"
+    # set file_list [get_files -of_objects [get_filesets $fileset_name]]
 
+    # # Specify the file you want to check
+    # set target_file "myfile.vhd"
 
-
-
-        #add_files -fileset constrs_1 -norecurse {{C:/Users/canny/Documents/5th Year ECE/Project/PYNQ Board Files Complete/pynq-z2_v1.0.xdc/PYNQ-Z2 v1.0.xdc}}
-        #import_files -fileset constrs_1 {{C:/Users/canny/Documents/5th Year ECE/Project/PYNQ Board Files Complete/pynq-z2_v1.0.xdc/PYNQ-Z2 v1.0.xdc}}
-        
+    # # Check if the file exists in the fileset
+    # if {[lsearch -exact $file_list $target_file] >= 0} {
+    #     puts "File $target_file exists in fileset $fileset_name."
+    # } else {
+    #     puts "File $target_file does not exist in fileset $fileset_name."
+    # }
+    
 
     #########################################################################################################
     
@@ -755,22 +732,24 @@ def generate_tcl(path_to_hdlgen_project, regenerate_bd=True, start_gui=True, kee
         
         ## IF BLOCK ENDS
 
-    # Updated workflow: Check if HDLWrapper exists:
-    # If so: Delete and regenerate, if not, generate.
-    # Previous workflow only regenerated if BD was generated 
-    # Method does not allow user to manually change BD and regenerate using PYNQ SoC Builder
-    
     # (11) Create HDL Wrapper and set created wrapper as top
-    # file_contents += f"\ncreate_hdl_wrapper {path_to_bd} {bd_filename}"
-    # file_contents += f"\nset_wrapper_top {bd_filename}_wrapper"
 
-    # Example Tcl Sequence:
-        # export_ip_user_files -of_objects  [get_files C:/repo/HDLGen-ChatGPT/User_Projects/CB4CLED/VHDL/AMDprj/CB4CLED.srcs/sources_1/bd/CB4CLED_bd/hdl/CB4CLED_bd_wrapper.vhd] -no_script -reset -force -quiet
-        # remove_files  C:/repo/HDLGen-ChatGPT/User_Projects/CB4CLED/VHDL/AMDprj/CB4CLED.srcs/sources_1/bd/CB4CLED_bd/hdl/CB4CLED_bd_wrapper.vhd
-        # file delete -force C:/repo/HDLGen-ChatGPT/User_Projects/CB4CLED/VHDL/AMDprj/CB4CLED.srcs/sources_1/bd/CB4CLED_bd/hdl/CB4CLED_bd_wrapper.vhd
-        # update_compile_order -fileset sources_1
+    file_contents += create_vhdl_wrapper(bd_filename, path_to_bd) 
 
-    file_contents += f"\nset wrapper_exists [file exists {path_to_bd}/{bd_filename}_wrapper.vhd]"
+    path_to_bd_export = environment + "/" + AMDproj_folder_rel_path + "/" + bd_filename + ".tcl"   # hotfix changed to environment
+    path_to_bd_file = f"{path_to_bd}/{bd_filename}/{bd_filename}.bd"
+
+    file_contents += generate_bitstream(path_to_bd_export,path_to_bd_file)
+    file_contents += save_and_quit(start_gui, keep_vivado_open)
+    write_tcl_file(file_contents, gui_application)
+    write_xdc_file(file_contents, gui_application)
+
+
+##########################################
+#   Create VHDL Wrapper and set as top   #
+##########################################
+def create_vhdl_wrapper(bd_filename, path_to_bd):
+    file_contents = f"\nset wrapper_exists [file exists {path_to_bd}/{bd_filename}_wrapper.vhd]"
     file_contents += "\nif {$wrapper_exists} {"
     file_contents += f"\n    export_ip_user_files -of_objects  [get_files {path_to_bd}/{bd_filename}_wrapper.vhd] -no_script -reset -force -quiet"
     file_contents += f"\n    remove_files  {path_to_bd}/{bd_filename}_wrapper.vhd"
@@ -780,23 +759,24 @@ def generate_tcl(path_to_hdlgen_project, regenerate_bd=True, start_gui=True, kee
     file_contents += f"\n    create_hdl_wrapper {path_to_bd} {bd_filename}"
     file_contents += f"\n    set_wrapper_top {bd_filename}_wrapper"
     file_contents += "\n}"
+    return file_contents
 
-    ########### END OF BLOCK DIAGRAM / WRAPPER CREATION ########### 
-
-
+##########################################
+#   Return Generate Bitstream Tcl Code   #
+##########################################
+def generate_bitstream(path_to_bd_export, path_to_bd_design):
     # (12) Run Synthesis, Implementation and Generate Bitstream
-    file_contents += "\ngenerate_bitstream"
-    # C:/masters/masters_automation/cb4cled-jn-application_automatic/CB4CLED/vhdl/xilinxprj/automated_bd.tcl
-
-    path_to_bd_export = environment + "/" + AMDproj_folder_rel_path + "/" + bd_filename + ".tcl"   # hotfix changed to environment
-
+    file_contents = "\ngenerate_bitstream"
     # If BD isn't open, export will fail.
-    file_contents += f"\nopen_bd_design {path_to_bd}/{bd_filename}/{bd_filename}.bd"
+    file_contents += f"\nopen_bd_design {path_to_bd_design}"
     file_contents += f"\nexport_bd {path_to_bd_export}"
-    
-    # (13) Save and Quit
-    file_contents += "\nwait_on_run impl_1"
+    return file_contents
 
+####################################
+#   Return Save and Quit Tcl Code  #
+####################################
+def save_and_quit(start_gui, keep_vivado_open):
+    file_contents = "\nwait_on_run impl_1"
     if start_gui:
         if not keep_vivado_open:
             file_contents += "\nstop_gui"
@@ -810,9 +790,12 @@ def generate_tcl(path_to_hdlgen_project, regenerate_bd=True, start_gui=True, kee
         # file_contents += "\nstop_gui"
         file_contents += "\nclose_design"
         file_contents += "\nexit"
+    return file_contents
 
-    
-    ########## Writing to generate_script.tcl ##########
+########################
+#   Write to Tcl File  #
+########################
+def write_tcl_file(file_contents, gui_application):
     # Check does the /generated/ folder exist
     if not os.path.exists("./generated"):
         os.mkdir("generated")
@@ -826,13 +809,19 @@ def generate_tcl(path_to_hdlgen_project, regenerate_bd=True, start_gui=True, kee
         if gui_application:
             gui_application.add_to_log_box(f"\nSuccessfully wrote Tcl Script to {os.getcwd()}/generated/generate_script.tcl")
 
+########################
+#   Write to XDC File  #
+########################
+def write_xdc_file(xdc_contents, gui_application):
     with open('generated/physical_constr.xdc', 'w') as file:
         # Export contraints file
         file.write(xdc_contents)
         if gui_application:
             gui_application.add_to_log_box(f"\nSuccessfully wrote constraints file to {os.getcwd()}/generated/physical_constr.xdc")
 
-
+########################
+#   Make XDC Cfg Line  #
+########################
 def add_line_to_xdc(board_gpio, external_pin):
     line_to_add = pynq_constraints[board_gpio]
     line_to_add = line_to_add.replace("signal_name", external_pin)
