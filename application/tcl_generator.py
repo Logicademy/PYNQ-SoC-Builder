@@ -1040,6 +1040,12 @@ def generate_connections(module_source, all_ports_parsed, io_map, gui_applicatio
             interconnect_signals.append(gpio_name)  # Add to interconnect as normal.
             pass
         elif gpio_mode == "out" and pynq_constraints_mode[occurences[0][1]]=="in":
+            # This mode is not possible, and should be ignored.
+            if gui_application:
+                gui_application.add_to_log_box(f"\n{gpio_name} as an output and IO as input is not possible. Configuring without I/O")
+            file_contents += generate_all_input_no_ext_gpio(gpio_name, gpio_width, module_source, gui_application)
+            # Add signal to the list of GPIO to be connected to interconnect (needed for block automation)
+            interconnect_signals.append(gpio_name)
             pass # not possible
         elif gpio_mode == "out" and pynq_constraints_mode[occurences[0][1]]=="out":
             # think LED on count
