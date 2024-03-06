@@ -249,15 +249,16 @@ verbose_prints = False # Not implemented yet.
 
 def generate_tcl(path_to_hdlgen_project, regenerate_bd=True, start_gui=True, keep_vivado_open=False, skip_board_config=False, io_map=None, gui_application=None):
 
+    # For logging to console window - Look for GUI_APP and use the add_to_log_box API - Seen throughout this project/script.
     if gui_application:
         gui_application.add_to_log_box(f"\nRunning Generate Tcl Program")
 
-    # gui_application = None
-    # If a "gui_application" Tkinter class is passed, it is expected that there is a "add_to_log_box" function available.
-
-    xdc_contents = "" # Instanciate the xdc_contents variable
-
+    xdc_contents = "" # Initalise the xdc_contents variable
+    file_contents = ""
+    ###################################################################
     ########## Parsing .hdlgen file for required information ##########
+    ###################################################################
+
     hdlgen = xml.dom.minidom.parse(path_to_hdlgen_project)
     root = hdlgen.documentElement
 
@@ -292,7 +293,6 @@ def generate_tcl(path_to_hdlgen_project, regenerate_bd=True, start_gui=True, kee
     if gui_application:
         gui_application.add_to_log_box(f"\nHDLGen XML Loaded Successfully")
 
-
     all_ports = []
     for sig in signals:
         signame = sig.getElementsByTagName("name")[0]
@@ -316,94 +316,52 @@ def generate_tcl(path_to_hdlgen_project, regenerate_bd=True, start_gui=True, kee
     module_source = name
     path_to_bd = environment + "/" + AMDproj_folder_rel_path + "/" + name + ".srcs/sources_1/bd"    # hotfix changed to environment
 
-    ########## Start of Tcl Script Generation ##########
+    # XDC Variables
+    path_to_xdc = environment + "/" + AMDproj_folder_rel_path + "/" + name + ".srcs/constrs_1/imports/generated/"    # hotfix changed to environment
+    full_path_to_xdc = path_to_xdc + "physical_constr.xdc"
 
-    # (1) Source Procedures File
-    current_dir = os.getcwd()
-    friendly_current_dir = current_dir.replace("\\", "/")
-    file_contents = "source " + friendly_current_dir + "/application/generate_procs.tcl"  # Source the procedures
-    
+    #################################################
+    ########## Begin Tcl Script Generation ##########
+    #################################################
+
+    ##############################################
+    ########## Open Project / Start GUI ##########
+    ##############################################
+
+    file_contents += source_generate_procs()
 
     # Additional Step: Set if GUI should be opened
     if start_gui:
         file_contents += "\nstart_gui"                              # Open Vivado GUI (option)
 
-
-    # (2) Open Project
+    # Open Project
     file_contents += f"\nopen_project {path_to_xpr}"                # Open Project
     
     if gui_application:
         gui_application.add_to_log_box(f"\nXPR Location: {path_to_xpr}")
 
+
+    ###############################################
+    ########## Set Project Configuration ##########
+    ###############################################
+
     # Set Board Part (Project Parameter)
     if not skip_board_config:
         file_contents += f"\nset_property board_part tul.com.tw:pynq-z2:part0:1.0 [current_project]"
 
-    # Import Board Constraints
-    ## Need to find a way to check if the contraints already exist - if we learned Tcl error handling we could just always attempt to add it.
-    # add_files -fileset constrs_12 -norecurse {{C:/repo/PYNQ-SoC-Builder/pynq-z2_v1.0.xdc/PYNQ-Z2 v1.0.xdc}}
-    # import_files -fileset constrs_12 {{C:/repo/PYNQ-SoC-Builder/pynq-z2_v1.0.xdc/PYNQ-Z2 v1.0.xdc}}
-    # export_ip_user_files -of_objects  [get_files {{C:/repo/HDLGen-ChatGPT/User_Projects/CB4CLED/VHDL/AMDprj/CB4CLED.srcs/constrs_12/imports/pynq-z2_v1.0.xdc/PYNQ-Z2 v1.0.xdc}}] -no_script -reset -force -quiet
-    # remove_files  -fileset constrs_12 {{C:/repo/HDLGen-ChatGPT/User_Projects/CB4CLED/VHDL/AMDprj/CB4CLED.srcs/constrs_12/imports/pynq-z2_v1.0.xdc/PYNQ-Z2 v1.0.xdc}}
-    # file delete -force {C:/repo/HDLGen-ChatGPT/User_Projects/CB4CLED/VHDL/AMDprj/CB4CLED.srcs/constrs_12/imports/pynq-z2_v1.0.xdc/PYNQ-Z2 v1.0.xdc}
+    #################################################
+    ########## Import XDC Constraints File ##########
+    #################################################
+    file_contents += import_xdc_constraints_file(full_path_to_xdc)
 
-    # Specify the name of the constraint
-    file_contents += "\nset constraint_name \"constrs_1\""
+    ###########################################
+    ########## Generate Block Design ##########
+    ###########################################
 
-    # Check if the constraint exists
-
-    ############# Steps to delete existing XDC file #############
-    # export_ip_user_files -of_objects  [get_files {{C:/repo/HDLGen-ChatGPT/User_Projects/Backup_led_Working_io_mapping/CB4CLED/VHDL/AMDprj/CB4CLED.srcs/constrs_1/imports/pynq-z2_v1.0.xdc/PYNQ-Z2 v1.0.xdc}}] -no_script -reset -force -quiet
-    # remove_files  -fileset constrs_1 {{C:/repo/HDLGen-ChatGPT/User_Projects/Backup_led_Working_io_mapping/CB4CLED/VHDL/AMDprj/CB4CLED.srcs/constrs_1/imports/pynq-z2_v1.0.xdc/PYNQ-Z2 v1.0.xdc}}
-    # file delete -force {C:/repo/HDLGen-ChatGPT/User_Projects/Backup_led_Working_io_mapping/CB4CLED/VHDL/AMDprj/CB4CLED.srcs/constrs_1/imports/pynq-z2_v1.0.xdc/PYNQ-Z2 v1.0.xdc} 
-
-    ############# Steps to add new XDC file (note: Copy XDC to project is enabled by import_files command) #############
-    # add_files -fileset constrs_1 -norecurse {{C:/repo/PYNQ-SoC-Builder/pynq-z2_v1.0.xdc/PYNQ-Z2 v1.0.xdc}}
-    # import_files -fileset constrs_1 {{C:/repo/PYNQ-SoC-Builder/pynq-z2_v1.0.xdc/PYNQ-Z2 v1.0.xdc}}
-
-    ############# Steps to check if constraints exist ############# 
-    # file exists C:/repo/HDLGen-ChatGPT/User_Projects/Backup_led_Working_io_mapping/CB4CLED/VHDL/AMDprj/CB4CLED.srcs/constrs_1/imports/pynq-z2_v1.0.xdc
-    # file exists - path to xdc.
-
-    # Step 1: Check if file exists:
-    path_to_xdc = environment + "/" + AMDproj_folder_rel_path + "/" + name + ".srcs/constrs_1/imports/generated/"    # hotfix changed to environment
-    full_path_to_xdc = path_to_xdc + "physical_constr.xdc"
-    file_contents += f"\nset xdc_exists [file exists {full_path_to_xdc}]"
-    
-    # Step 2: If file exists - Delete it.
-    file_contents += "\nif {$xdc_exists} {"
-    
-    file_contents += "\n    export_ip_user_files -of_objects  [get_files {{"
-    file_contents += full_path_to_xdc
-    file_contents += "}}] -no_script -reset -force -quiet"
-
-    file_contents += "\n    remove_files  -fileset constrs_1 {{"
-    file_contents += full_path_to_xdc
-    file_contents += "}}"
-
-    file_contents += "\n    file delete -force {"
-    file_contents += full_path_to_xdc
-    file_contents += "}"
-    
-    file_contents += "\n}"
-
-    # Step 3: Add XDC file
-    path_to_constraints = friendly_current_dir + "/generated/physical_constr.xdc"       # This needs to be updated with generated constraints
-
-    file_contents += "\nadd_files -fileset constrs_1 -norecurse {"
-    file_contents += path_to_constraints
-    file_contents += "}"
-
-    file_contents += "\nimport_files -force -fileset constrs_1 {"   # -force flag will overwrite physical_constr.xdc if it exists and somehow wasn't deleted.
-    file_contents += path_to_constraints
-    file_contents += "}"
-
-    #########################################################################################################
-
+    # Decision Variables
     generate_new_bd_design = regenerate_bd   # Default Consignment
     delete_old_bd_design = False             # Default Consignment
 
-    
     # Wrapper Path:
     # D:/HDLGen-ChatGPT/User_Projects/Fearghal_November/RISCV_RB/VHDL/AMDprj/RISCV_RB.srcs/sources_1/bd/RISCV_RB_bd/hdl/RISCV_RB_bd_wrapper.vhd
 
@@ -425,17 +383,18 @@ def generate_tcl(path_to_hdlgen_project, regenerate_bd=True, start_gui=True, kee
             gui_application.add_to_log_box(f"\nExisting HDL Wrapper Found?: {wrapper_exists}")
             gui_application.add_to_log_box(f"\nRegenerate new BD?: {regenerate_bd}")
 
+    print(f"\nExisting Block Design Found?: {bd_exists}")
+    print(f"\nExisting HDL Wrapper Found?: {wrapper_exists}")
+    print(f"\nRegenerate new BD?: {regenerate_bd}")
+
     if (wrapper_exists and bd_exists):
-        print("-> Wrapper and BD exist")
         if regenerate_bd:
-            print("-> New Wrapper and BD will be generated!")
             delete_old_bd_design = True
         else:
-            print("-> Generating bitstream using existing BD/Wrapper")
             generate_new_bd_design = False
 
     elif (not wrapper_exists and bd_exists):
-        print("-> WARNING: Wrapper does not exist, BD does exist")
+        print("Wrapper does not exist, BD does exist")
         if regenerate_bd:
             file_contents += f"\ndelete_file {path_to_bd_file_check}"  # then the BD design
             delete_old_bd_design = False
@@ -715,6 +674,77 @@ def generate_tcl(path_to_hdlgen_project, regenerate_bd=True, start_gui=True, kee
     write_tcl_file(file_contents, gui_application)
     write_xdc_file(file_contents, gui_application)
 
+    #++++++++++++++++++++++++++++++++++++++++#
+    #++++++++# END OF MAIN FUNCTION #++++++++#
+    #++++++++++++++++++++++++++++++++++++++++#
+
+
+
+
+
+
+
+
+
+
+
+
+#################################################
+########## Import XDC Constraints File ##########
+#################################################
+def import_xdc_constraints_file(full_path_to_xdc):
+    # Specify the name of the constraints
+    file_contents = "\nset constraint_name \"constrs_1\""
+
+    # Check if the constraint exists
+
+    ############# Steps to delete existing XDC file #############
+    # export_ip_user_files -of_objects  [get_files {{C:/repo/HDLGen-ChatGPT/User_Projects/Backup_led_Working_io_mapping/CB4CLED/VHDL/AMDprj/CB4CLED.srcs/constrs_1/imports/pynq-z2_v1.0.xdc/PYNQ-Z2 v1.0.xdc}}] -no_script -reset -force -quiet
+    # remove_files  -fileset constrs_1 {{C:/repo/HDLGen-ChatGPT/User_Projects/Backup_led_Working_io_mapping/CB4CLED/VHDL/AMDprj/CB4CLED.srcs/constrs_1/imports/pynq-z2_v1.0.xdc/PYNQ-Z2 v1.0.xdc}}
+    # file delete -force {C:/repo/HDLGen-ChatGPT/User_Projects/Backup_led_Working_io_mapping/CB4CLED/VHDL/AMDprj/CB4CLED.srcs/constrs_1/imports/pynq-z2_v1.0.xdc/PYNQ-Z2 v1.0.xdc} 
+
+    ############# Steps to add new XDC file (note: Copy XDC to project is enabled by import_files command) #############
+    # add_files -fileset constrs_1 -norecurse {{C:/repo/PYNQ-SoC-Builder/pynq-z2_v1.0.xdc/PYNQ-Z2 v1.0.xdc}}
+    # import_files -fileset constrs_1 {{C:/repo/PYNQ-SoC-Builder/pynq-z2_v1.0.xdc/PYNQ-Z2 v1.0.xdc}}
+
+    ############# Steps to check if constraints exist ############# 
+    # file exists C:/repo/HDLGen-ChatGPT/User_Projects/Backup_led_Working_io_mapping/CB4CLED/VHDL/AMDprj/CB4CLED.srcs/constrs_1/imports/pynq-z2_v1.0.xdc
+    # file exists - path to xdc.
+
+    # Step 1: Check if file exists:
+    file_contents += f"\nset xdc_exists [file exists {full_path_to_xdc}]"
+    
+    # Step 2: If file exists - Delete it.
+    file_contents += "\nif {$xdc_exists} {"
+    
+    file_contents += "\n    export_ip_user_files -of_objects  [get_files {{"
+    file_contents += full_path_to_xdc
+    file_contents += "}}] -no_script -reset -force -quiet"
+
+    file_contents += "\n    remove_files  -fileset constrs_1 {{"
+    file_contents += full_path_to_xdc
+    file_contents += "}}"
+
+    file_contents += "\n    file delete -force {"
+    file_contents += full_path_to_xdc
+    file_contents += "}"
+    
+    file_contents += "\n}"
+
+    # Step 3: Add XDC file
+    current_dir = os.getcwd()
+    friendly_current_dir = current_dir.replace("\\", "/")
+    path_to_constraints = friendly_current_dir + "/generated/physical_constr.xdc"       # This needs to be updated with generated constraints
+
+    file_contents += "\nadd_files -fileset constrs_1 -norecurse {"
+    file_contents += path_to_constraints
+    file_contents += "}"
+
+    file_contents += "\nimport_files -force -fileset constrs_1 {"   # -force flag will overwrite physical_constr.xdc if it exists and somehow wasn't deleted.
+    file_contents += path_to_constraints
+    file_contents += "}"
+
+    return file_contents
 
 ##########################################
 #   Create VHDL Wrapper and set as top   #
@@ -730,6 +760,12 @@ def create_vhdl_wrapper(bd_filename, path_to_bd):
     file_contents += f"\n    create_hdl_wrapper {path_to_bd} {bd_filename}"
     file_contents += f"\n    set_wrapper_top {bd_filename}_wrapper"
     file_contents += "\n}"
+    return file_contents
+
+def source_generate_procs():
+    current_dir = os.getcwd()
+    friendly_current_dir = current_dir.replace("\\", "/")
+    file_contents = "source " + friendly_current_dir + "/application/generate_procs.tcl"  # Source the procedures
     return file_contents
 
 ##########################################
