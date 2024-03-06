@@ -217,7 +217,7 @@ class In_Progress_Page(ctk.CTkFrame):
                 pass
             elif self.current_running_mode == None:
                 # This mode should never be possible reach.
-                self.add_to_log_box("\nBuild commencing but no mode selected")
+                self.add_to_log_box("\nBuild Idle.")
                 pass
             else:
                 self.add_to_log_box("\nError: Unaccessible code section reached")
