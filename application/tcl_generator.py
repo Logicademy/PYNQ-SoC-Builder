@@ -293,7 +293,7 @@ def generate_tcl(path_to_hdlgen_project, regenerate_bd=True, start_gui=True, kee
     environment = projectManagerSettings.getElementsByTagName("environment")[0].firstChild.data
     location = projectManagerSettings.getElementsByTagName("location")[0].firstChild.data
 
-    # project_language
+    # Project Manager - HDL
     projectManagerHdl = projectManager.getElementsByTagName("HDL")[0]
     language = projectManagerHdl.getElementsByTagName("language")[0]
     project_language = language.getElementsByTagName("name")[0].firstChild.data
