@@ -842,8 +842,6 @@ def generate_connections(module_source, all_ports_parsed, io_map, gui_applicatio
             if force_continue:
                 continue # Continue to next signal
 
-
-
             if gpio_mode == "in" and last_occur_io_mode=="in":
                 # Do not know yet what happens if you have two drivers. Probably not good.
                 if gui_application:
@@ -991,6 +989,37 @@ def generate_connections(module_source, all_ports_parsed, io_map, gui_applicatio
             if gui_application:
                 gui_application.add_to_log_box(f"\nOutput on Signal >32-bit. {gpio_name} {gpio_width} {occurences}")
             print(f"\nOutput on Signal >32-bit. {gpio_name} {gpio_width} {occurences}")
+
+            # How to approach this:
+            # 1) Split our signal as notebook_gen does, into 32 bit chunks with naming standard.
+            # 2) Run loop for each occurence, create a new slice IP for each individual signal.
+            # 3) Can mix in and out - Don't bother supporting inputs at this time.
+
+            # [gpio_name, gpio_mode, gpio_width]
+            # gpio_width > 32 - that is known
+
+            # TODO: This should be looped for each occurence.
+
+
+            pin_counter = 0
+            gpio_split = []
+            while gpio_width - pin_counter > 0:
+                if gpio_width - pin_counter > 32:
+                    signal_name = f"{gpio_name}_{pin_counter+31}_{pin_counter}"
+                    pin_counter += 32
+                elif gpio_width - pin_counter <= 32:
+                    signal_name = f"{gpio_name}_{gpio_width-1}_{pin_counter}"
+                    pin_counter += gpio_width - pin_counter
+                gpio_split.append(signal_name)
+
+            # Here, we now have an array of ["signal_0_31", "signal_32_63", "signal_64_95"] # We can assume that desired bit is NOT out of range.
+
+
+
+
+
+
+
 
         else:
             if gui_application:
