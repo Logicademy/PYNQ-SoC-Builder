@@ -175,11 +175,13 @@ class In_Progress_Page(ctk.CTkFrame):
                             # Look for specific indicators of whats happening.
                             # line
                             if line == "":
+                                pass
                                 # Protection for the next check, if empty string, skip.
-                                continue
+                                # continue  - we dont need this to continue cos it'll infinite loop
                             elif line[0] == "#":
+                                pass
                                 # If line starts with #, its from sourced file and we dont care.
-                                continue
+                                # continue
                             elif "open_project" in line:
                                 self.add_to_log_box("\nOpening Vivado Project")
                                 self.add_to_log_box("\n"+line)
@@ -203,6 +205,7 @@ class In_Progress_Page(ctk.CTkFrame):
                                 self.add_to_log_box("\nExit command issued to Vivado. Waiting for Vivado to close.")
                                 # Stall the process until the flag is updated by other thread.
                                 while self.app.build_running:
+                                    time.sleep(1)
                                     pass
                                 break
                             if self.current_running_mode != "run_viv":

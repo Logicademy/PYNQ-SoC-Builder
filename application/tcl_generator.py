@@ -1,5 +1,6 @@
 import xml.dom.minidom
 import os
+import re
 # tcl_generator.py
 # This Python 3 script is responsible for generating a Tcl script file dynamically depending on the project.
 
@@ -211,14 +212,27 @@ pynq_constraints = {
     "crypto_sda": "set_property -dict { PACKAGE_PIN J15   IOSTANDARD LVCMOS33 } [get_ports { signal_name }];"
 }
 
-# io_connection_dictionary = {key: None for key in io_suffix}
-# {'_led': None, '_led0': None, '_led1': None, '_led2': None, '_led3': None, '_led01': None, '_led02': None, '_led03': None, '_led12': None, '_led13': None, '_led23': None}
-
-io_dictionary = {
-    'led0': None,
-    'led1': None,
-    'led2': None,
-    'led3': None
+pynq_constraints_mode = {
+    # switches
+    "sw0": "in",
+    "sw1": "in",
+    # RGB LEDs
+    "led4_b": "out",
+    "led4_g": "out",
+    "led4_r": "out",
+    "led5_b": "out",
+    "led5_g": "out",
+    "led5_r": "out",
+    # LEDs
+    "led0": "out",
+    "led1": "out",
+    "led2": "out",
+    "led3": "out",
+    # Buttons
+    "btn0": "in",
+    "btn1": "in",
+    "btn2": "in",
+    "btn3": "in"
 }
 
 io_full_dictionary = {key: None for key in pynq_constraints.keys()}
@@ -256,21 +270,19 @@ verbose_prints = False # Not implemented yet.
 #   a. Set created wrapper as top
 # 12. Run Synthesis, Implementation and Generate Bitstream
 
-
 def generate_tcl(path_to_hdlgen_project, regenerate_bd=True, start_gui=True, keep_vivado_open=False, skip_board_config=False, io_map=None, gui_application=None):
 
+    xdc_contents =  "" # Initalise the xdc_contents variable - To be moved to generate connections area.
+
+    # For logging to console window - Look for GUI_APP and use the add_to_log_box API - Seen throughout this project/script.
     if gui_application:
         gui_application.add_to_log_box(f"\nRunning Generate Tcl Program")
 
-    # gui_application = None
-    # If a "gui_application" Tkinter class is passed, it is expected that there is a "add_to_log_box" function available.
-
-    xdc_contents = "" # Instanciate the xdc_contents variable
-
-    ########## Options ##########
-    experimental_import_contraints = True   # Marked for removal, contraints is no longer experimental.
-
+    file_contents = ""
+    ###################################################################
     ########## Parsing .hdlgen file for required information ##########
+    ###################################################################
+
     hdlgen = xml.dom.minidom.parse(path_to_hdlgen_project)
     root = hdlgen.documentElement
 
@@ -305,7 +317,6 @@ def generate_tcl(path_to_hdlgen_project, regenerate_bd=True, start_gui=True, kee
     if gui_application:
         gui_application.add_to_log_box(f"\nHDLGen XML Loaded Successfully")
 
-
     all_ports = []
     for sig in signals:
         signame = sig.getElementsByTagName("name")[0]
@@ -315,6 +326,14 @@ def generate_tcl(path_to_hdlgen_project, regenerate_bd=True, start_gui=True, kee
         all_ports.append(
             [signame.firstChild.data, mode.firstChild.data, type.firstChild.data, desc.firstChild.data]
         )
+    # All ports recieved as in HDLGen XML.
+    #    signame = sig.getElementsByTagName("name")[0]
+    #    mode = sig.getElementsByTagName("mode")[0]
+    #    type = sig.getElementsByTagName("type")[0]
+    #    desc = sig.getElementsByTagName("description")[0]
+    # Job here is to convert into:
+    # [signal_name, gpio_mode, gpio_width]
+    all_ports_parsed = parse_all_ports(all_ports)
 
     if gui_application:
         gui_application.add_to_log_box(f"\nFound Signals:")
@@ -329,133 +348,53 @@ def generate_tcl(path_to_hdlgen_project, regenerate_bd=True, start_gui=True, kee
     module_source = name
     path_to_bd = environment + "/" + AMDproj_folder_rel_path + "/" + name + ".srcs/sources_1/bd"    # hotfix changed to environment
 
-    ########## Start of Tcl Script Generation ##########
+    # XDC Variables
+    path_to_xdc = environment + "/" + AMDproj_folder_rel_path + "/" + name + ".srcs/constrs_1/imports/generated/"    # hotfix changed to environment
+    full_path_to_xdc = path_to_xdc + "physical_constr.xdc"
 
-    # (1) Source Procedures File
-    current_dir = os.getcwd()
-    friendly_current_dir = current_dir.replace("\\", "/")
-    file_contents = "source " + friendly_current_dir + "/application/generate_procs.tcl"  # Source the procedures
-    
+    #################################################
+    ########## Begin Tcl Script Generation ##########
+    #################################################
+
+    ##############################################
+    ########## Open Project / Start GUI ##########
+    ##############################################
+    print(file_contents)
+    file_contents += source_generate_procs()
+    print(file_contents)
 
     # Additional Step: Set if GUI should be opened
     if start_gui:
         file_contents += "\nstart_gui"                              # Open Vivado GUI (option)
 
-
-    # (2) Open Project
+    # Open Project
     file_contents += f"\nopen_project {path_to_xpr}"                # Open Project
     
     if gui_application:
         gui_application.add_to_log_box(f"\nXPR Location: {path_to_xpr}")
 
+
+    ###############################################
+    ########## Set Project Configuration ##########
+    ###############################################
+
     # Set Board Part (Project Parameter)
     if not skip_board_config:
         file_contents += f"\nset_property board_part tul.com.tw:pynq-z2:part0:1.0 [current_project]"
 
-    # Import Board Constraints
-    if experimental_import_contraints:
-        ## Need to find a way to check if the contraints already exist - if we learned Tcl error handling we could just always attempt to add it.
-        # add_files -fileset constrs_12 -norecurse {{C:/repo/PYNQ-SoC-Builder/pynq-z2_v1.0.xdc/PYNQ-Z2 v1.0.xdc}}
-        # import_files -fileset constrs_12 {{C:/repo/PYNQ-SoC-Builder/pynq-z2_v1.0.xdc/PYNQ-Z2 v1.0.xdc}}
-        # export_ip_user_files -of_objects  [get_files {{C:/repo/HDLGen-ChatGPT/User_Projects/CB4CLED/VHDL/AMDprj/CB4CLED.srcs/constrs_12/imports/pynq-z2_v1.0.xdc/PYNQ-Z2 v1.0.xdc}}] -no_script -reset -force -quiet
-        # remove_files  -fileset constrs_12 {{C:/repo/HDLGen-ChatGPT/User_Projects/CB4CLED/VHDL/AMDprj/CB4CLED.srcs/constrs_12/imports/pynq-z2_v1.0.xdc/PYNQ-Z2 v1.0.xdc}}
-        # file delete -force {C:/repo/HDLGen-ChatGPT/User_Projects/CB4CLED/VHDL/AMDprj/CB4CLED.srcs/constrs_12/imports/pynq-z2_v1.0.xdc/PYNQ-Z2 v1.0.xdc}
+    #################################################
+    ########## Import XDC Constraints File ##########
+    #################################################
+    file_contents += import_xdc_constraints_file(full_path_to_xdc)
 
-        # Specify the name of the constraint
-        file_contents += "\nset constraint_name \"constrs_1\""
+    ###########################################
+    ########## Generate Block Design ##########
+    ###########################################
 
-        # Check if the constraint exists
-
-        ############# Steps to delete existing XDC file #############
-        # export_ip_user_files -of_objects  [get_files {{C:/repo/HDLGen-ChatGPT/User_Projects/Backup_led_Working_io_mapping/CB4CLED/VHDL/AMDprj/CB4CLED.srcs/constrs_1/imports/pynq-z2_v1.0.xdc/PYNQ-Z2 v1.0.xdc}}] -no_script -reset -force -quiet
-        # remove_files  -fileset constrs_1 {{C:/repo/HDLGen-ChatGPT/User_Projects/Backup_led_Working_io_mapping/CB4CLED/VHDL/AMDprj/CB4CLED.srcs/constrs_1/imports/pynq-z2_v1.0.xdc/PYNQ-Z2 v1.0.xdc}}
-        # file delete -force {C:/repo/HDLGen-ChatGPT/User_Projects/Backup_led_Working_io_mapping/CB4CLED/VHDL/AMDprj/CB4CLED.srcs/constrs_1/imports/pynq-z2_v1.0.xdc/PYNQ-Z2 v1.0.xdc} 
-
-        ############# Steps to add new XDC file (note: Copy XDC to project is enabled by import_files command) #############
-        # add_files -fileset constrs_1 -norecurse {{C:/repo/PYNQ-SoC-Builder/pynq-z2_v1.0.xdc/PYNQ-Z2 v1.0.xdc}}
-        # import_files -fileset constrs_1 {{C:/repo/PYNQ-SoC-Builder/pynq-z2_v1.0.xdc/PYNQ-Z2 v1.0.xdc}}
-
-        ############# Steps to check if constraints exist ############# 
-        # file exists C:/repo/HDLGen-ChatGPT/User_Projects/Backup_led_Working_io_mapping/CB4CLED/VHDL/AMDprj/CB4CLED.srcs/constrs_1/imports/pynq-z2_v1.0.xdc
-        # file exists - path to xdc.
-
-        # Step 1: Check if file exists:
-        path_to_xdc = environment + "/" + AMDproj_folder_rel_path + "/" + name + ".srcs/constrs_1/imports/generated/"    # hotfix changed to environment
-        full_path_to_xdc = path_to_xdc + "physical_constr.xdc"
-        file_contents += f"\nset xdc_exists [file exists {full_path_to_xdc}]"
-        
-        # Step 2: If file exists - Delete it.
-        file_contents += "\nif {$xdc_exists} {"
-        
-        file_contents += "\n    export_ip_user_files -of_objects  [get_files {{"
-        file_contents += full_path_to_xdc
-        file_contents += "}}] -no_script -reset -force -quiet"
-
-        file_contents += "\n    remove_files  -fileset constrs_1 {{"
-        file_contents += full_path_to_xdc
-        file_contents += "}}"
-
-        file_contents += "\n    file delete -force {"
-        file_contents += full_path_to_xdc
-        file_contents += "}"
-        
-        file_contents += "\n}"
-
-        # Step 3: Add XDC file
-        path_to_constraints = friendly_current_dir + "/generated/physical_constr.xdc"       # This needs to be updated with generated constraints
-
-        file_contents += "\nadd_files -fileset constrs_1 -norecurse {"
-        file_contents += path_to_constraints
-        file_contents += "}"
-
-        file_contents += "\nimport_files -force -fileset constrs_1 {"   # -force flag will overwrite physical_constr.xdc if it exists and somehow wasn't deleted.
-        file_contents += path_to_constraints
-        file_contents += "}"
-
-        # Constaints do not exist - Import now:
-
-        # file_contents += f"\nset path_to_constraints \"{path_to_constraints}\""
-        # file_contents += "\nadd_files -fileset constrs_1 -norecurse $path_to_constraints"
-        # file_contents += "\nimport_files -fileset constrs_1 $path_to_constraints"
-
-
-        # Completed: If the contraints fileset does not exist: Import it.
-        # Next: If the constraints fileset already exists: Re-import it.
-
-        # Get the list of files in the "contr_1" fileset
-        # set fileset_name "contr_1"
-        # set file_list [get_files -of_objects [get_filesets $fileset_name]]
-
-        # # Specify the file you want to check
-        # set target_file "myfile.vhd"
-
-        # # Check if the file exists in the fileset
-        # if {[lsearch -exact $file_list $target_file] >= 0} {
-        #     puts "File $target_file exists in fileset $fileset_name."
-        # } else {
-        #     puts "File $target_file does not exist in fileset $fileset_name."
-        # }
-
-
-
-
-
-
-
-        #add_files -fileset constrs_1 -norecurse {{C:/Users/canny/Documents/5th Year ECE/Project/PYNQ Board Files Complete/pynq-z2_v1.0.xdc/PYNQ-Z2 v1.0.xdc}}
-        #import_files -fileset constrs_1 {{C:/Users/canny/Documents/5th Year ECE/Project/PYNQ Board Files Complete/pynq-z2_v1.0.xdc/PYNQ-Z2 v1.0.xdc}}
-        
-
-    #########################################################################################################
-    
-    ################### Experimental Check if Block Design Exists (and a Wrapper Exists) ####################
-
+    # Decision Variables
     generate_new_bd_design = regenerate_bd   # Default Consignment
     delete_old_bd_design = False             # Default Consignment
 
-    # Need to check if block design actually exists already,
-    # And does a wrapper exist
-    
     # Wrapper Path:
     # D:/HDLGen-ChatGPT/User_Projects/Fearghal_November/RISCV_RB/VHDL/AMDprj/RISCV_RB.srcs/sources_1/bd/RISCV_RB_bd/hdl/RISCV_RB_bd_wrapper.vhd
 
@@ -477,17 +416,18 @@ def generate_tcl(path_to_hdlgen_project, regenerate_bd=True, start_gui=True, kee
             gui_application.add_to_log_box(f"\nExisting HDL Wrapper Found?: {wrapper_exists}")
             gui_application.add_to_log_box(f"\nRegenerate new BD?: {regenerate_bd}")
 
+    print(f"\nExisting Block Design Found?: {bd_exists}")
+    print(f"\nExisting HDL Wrapper Found?: {wrapper_exists}")
+    print(f"\nRegenerate new BD?: {regenerate_bd}")
+
     if (wrapper_exists and bd_exists):
-        print("-> Wrapper and BD exist")
         if regenerate_bd:
-            print("-> New Wrapper and BD will be generated!")
             delete_old_bd_design = True
         else:
-            print("-> Generating bitstream using existing BD/Wrapper")
             generate_new_bd_design = False
 
     elif (not wrapper_exists and bd_exists):
-        print("-> WARNING: Wrapper does not exist, BD does exist")
+        print("Wrapper does not exist, BD does exist")
         if regenerate_bd:
             file_contents += f"\ndelete_file {path_to_bd_file_check}"  # then the BD design
             delete_old_bd_design = False
@@ -498,29 +438,28 @@ def generate_tcl(path_to_hdlgen_project, regenerate_bd=True, start_gui=True, kee
     elif (not wrapper_exists and not bd_exists):
         print("-> Wrapper and BD not found, generating these components...")
 
-    if delete_old_bd_design:
-        file_contents += f"\ndelete_file {path_to_wrapper_file_check}"  # Wrapper deletes first
-        file_contents += f"\ndelete_file {path_to_bd_file_check}"  # then the BD design
-    
-        # export_ip_user_files -of_objects  [get_files D:/HDLGen-ChatGPT/User_Projects/Fearghal_November/RISCV_RB/VHDL/AMDprj/RISCV_RB.srcs/sources_1/bd/RISCV_RB_bd/hdl/RISCV_RB_bd_wrapper.vhd] -no_script -reset -force -quiet
-        # remove_files  D:/HDLGen-ChatGPT/User_Projects/Fearghal_November/RISCV_RB/VHDL/AMDprj/RISCV_RB.srcs/sources_1/bd/RISCV_RB_bd/hdl/RISCV_RB_bd_wrapper.vhd
-        # file delete -force D:/HDLGen-ChatGPT/User_Projects/Fearghal_November/RISCV_RB/VHDL/AMDprj/RISCV_RB.srcs/sources_1/bd/RISCV_RB_bd/hdl/RISCV_RB_bd_wrapper.vhd
-        # update_compile_order -fileset sources_1
 
-        # export_ip_user_files -of_objects  [get_files D:/HDLGen-ChatGPT/User_Projects/Fearghal_November/RISCV_RB/VHDL/AMDprj/RISCV_RB.srcs/sources_1/bd/RISCV_RB_bd/RISCV_RB_bd.bd] -no_script -reset -force -quiet
-        # remove_files  D:/HDLGen-ChatGPT/User_Projects/Fearghal_November/RISCV_RB/VHDL/AMDprj/RISCV_RB.srcs/sources_1/bd/RISCV_RB_bd/RISCV_RB_bd.bd
-        # file delete -force D:/HDLGen-ChatGPT/User_Projects/Fearghal_November/RISCV_RB/VHDL/AMDprj/RISCV_RB.srcs/sources_1/bd/RISCV_RB_bd
-        # update_compile_order -fileset sources_1 // this wont cause a fail but also isn't neccessary.
+    if delete_old_bd_design:
+        if gui_application:
+            gui_application.add_to_log_box("\nRemoving Old Block Design")
+        # TODO: This could have safety checks to in event that one or other doesn't exist.
+        file_contents += f"\ndelete_file {path_to_wrapper_file_check}"  # Wrapper deletes first
+        file_contents += f"\ndelete_file {path_to_bd_file_check}"       # then the BD design
+
+    
+        #+++++++++++++++++++++++++++++++++++++++++++++++++++++++#
+        #++++++++# Start of Generate New BD File Block #++++++++#
+        #+++++++++++++++++++++++++++++++++++++++++++++++++++++++#
 
     if generate_new_bd_design:
-
+        if gui_application:
+            gui_application.add_to_log_box("\nGenerating New Block Design")
         created_signals = [] # This is an array of all signals that are created (this is cos >32 bit signals are divided)
 
         # (3) Create a new BD File
         file_contents += f"\ncreate_bd_file {bd_filename}"              # Create a new BD
         if gui_application:
                 gui_application.add_to_log_box(f"\nCreating Block Design: {bd_filename}")
-        
         
         # (4) Add Processor to BD
         file_contents += "\nadd_processing_unit"                        # Import Processing Unit to the BD
@@ -541,236 +480,763 @@ def generate_tcl(path_to_hdlgen_project, regenerate_bd=True, start_gui=True, kee
         # Just before (6) we need to make any port that will use I/O an external port.
         # Before connecting to GPIO, make pin external if needed.
         # It should also only be completed if the io_map is supplied
-        if io_map:
 
-            if gui_application:
-                gui_application.add_to_log_box(f"\nIO Map Present: {io_map}")
+
+        if io_map and gui_application:
+            gui_application.add_to_log_box(f"\nIO Map Present: {io_map}")
+
+        returned_contents, created_signals = generate_connections(module_source, all_ports_parsed, io_map, gui_application)
+        file_contents += returned_contents
+
+        file_contents += connect_interconnect_reset_and_run_block_automation(created_signals, gui_application)
+    
+        #+++++++++++++++++++++++++++++++++++++++++++++++++++++#
+        #++++++++# End of Generate New BD File Block #++++++++#
+        #+++++++++++++++++++++++++++++++++++++++++++++++++++++#
+
+    file_contents += create_vhdl_wrapper(bd_filename, path_to_bd) 
+
+    path_to_bd_export = environment + "/" + AMDproj_folder_rel_path + "/" + bd_filename + ".tcl"   # hotfix changed to environment
+    path_to_bd_file = f"{path_to_bd}/{bd_filename}/{bd_filename}.bd"
+
+    file_contents += generate_bitstream(path_to_bd_export,path_to_bd_file)
+    file_contents += save_and_quit(start_gui, keep_vivado_open)
+    write_tcl_file(file_contents, gui_application)
+
+            #++++++++++++++++++++++++++++++++++++++++#
+            #++++++++# END OF MAIN FUNCTION #++++++++#
+            #++++++++++++++++++++++++++++++++++++++++#
+
+
+def connect_interconnect_reset_and_run_block_automation(created_signals, gui_application):
+    # (7) Add the AXI Interconnect to the IP Block Design
+    file_contents = f"\nadd_axi_interconnect 1 {len(created_signals)}"
+
+    # Connect each GPIO to the Interconnect
+    for x in range(len(created_signals)):
+        file_contents += f"\nconnect_bd_intf_net -boundary_type upper [get_bd_intf_pins axi_interconnect_0/M{x:02d}_AXI] [get_bd_intf_pins {created_signals[x]}/S_AXI]"
         
 
-            # io_configuration = {
-            #     "led0":"count[0]",
-            #     "led1":"count[1]",
-            #     "led2":"TC",
-            #     "led3":"None"
-            # }
-            # Goal: ["count", "TC"] <= we then make these external
-            
-            io_config_values = io_map.values()  # Take values from dictionary
-            io_config_values = [item for item in io_config_values if item != "None"] # Remove all instances of "None"
+    # (8) Add "Processor System Reset" IP
+    file_contents += "\nadd_system_reset_ip"
+    # Connect M_AXI_GP0 of the Processing System to S00_AXI connection of the AXI Interconnect.
+    # TODO: Add this line to the proc file instead maybe
+    file_contents += "\nconnect_bd_intf_net [get_bd_intf_pins processing_system7_0/M_AXI_GP0] -boundary_type upper [get_bd_intf_pins axi_interconnect_0/S00_AXI]"
 
-            ports_to_make_external = []
-            for value in io_config_values:
-                if value.endswith(']'):
-                    res_set = value.split('[')  # Remove [x] from end if present. We can't make individual bits from a signal external. Only entire signal.
-                    ports_to_make_external.append(res_set[0])
-                else:
-                    ports_to_make_external.append(value)
+    # Run auto-connection tool
+    # file_contents += "\nrun_bd_auto_connect"
+    file_contents += "\nrun_bd_automation_rule_processor"
+    file_contents += "\nrun_bd_automation_rule_interconnect"
+    for io in created_signals:
+        file_contents += f"\nrun_bd_automation_rule_io {io}/s_axi_aclk" 
+    
 
-            # Remove duplicates ["count", "count", "TC"]
-            ports_to_make_external = list(set(ports_to_make_external))
+    # Run block automation tool
+    file_contents += "\nrun_bd_block_automation"
 
-            # print(ports_to_make_external) # 
+    # (9) Populate Memory Information
+    file_contents += "\nrun_addr_editor_auto_assign"
+    
+    # (10) Validate the Block Diagram
+    file_contents += "\nvalidate_bd"
 
-            for port in ports_to_make_external:
-                # Make port external
-                file_contents += f"\nmake_external_connection {module_source}_0 {port} {port + '_ext'}"
+    return file_contents
 
-            # Each connection must then be added to the XDC file.
-            # print(io_map)
+##################################################################################
+########## Generate Tcl Code to Slice GPIO PIN in GPIO_MODE = IN or OUT ##########
+##################################################################################
+
+def connect_slice_to_gpio(bit, gpio_mode, gpio_name, gpio_width, slice_number, module_source):
+    file_contents = "\nstartgroup"
+    file_contents += f"\ncreate_bd_cell -type ip -vlnv xilinx.com:ip:xlslice:1.0 {gpio_name}_{slice_number}_slice"
+    file_contents += "\nendgroup"
+
+    if gpio_mode == "in":
+        file_contents += f"\nconnect_bd_net [get_bd_pins {gpio_name}/gpio_io_o] [get_bd_pins {gpio_name}_{slice_number}_slice/Din]"
+
+        file_contents += "\nstartgroup"
+        file_contents += f"\nset_property -dict [list CONFIG.DIN_TO {bit} CONFIG.DIN_FROM {bit} CONFIG.DIN_WIDTH {gpio_width} CONFIG.DIN_FROM {bit} CONFIG.DOUT_WIDTH 1] [get_bd_cells {gpio_name}_{slice_number}_slice]"
+        file_contents += "\nendgroup"
+
+        file_contents += "\nstartgroup"
+        file_contents += f"\nmake_bd_pins_external  [get_bd_pins {gpio_name}_{slice_number}_slice/Dout]"
+        file_contents += "\nendgroup"
+        file_contents += f"\nset_property name {gpio_name}_{slice_number}_ext [get_bd_ports Dout_0]"
+
+    elif gpio_mode == "out":
+        file_contents += f"\nconnect_bd_net [get_bd_pins {module_source}_0/{gpio_name}] [get_bd_pins {gpio_name}_{slice_number}_slice/Din]"
+
+        file_contents += "\nstartgroup"
+        file_contents += f"\nset_property -dict [list CONFIG.DIN_TO {bit} CONFIG.DIN_FROM {bit} CONFIG.DIN_WIDTH {gpio_width} CONFIG.DIN_FROM {bit} CONFIG.DOUT_WIDTH 1] [get_bd_cells {gpio_name}_{slice_number}_slice]"
+        file_contents += "\nendgroup"
+
+        file_contents += "\nstartgroup"
+        file_contents += f"\nmake_bd_pins_external  [get_bd_pins {gpio_name}_{slice_number}_slice/Dout]"
+        file_contents += "\nendgroup"
+        file_contents += f"\nset_property name {gpio_name}_{slice_number}_ext [get_bd_ports Dout_0]"
+
+
+    return file_contents
+
+###########################################################################################
+########## Generate Tcl Code to Add and Connect All Input GPIO with External Pin ##########
+###########################################################################################
+def generate_all_input_external_gpio(gpio_name, gpio_width, module_source, occurences, gui_application=None):
+    file_contents = ""
+    if gui_application:
+        gui_application.add_to_log_box(f"\nConnecting {gpio_name} to {occurences[0][0]} in 'all_input_external' mode")
+    # In this configuration, we need to:
+    #   1) Add an ALL INPUT GPIO, 
+    #   2) make the pin of the COMPONENT external
+    #   3) and connect to component.
+    file_contents += f"\nadd_axi_gpio_all_input {gpio_name} {gpio_width}"
+    # Need to make the GPIO external then move 
+    # startgroup \n make_bd_pins_external  [get_bd_pins A/gpio_io_o] \n endgroup
+
+    file_contents += f"\nstartgroup\nmake_bd_pins_external [get_bd_pins {module_source}_0/{gpio_name}]\nendgroup"
+    file_contents += f"\nset_property name {gpio_name}_ext [get_bd_ports {gpio_name}_0]"
+    
+    # If the GPIO is added correctly, connect it to the User I/O
+    file_contents += f"\nconnect_gpio_all_input_to_module_port {gpio_name} {module_source}_0"
+    return file_contents
+
+############################################################################################
+########## Generate Tcl Code to Add and Connect All Output GPIO with External Pin ##########
+############################################################################################
+def generate_all_output_external_gpio(gpio_name, gpio_width, module_source, occurences, gui_application=None):
+    file_contents = ""
+    if gui_application:
+        gui_application.add_to_log_box(f"\nConnecting {gpio_name} to {occurences[0][0]} in 'all_output_external' mode")
+    # In this configuration, we need to:
+    #   1) Add an ALL OUTPUT GPIO, 
+    #   2) make the pin of the GPIO external, 
+    #   3) and connect to component.
+    file_contents += f"\nadd_axi_gpio_all_output {gpio_name} {gpio_width}"
+    # Need to make the GPIO external then move 
+    # startgroup \n make_bd_pins_external  [get_bd_pins A/gpio_io_o] \n endgroup
+
+    file_contents += f"\nstartgroup\nmake_bd_pins_external [get_bd_pins {gpio_name}/gpio_io_o]\nendgroup"
+    file_contents += f"\nset_property name {gpio_name}_ext [get_bd_ports gpio_io_o_0]"
+    
+    # If the GPIO is added correctly, connect it to the User I/O
+    file_contents += f"\nconnect_gpio_all_output_to_module_port {gpio_name} {module_source}_0"
+    return file_contents
+
+##############################################################################################
+########## Generate Tcl Code to Add and Connect All Input GPIO with No External Pin ##########
+##############################################################################################
+def generate_all_input_no_ext_gpio(gpio_name, gpio_width, module_source, gui_application=None):
+    file_contents = f"\nadd_axi_gpio_all_input {gpio_name} {gpio_width}"
+    file_contents += f"\nconnect_gpio_all_input_to_module_port {gpio_name} {module_source}_0"
+    return file_contents 
+
+###############################################################################################
+########## Generate Tcl Code to Add and Connect All Output GPIO with No External Pin ##########
+###############################################################################################
+def generate_all_output_no_ext_gpio(gpio_name, gpio_width, module_source, gui_application=None):
+    file_contents = f"\nadd_axi_gpio_all_output {gpio_name} {gpio_width}"
+    file_contents += f"\nconnect_gpio_all_output_to_module_port {gpio_name} {module_source}_0"
+    return file_contents 
+
+##########################################
+########## Generate Connections ##########
+##########################################
+def generate_connections(module_source, all_ports_parsed, io_map, gui_application=None):
+    xdc_contents = ""
+    file_contents = ""
+    interconnect_signals = []
+    slice_number = 0 # Used to ensure all connections are unique
+
+    # Assuming our component exists, and the processing unit and then nothing else.
+
+    # Generate each signal as per IO map - not following the all_ports
+
+    # pynq_constraints_mode tells us mode of the IO port.
+    # pynq_contraints tells us the XDC line
+    # for port in all_ports_parsed = [gpio_name, gpio_mode, gpio_width]
+    # component_name is passed in.
+    # io_map in form: "led0": "signal" or
+    # io_map in form: "led0": "signal[bit]"
+
+    # For now lets assume we are working with a single port from all_ports_pased
+    for signal in all_ports_parsed:
+        gpio_name = signal[0]
+        gpio_mode = signal[1]
+        gpio_width = signal[2]
+
+        # Add GPIO block for the component - This is a given and will always be done first.
+        #file_contents += add gpio
+        
+        # Next - Take the array of keys and cycle thru the dictionary - if there is a match,
+        occurences = []
+        if io_map:
             for key, value in io_map.items():
-                if value == 'None':
-                    # If there is no connection selected for the IO, skip to the next IO
-                    continue
-
-                if value.endswith(']'): # if it ends with ] then its > 1 bits.
-                    split = value.split("[")
-                    board_gpio = key
-                    external_connection_pin = split[0] + "_ext[" + split[1]
-                    xdc_contents += add_line_to_xdc(board_gpio, external_connection_pin)
-                else:
-                    xdc_contents += add_line_to_xdc(key, value+"_ext")
-
-
-        # (6) Add AXI GPIO for each input/output
-        for io in all_ports:
-            gpio_name = io[0]   # GPIO Name
-            gpio_mode = io[1]   # GPIO Mode (in/out)
-            gpio_type = io[2]   # GPIO Type (single bit/bus/array)
-
-            # New Notes for New Feature:
-            # Tcl commands to create external connection and to rename the connection
-            # startgroup
-            # make_bd_pins_external  [get_bd_pins CB4CLED_0/count]
-            # endgroup
-            # connect_bd_net [get_bd_pins count/gpio_io_i] [get_bd_pins CB4CLED_0/count]
-            # set_property name NEWNAME [get_bd_ports count_0]
-            # dunno what makegroup does but no need worry about it
-                
-            # Implemented as proc make_external_connection {component bd_pin external_pin_name}
-
-            if (gpio_type == "single bit"):
-                gpio_width = 1
-            elif (gpio_type[:3] == "bus"):
-                # <type>bus(31 downto 0)</type>     ## Example Type Value
-                substring = gpio_type[4:]           # substring = '31 downto 0)'
-                words = substring.split()           # words = ['31', 'downto', '0)']
-                gpio_width = int(words[0]) + 1           # words[0] = 31
-            elif (gpio_type[:5] == "array"):
-                print("ERROR: Array mode type is not yet supported :(")
-            else:
-                print("ERROR: Unknown GPIO Type")
-                print(gpio_type)
-
+                if gpio_name == io_map[key].split('[')[0]:
+                    occurences.append([key, io_map[key]])
+                elif  gpio_name == io_map[key].split('[')[0]:
+                    occurences.append([key, io_map[key]])
+            
+        # Now we need to know: Target IO port (i.e. LED0) and the bit that is to be connected.
+        # Lets assume ONLY 1 can be configured right now.
+        if len(occurences) == 0:
+            
+            # If this signal does not appear in io_map (i.e. no signals in occurences array) set signal up with no I/O.
+            # No XDC constraints required.
+            # No external pins to be generated.
 
             if gpio_mode == "out" and int(gpio_width) <= 32:
-                print(gpio_name) 
-                file_contents += f"\nadd_axi_gpio_all_input {gpio_name} {gpio_width}"
-                # If the GPIO is added correctly, connect it to the User I/O
-                file_contents += f"\nconnect_gpio_all_input_to_module_port {gpio_name} {module_source}_0"
-                created_signals.append(gpio_name)
+                file_contents += generate_all_input_no_ext_gpio(gpio_name, gpio_width, module_source, gui_application)
+                # Add signal to the list of GPIO to be connected to interconnect (needed for block automation)
+                interconnect_signals.append(gpio_name)
             elif gpio_mode == "in" and int(gpio_width) <= 32:
-                file_contents += f"\nadd_axi_gpio_all_output {gpio_name} {gpio_width}"
-                # If the GPIO is added correctly, connect it to the User I/O
-                file_contents += f"\nconnect_gpio_all_output_to_module_port {gpio_name} {module_source}_0"
-                created_signals.append(gpio_name)
+                file_contents += generate_all_output_no_ext_gpio(gpio_name, gpio_width, module_source, gui_application)
+                interconnect_signals.append(gpio_name)
             elif gpio_mode == "out" and int(gpio_width) > 32:
-                print(gpio_name + " is greater than 32 bits. I/O will be split.")
-                gpio_width_int = int(gpio_width)
+                returned_file_contents, returned_interconnect_signals = create_split_all_inputs(gpio_mode, gpio_name, gpio_width, module_source, gui_application)
 
-                # Splitting up the GPIO is similar as for the gpio_mode == "in" below.
-                # Except we store X downto Y values as well.
-                split_signal_dict = []
-                pin_counter = 0
-                while gpio_width_int - pin_counter > 0:
-                    if gpio_width_int - pin_counter  > 32:
-                        split_signal_dict.append([f"{gpio_name}_{pin_counter+31}_{pin_counter}", 32, pin_counter, pin_counter+31])
-                        pin_counter += 32
-                    elif gpio_width_int - pin_counter <= 32:
-                        split_signal_dict.append([f"{gpio_name}_{gpio_width_int-1}_{pin_counter}", gpio_width_int-pin_counter, pin_counter, gpio_width_int-1])
-                        pin_counter += gpio_width_int - pin_counter
-                # From here is different.
-                # 1) Make n separate ALL INPUT GPIO.
-                # 2) Add a Slice IP for each of the GPIO signals created.
-                    # Configure as: add_slice_ip {name dIn_width dIn_from dIn_downto dout_width}
-                # 3) Connect Component to Slices
-                # 4) Connect Slices to GPIOs.
-                # 5) Add new slice signals to created_signals map.
-                
-                
-                # 1) Add GPIO
-                for sub_sig in split_signal_dict:
-                    file_contents += f"\nadd_axi_gpio_all_input {sub_sig[0]} {sub_sig[1]}"
-                # 2) Add Slices
-                for sub_sig in split_signal_dict:
-                    file_contents += f"\nadd_slice_ip {sub_sig[0]}_slice {gpio_width} {sub_sig[3]} {sub_sig[2]} {sub_sig[1]}"
-                # 3) Connect Component to Slices
-                for sub_sig in split_signal_dict:
-                    file_contents += f"\nconnect_bd_net [get_bd_pins {module_source}_0/{gpio_name}] [get_bd_pins {sub_sig[0]}_slice/Din]"
-                # 4) Connect the Slices to GPIO
-                for sub_sig in split_signal_dict:
-                    file_contents += f"\nconnect_bd_net [get_bd_pins {sub_sig[0]}/gpio_io_i] [get_bd_pins {sub_sig[0]}_slice/Dout]"
-                # 5) Add signals to created_signals dictionary - Required by interconnect steps later.
-                for sub_sig in split_signal_dict:
-                    created_signals.append(sub_sig[0])
+                file_contents += returned_file_contents
+                for conn in returned_interconnect_signals:
+                    interconnect_signals.append(conn)
 
             elif gpio_mode == "in" and int(gpio_width) > 32:
                 print(gpio_name + " is greater than 32 bits. I/O will be split.")
-                gpio_width_int = int(gpio_width)
+
+                returned_file_contents, returned_interconnect_signals = create_split_all_outputs(gpio_mode, gpio_name, gpio_width, module_source, gui_application)
+
+                file_contents += returned_file_contents
+                for conn in returned_interconnect_signals:
+                    interconnect_signals.append(conn)
+
+            pass # No I/O in this port;
+
+        elif gpio_width == 1 and len(occurences) == 0:  # This will need to be changed to > 0 if support for 1 to many is developed.
+
+            # If gpio_width = 1 and len(occurences) > 0
+            # XDC constraints = {gpio_name}_ext
+            # External Pin is generated.
+
+            # Currently just assuming that only 1 I/O per pin.
+            # If its more that should only be a change in the XDC file anyways. :) (if same mode)
+            
+            if gpio_mode == "in" and pynq_constraints_mode[occurences[0][0]]=="in":
+                # Do not know yet what happens if you have two drivers. Probably not good.
+                if gui_application:
+                    gui_application.add_to_log_box("\nDon't know how to configure inputs yet for gpio_mode = in and pynq_constraints_mode = in. Skipping IO config. (GPIO_width = 1)")
+                file_contents += generate_all_output_no_ext_gpio(gpio_name, gpio_width, module_source, gui_application)
                 
-                # First: Make n (two or more) GPIO for each 32 bit block + remainder.
-                # Second: Add a concat block with n ports 
-                # Third: Connect output of concat (merged signal) to the component
-                # Fourth: Connect n GPIO to n inputs to concat IP.
+                # Add signal to the list of GPIO to be connected to interconnect (needed for block automation)
+                # Possible Solution:
+                # - Make the GPIO an ALL OUTPUT (i.e. You cannot write to the signal using Jupyter Notebook anymore.)
 
-                # Fifth: Add our new signals to an updated all_ports map for later.
+                interconnect_signals.append(gpio_name)
+            elif gpio_mode == "in" and pynq_constraints_mode[occurences[0][0]]=="out":
+                file_contents += generate_all_output_external_gpio(gpio_name, gpio_width, module_source, occurences, gui_application)
+                interconnect_signals.append(gpio_name)
+                # XDC Constraints
+                xdc_contents += add_line_to_xdc(occurences[0][0], gpio_name+"_ext")
+
+            elif gpio_mode == "out" and pynq_constraints_mode[occurences[0][0]]=="in":
+                # This mode is not possible, and should be ignored.
+                if gui_application:
+                    gui_application.add_to_log_box(f"\n{gpio_name} as an output and ({occurences[0][0]}) board I/O as input is not possible. Configuring without I/O")
+
+                file_contents += generate_all_input_no_ext_gpio(gpio_name, gpio_width, module_source, gui_application)
+                # Add signal to the list of GPIO to be connected to interconnect (needed for block automation)
+                interconnect_signals.append(gpio_name)
+                pass
+            elif gpio_mode == "out" and pynq_constraints_mode[occurences[0][0]]=="out":
+                file_contents += generate_all_input_external_gpio(gpio_name, gpio_width, module_source, occurences, gui_application)
+                interconnect_signals.append(gpio_name)
+                # run XDC constraints 
+                xdc_contents += add_line_to_xdc(occurences[0][0], gpio_name+"_ext")
+
+            pass # if the GPIO_width is 1. Make that port external
+        elif gpio_width == len(occurences) and gpio_width <= 32:    # It wouldn't be possible but ok to add check anyways for readability.
+            # if gpio width == len(occurences) then we have fully routed a signal and don't need to slice.
+            # 1) Add GPIO,
+            # 2) Connect
+            interconnect_signals.append(gpio_name)
+            # for occur in occurences:
+            # board_io = occur[0]
+            # signal_pin = occur[1]
+            force_continue = False
+            last_occur_io_mode = pynq_constraints_mode[occurences[0][0]]
+            for occur in occurences:
+                if pynq_constraints_mode[occur[0]] != last_occur_io_mode:
+                    print("=========Does not support mixed INPUT and OUTPUT for GPIO same GPIO at this time=======")
+                    if gui_application:
+                        gui_application.add_to_log_box("\n=========Does not support mixed INPUT and OUTPUT for GPIO same GPIO at this time=======")
+                        file_contents += generate_all_output_no_ext_gpio(gpio_name, gpio_width, module_source, gui_application)
+                        force_continue = True
+                else:
+                    last_occur_io_mode = pynq_constraints_mode[occur[0]]
+
+            # last_occur_io_mode - Right now only out or in exclusively is allowed. Therefore last checked is also valid.
+            if force_continue:
+                continue # Continue to next signal
+
+            if gpio_mode == "in" and last_occur_io_mode=="in":
+                # Do not know yet what happens if you have two drivers. Probably not good.
+                if gui_application:
+                    gui_application.add_to_log_box("\nDon't know how to configure inputs yet for gpio_mode = in and pynq_constraints_mode = in. Skipping IO config. (gpio_width > 1)")
+                file_contents += generate_all_output_no_ext_gpio(gpio_name, gpio_width, module_source, gui_application)
+                # Interconnect is completed already
+                # - Handle (in, in) situations
+
+            elif gpio_mode == "in" and last_occur_io_mode=="out":
+                file_contents += generate_all_output_external_gpio(gpio_name, gpio_width, module_source, occurences, gui_application)
+                # Interconnect is completed already
+                # Generate XDC
+                for occur in occurences:
+                    xdc_contents += add_line_to_xdc(occur[0], occur[1])
+
+            elif gpio_mode == "out" and last_occur_io_mode=="in":
+                # This mode is not possible, and should be ignored.
+                if gui_application:
+                    gui_application.add_to_log_box(f"\n{gpio_name} as an output and IO as input is not possible. Configuring without I/O")
+                file_contents += generate_all_input_no_ext_gpio(gpio_name, gpio_width, module_source, gui_application)
+                # Interconnect is completed already
                 
-                # Precurser: Make an array similar to all_ports that will store config.
-                split_signal_dict = []
-                pin_counter = 0
-                while gpio_width_int - pin_counter > 0:
-                    if gpio_width_int - pin_counter  > 32:
-                        split_signal_dict.append([f"{gpio_name}_{pin_counter+31}_{pin_counter}", 32])
-                        pin_counter += 32
-                    elif gpio_width_int - pin_counter <= 32:
-                        split_signal_dict.append([f"{gpio_name}_{gpio_width_int-1}_{pin_counter}", gpio_width_int-pin_counter])
-                        pin_counter += gpio_width_int - pin_counter
-
-                # Now we have formed a split signal map, we can follow the steps.
-
-                # 1 Make N GPIO blocks
-                for sub_sig in split_signal_dict:
-                    file_contents += f"\nadd_axi_gpio_all_output {sub_sig[0]} {sub_sig[1]}"
-                
-                # 2 Import Concat IP
-                # name_concat for IP name, length of our split signal dict is the number of items we need to support.
-                file_contents += f"\nadd_concat_ip {gpio_name}_concat {len(split_signal_dict)}"
-
-                # 3 Connecting the CONCAT block to Comp
-                file_contents += f"\nconnect_bd_net [get_bd_pins {gpio_name}_concat/dout] [get_bd_pins {module_source}_0/{gpio_name}]"
-
-                # 4 Connect GPIO to CONCAT
-                port_count = 0
-                for sub_sig in split_signal_dict:
-                    file_contents += f"\nconnect_bd_net [get_bd_pins {sub_sig[0]}/gpio_io_o] [get_bd_pins {gpio_name}_concat/In{port_count}]"
-                    port_count += 1
-
-                # final signals 
-                for sub_sig in split_signal_dict:
-                    created_signals.append(sub_sig[0]) 
-
-            else:
-                print("Error Adding GPIO Connection, in/out not specified correctly")
-                break
-
-        # (7) Add the AXI Interconnect to the IP Block Design
-        file_contents += f"\nadd_axi_interconnect 1 {len(created_signals)}"
-
-        # Connect each GPIO to the Interconnect
-        for x in range(len(created_signals)):
-            file_contents += f"\nconnect_bd_intf_net -boundary_type upper [get_bd_intf_pins axi_interconnect_0/M{x:02d}_AXI] [get_bd_intf_pins {created_signals[x]}/S_AXI]"
+            elif gpio_mode == "out" and last_occur_io_mode=="out":
+                file_contents += generate_all_input_external_gpio(gpio_name, gpio_width, module_source, occurences, gui_application)
+                # Interconnect is completed already
+                # Generate XDC
+                for occur in occurences:
+                    xdc_contents += add_line_to_xdc(occur[0], occur[1])
             
 
-        # (8) Add "Processor System Reset" IP
-        file_contents += "\nadd_system_reset_ip"
-        # Connect M_AXI_GP0 of the Processing System to S00_AXI connection of the AXI Interconnect.
-        # TODO: Add this line to the proc file instead maybe
-        file_contents += "\nconnect_bd_intf_net [get_bd_intf_pins processing_system7_0/M_AXI_GP0] -boundary_type upper [get_bd_intf_pins axi_interconnect_0/S00_AXI]"
-
-        # Run auto-connection tool
-        # file_contents += "\nrun_bd_auto_connect"
-        file_contents += "\nrun_bd_automation_rule_processor"
-        file_contents += "\nrun_bd_automation_rule_interconnect"
-        for io in created_signals:
-            file_contents += f"\nrun_bd_automation_rule_io {io}/s_axi_aclk" 
+        # Split Signal Instances
         
+        elif gpio_width > 0 and len(occurences) > 0 and gpio_width > len(occurences) and gpio_width < 0:
+            # Need to slice signals -> equal case caught above.
 
-        # Run block automation tool
-        file_contents += "\nrun_bd_block_automation"
+            # IMPROVEMENT: We could reduce number of IP used by combining neighbouring bits into a single slice IP. I won't for sake of development time right now.
+            # occurences in the form of [signal[x], bit] -> (We know that there cannot be just a single signal as gpio_width > 1 )
+            if gpio_mode == "in":
+                file_contents += generate_all_output_no_ext_gpio(gpio_name, gpio_width, module_source, gui_application)
+            elif gpio_mode == "out":
+                file_contents += generate_all_input_no_ext_gpio(gpio_name, gpio_width, module_source, gui_application)
+            interconnect_signals.append(gpio_name)  # Add to interconnect as normal.
+            
+            for occur in occurences:
+                board_io = occur[0]
+                signal_pin = occur[1]
+                if gpio_mode == "in" and pynq_constraints_mode[board_io]=="in":
+                    # Do not know yet what happens if you have two drivers.
+                    if gui_application:
+                        gui_application.add_to_log_box("\nDon't know how to configure inputs yet. Skipping IO")
+                    # file_contents += generate_all_output_no_ext_gpio(gpio_name, gpio_width, module_source, gui_application)
+                    # Add signal to the list of GPIO to be connected to interconnect (needed for block automation)
+                   
+                elif gpio_mode == "in" and pynq_constraints_mode[board_io]=="out":
+                    # think LED on selOPALU
+                    
+                    # Define the regular expression pattern
+                    pattern = r'\[(\d+)\]'
+                    # Use re.search to find the pattern in the string
+                    match = re.search(pattern, signal_pin)
 
-        # (9) Populate Memory Information
-        file_contents += "\nrun_addr_editor_auto_assign"
-        
-        # (10) Validate the Block Diagram
-        file_contents += "\nvalidate_bd"
-        
-        ## IF BLOCK ENDS
+                    # Check if the pattern is found
+                    if match:
+                        # Extract the number from the matched group
+                        extracted_number = match.group(1)
+                        print("Extracted number:", extracted_number)
+                    else:
+                        print("No match found - Assuming bit 0.")
+                        
+                    
+                    bit = 0
+                    try:
+                        bit = int(extracted_number)
+                    except Exception:
+                        if gui_application:
+                            gui_application.add_to_log_box("\nCould not find specifed bit, assuming bit 0.")
+                    
+                    # Procedure
+                    # 1) Do GPIO connection as normal.
+                    # 2) Add and configure slice component, 
+                    # 3) make it external.
 
-    # Updated workflow: Check if HDLWrapper exists:
-    # If so: Delete and regenerate, if not, generate.
-    # Previous workflow only regenerated if BD was generated 
-    # Method does not allow user to manually change BD and regenerate using PYNQ SoC Builder
+                    # Just like normal, make the inital connection.
+                    file_contents += connect_slice_to_gpio(bit, gpio_mode, gpio_name, gpio_width, slice_number, module_source)
+                    # Add External Port to XDC.
+                    xdc_contents += add_line_to_xdc(board_io, signal_pin.split('[')[0]+"_"+str(slice_number)+"_ext")
+
+                    slice_number += 1   # must be called every time above API is used to ensure there is never any name collisions
+                    pass
+                elif gpio_mode == "out" and pynq_constraints_mode[board_io]=="in":
+                    # This mode is not possible, and should be ignored.
+                    if gui_application:
+                        gui_application.add_to_log_box(f"\n{gpio_name} as an output and IO as input is not possible. Configuring without I/O")
+                    
+                    # Add signal to the list of GPIO to be connected to interconnect (needed for block automation)
+                    pass # not possible
+                elif gpio_mode == "out" and pynq_constraints_mode[board_io]=="out":
+                    # think LED on count
+                    
+                    # Define the regular expression pattern
+                    pattern = r'\[(\d+)\]'
+                    # Use re.search to find the pattern in the string
+                    match = re.search(pattern, signal_pin)
+
+                    # Check if the pattern is found
+                    if match:
+                        # Extract the number from the matched group
+                        extracted_number = match.group(1)
+                        print("Extracted number:", extracted_number)
+                    else:
+                        print("No match found - Assuming bit 0.")
+                        
+                    
+                    bit = 0
+                    try:
+                        bit = int(extracted_number)
+                    except Exception:
+                        if gui_application:
+                            gui_application.add_to_log_box("\nCould not find specifed bit, assuming bit 0.")
+                    
+                    # Procedure
+                    # 1) Do GPIO connection as normal.
+                    # 2) Add and configure slice component, 
+                    # 3) make it external.
+
+                    # Just like normal, make the inital connection.
+                    file_contents += connect_slice_to_gpio(bit, gpio_mode, gpio_name, gpio_width, slice_number, module_source)
+                    # Add External Port to XDC.
+                    xdc_contents += add_line_to_xdc(board_io, signal_pin.split('[')[0]+"_"+str(slice_number)+"_ext")
+
+                    slice_number += 1   # must be called every time above API is used to ensure there is never any name collisions
+                    pass
+                pass
+
+        elif gpio_width > 1 and len(occurences) > 1 and gpio_width < len(occurences):
+            if gui_application:
+                gui_application.add_to_log_box("\nMore occurences than GPIO, not applicable for now. Ignoring - No External Connection Made")
+            if gpio_mode == "out":
+                file_contents += generate_all_input_no_ext_gpio(gpio_name, gpio_width, module_source, gui_application)
+            elif gpio_mode == "in":
+                file_contents += generate_all_output_no_ext_gpio(gpio_name, gpio_width, module_source, gui_application)
+            interconnect_signals.append(gpio_name)
+
+        elif gpio_width > 32 and len(occurences) > 0 and gpio_width > len(occurences):
+            if gui_application:
+                gui_application.add_to_log_box(f"\nOutput on Signal >32-bit. {gpio_name} {gpio_width} {occurences}")
+            print(f"\nOutput on Signal >32-bit. {gpio_name} {gpio_width} {occurences}")
+
+            # How to approach this:
+            # 1) Split our signal as notebook_gen does, into 32 bit chunks with naming standard.
+            # 2) Run loop for each occurence, create a new slice IP for each individual signal.
+            # 3) Can mix in and out - Don't bother supporting inputs at this time.
+
+            # [gpio_name, gpio_mode, gpio_width]
+            # gpio_width > 32 - that is known
+
+            # TODO: This should be looped for each occurence.
+
+
+
+            if gpio_mode == "in":
+                returned_contents, returned_interconnect_signals = create_split_all_outputs(gpio_mode, gpio_name, gpio_width, module_source, gui_application)
+                file_contents += returned_contents
+                for conn in returned_interconnect_signals:
+                    interconnect_signals.append(conn)
+            elif gpio_mode == "out":
+                returned_contents, returned_interconnect_signals = create_split_all_inputs(gpio_mode, gpio_name, gpio_width, module_source, gui_application)
+                file_contents += returned_contents
+                for conn in returned_interconnect_signals:
+                    interconnect_signals.append(conn)
+
+            for occur in occurences:
+                # Extract info from occurence.
+                board_io = occur[0]
+                signal_pin = occur[1]
+                # Locate the target bit from occurence map.
+                pattern = r'\[(\d+)\]'
+                match = re.search(pattern, signal_pin)
+                if match:
+                    # Extract the number from the matched group
+                    extracted_number = match.group(1)
+                    print("Extracted number:", extracted_number)
+                else:
+                    print("No match found - Assuming bit 0.")
+                bit = 0
+                try:
+                    bit = int(extracted_number)
+                except Exception:
+                    if gui_application:
+                        gui_application.add_to_log_box("\nCould not find specifed bit, assuming bit 0.") 
+
+
+                # Now that we have extracted the necessary info, we target our specific application
+                if gpio_mode == "in" and pynq_constraints_mode[board_io]=="in":
+                    if gui_application:
+                        gui_application.add_to_log_box("\nInput IO Mapping on Split Input not supported yet. Adding without IO")
+
+                        # GPIO are already added. No need to do anything with XDC.
+                    pass
+                elif gpio_mode == "in" and pynq_constraints_mode[board_io]=="out":
+                    if gui_application:
+                        gui_application.add_to_log_box(f"\n{signal_pin} mapping to ({board_io}) ")
+                    # Slicing signal
+
+                    # Just like normal, make the inital connection.
+                    # Bit and GPIO need to be changed to sub_bit and sub_signal (33 becomes 1 and gpio_name becomes gpio_name_63_32)
+                    pin_counter = 0
+                    gpio_split = []
+                    while gpio_width - pin_counter > 0:
+                        if gpio_width - pin_counter > 32:
+                            signal_name = f"{gpio_name}_{pin_counter+31}_{pin_counter}"
+                            pin_counter += 32
+                            signal_width = 32
+                        elif gpio_width - pin_counter <= 32:
+                            signal_name = f"{gpio_name}_{gpio_width-1}_{pin_counter}"
+                            signal_width = gpio_width - pin_counter
+                            pin_counter += gpio_width - pin_counter
+                        gpio_split.append([signal_name, signal_width])
+
+                    # Here, we now have an array of ["signal_0_31", "signal_32_63", "signal_64_95"] # We can assume that desired bit is NOT out of range.
+                    # Now we need to align the bit with the subsignal and offset the bit.
+                    sub_signal_index = bit // 32    #   0-31 = 0, 32-63 = 1, 64-95 = 2 and so on.
+
+                    sub_signal = gpio_split[sub_signal_index][0]   # sub_signal
+                    sub_width = gpio_split[sub_signal_index][1]
+                    sub_bit_offset = 32*sub_signal_index        #  0-31 = -0, 32-63 = -32, 64-95 = -64 offset and so on
+                    sub_bit = bit - sub_bit_offset
+                    # We now operate as if we are in <32 bit mode as we know the GPIO to target.
+
+
+
+                    file_contents += connect_slice_to_gpio(sub_bit, gpio_mode, sub_signal, sub_width, slice_number, module_source)
+                    # Add External Port to XDC.
+                    xdc_contents += add_line_to_xdc(board_io, sub_signal+"_"+str(slice_number)+"_ext")
+
+                    slice_number += 1   # must be called every time above API is used to ensure there is never any name collisions
+
+
+                elif gpio_mode == "out" and pynq_constraints_mode[board_io]=="in":
+                    # This case is impossible
+                    if gui_application:
+                        gui_application.add_to_log_box(f"\n{signal_pin} as an output and ({board_io}) board I/O as input is not possible. Configuring without I/O")
+                    # The GPIO is already added, no XDC changes needed.
+                    # XDC
+                    
+                elif gpio_mode == "out" and pynq_constraints_mode[board_io]=="out":
+                    if gui_application:
+                        gui_application.add_to_log_box(f"\n{signal_pin} mapping to ({board_io}) ")
+                    
+                    # Output is routed, just add the slice pin.
+                    file_contents += connect_slice_to_gpio(bit, gpio_mode, gpio_name, gpio_width, slice_number, module_source)
+                    # Add External Port to XDC.
+                    xdc_contents += add_line_to_xdc(board_io, gpio_name+"_"+str(slice_number)+"_ext")
+
+                    slice_number += 1   # must be called every time above API is used to ensure there is never any name collisions
+
+        else:
+            if gui_application:
+                gui_application.add_to_log_box(f"\nEdge Case Detected. {gpio_name} {gpio_width} {occurences}")
+            print(f"\nEdge Case Detected. {gpio_name} {gpio_width} {occurences}")
+
+        # imagine we somehow swap the key and value of the dictionary:
+        # Now check: Is our signal in the swapped dictionary?
+    write_xdc_file(xdc_contents, gui_application)
+    return file_contents, interconnect_signals
+
+#######################################################
+########## Split and Route ALL INPUT signal ##########
+#######################################################
+def create_split_all_inputs(gpio_mode, gpio_name, gpio_width, module_source, gui_application=None):
+    if gui_application:
+        gui_application.add_to_log_box(f"\nCreating split ALL OUTPUTS for {gpio_name} of size {gpio_width}")
+    file_contents = ""
+    interconnect_signals = []
     
-    # (11) Create HDL Wrapper and set created wrapper as top
-    # file_contents += f"\ncreate_hdl_wrapper {path_to_bd} {bd_filename}"
-    # file_contents += f"\nset_wrapper_top {bd_filename}_wrapper"
+    print(gpio_name + " is greater than 32 bits. I/O will be split")
+    gpio_width_int = int(gpio_width)
 
-    # Example Tcl Sequence:
-        # export_ip_user_files -of_objects  [get_files C:/repo/HDLGen-ChatGPT/User_Projects/CB4CLED/VHDL/AMDprj/CB4CLED.srcs/sources_1/bd/CB4CLED_bd/hdl/CB4CLED_bd_wrapper.vhd] -no_script -reset -force -quiet
-        # remove_files  C:/repo/HDLGen-ChatGPT/User_Projects/CB4CLED/VHDL/AMDprj/CB4CLED.srcs/sources_1/bd/CB4CLED_bd/hdl/CB4CLED_bd_wrapper.vhd
-        # file delete -force C:/repo/HDLGen-ChatGPT/User_Projects/CB4CLED/VHDL/AMDprj/CB4CLED.srcs/sources_1/bd/CB4CLED_bd/hdl/CB4CLED_bd_wrapper.vhd
-        # update_compile_order -fileset sources_1
+    # Splitting up the GPIO is similar as for the gpio_mode == "in" below.
+    # Except we store X downto Y values as well.
+    split_signal_dict = []
+    pin_counter = 0
+    while gpio_width_int - pin_counter > 0:
+        if gpio_width_int - pin_counter  > 32:
+            split_signal_dict.append([f"{gpio_name}_{pin_counter+31}_{pin_counter}", 32, pin_counter, pin_counter+31])
+            pin_counter += 32
+        elif gpio_width_int - pin_counter <= 32:
+            split_signal_dict.append([f"{gpio_name}_{gpio_width_int-1}_{pin_counter}", gpio_width_int-pin_counter, pin_counter, gpio_width_int-1])
+            pin_counter += gpio_width_int - pin_counter
+    # From here is different.
+    # 1) Make n separate ALL INPUT GPIO.
+    # 2) Add a Slice IP for each of the GPIO signals created.
+        # Configure as: add_slice_ip {name dIn_width dIn_from dIn_downto dout_width}
+    # 3) Connect Component to Slices
+    # 4) Connect Slices to GPIOs.
+    # 5) Add new slice signals to created_signals map.
+    
+    # 1) Add GPIO
+    for sub_sig in split_signal_dict:
+        file_contents += f"\nadd_axi_gpio_all_input {sub_sig[0]} {sub_sig[1]}"
+    # 2) Add Slices
+    for sub_sig in split_signal_dict:
+        file_contents += f"\nadd_slice_ip {sub_sig[0]}_slice {gpio_width} {sub_sig[3]} {sub_sig[2]} {sub_sig[1]}"
+    # 3) Connect Component to Slices
+    for sub_sig in split_signal_dict:
+        file_contents += f"\nconnect_bd_net [get_bd_pins {module_source}_0/{gpio_name}] [get_bd_pins {sub_sig[0]}_slice/Din]"
+    # 4) Connect the Slices to GPIO
+    for sub_sig in split_signal_dict:
+        file_contents += f"\nconnect_bd_net [get_bd_pins {sub_sig[0]}/gpio_io_i] [get_bd_pins {sub_sig[0]}_slice/Dout]"
+    # 5) Add signals to created_signals dictionary - Required by interconnect steps later.
+    for sub_sig in split_signal_dict:
+        interconnect_signals.append(sub_sig[0])
+    return file_contents, interconnect_signals
 
-    file_contents += f"\nset wrapper_exists [file exists {path_to_bd}/{bd_filename}_wrapper.vhd]"
+#######################################################
+########## Split and Route ALL OUTPUT signal ##########
+#######################################################
+def create_split_all_outputs(gpio_mode, gpio_name, gpio_width, module_source, gui_application=None):
+    if gui_application:
+        gui_application.add_to_log_box(f"\nCreating split ALL INPUTS for {gpio_name} of size {gpio_width}")
+    ###### IMPORTANT: As we are in a loop here creating signals - Need to check what still exists.
+    print(gpio_name + " is greater than 32 bits. I/O will be split.")
+    gpio_width_int = int(gpio_width)
+    
+    file_contents = ""
+    interconnect_signals = []
+    # First: Make n (two or more) GPIO for each 32 bit block + remainder.
+    # Second: Add a concat block with n ports 
+    # Third: Connect output of concat (merged signal) to the component
+    # Fourth: Connect n GPIO to n inputs to concat IP.
+    # Fifth: Add our new signals to an updated all_ports map for later.
+    # Precurser: Make an array similar to all_ports that will store config.
+    split_signal_dict = []
+    pin_counter = 0
+    while gpio_width_int - pin_counter > 0:
+        if gpio_width_int - pin_counter  > 32:
+            split_signal_dict.append([f"{gpio_name}_{pin_counter+31}_{pin_counter}", 32])
+            pin_counter += 32
+        elif gpio_width_int - pin_counter <= 32:
+            split_signal_dict.append([f"{gpio_name}_{gpio_width_int-1}_{pin_counter}", gpio_width_int-pin_counter])
+            pin_counter += gpio_width_int - pin_counter
+
+    # Now we have formed a split signal map, we can follow the steps.
+
+    # 1 Make N GPIO blocks
+    for sub_sig in split_signal_dict:
+        file_contents += f"\nadd_axi_gpio_all_output {sub_sig[0]} {sub_sig[1]}"
+    
+    # 2 Import Concat IP
+    # name_concat for IP name, length of our split signal dict is the number of items we need to support.
+    file_contents += f"\nadd_concat_ip {gpio_name}_concat {len(split_signal_dict)}"
+
+    # 3 Connecting the CONCAT block to Comp
+    file_contents += f"\nconnect_bd_net [get_bd_pins {gpio_name}_concat/dout] [get_bd_pins {module_source}_0/{gpio_name}]"
+
+    # 4 Connect GPIO to CONCAT
+    port_count = 0
+    for sub_sig in split_signal_dict:
+        file_contents += f"\nconnect_bd_net [get_bd_pins {sub_sig[0]}/gpio_io_o] [get_bd_pins {gpio_name}_concat/In{port_count}]"
+        port_count += 1
+
+    # final signals 
+    for sub_sig in split_signal_dict:
+        interconnect_signals.append(sub_sig[0]) 
+
+    return file_contents, interconnect_signals
+
+
+########################################################################
+########## Parse all ports format from XML into useful format ##########
+########################################################################
+def parse_all_ports(all_ports):
+    # All ports recieved as in HDLGen XML.
+    #    signame = sig.getElementsByTagName("name")[0]
+    #    mode = sig.getElementsByTagName("mode")[0]
+    #    type = sig.getElementsByTagName("type")[0]
+    #    desc = sig.getElementsByTagName("description")[0]
+    # Job here is to convert into:
+    # [signal_name, gpio_mode, gpio_width]
+    new_array = []
+    for io in all_ports:
+        gpio_name = io[0]   # GPIO Name
+        gpio_mode = io[1]   # GPIO Mode (in/out)
+        gpio_type = io[2]   # GPIO Type (single bit/bus/array)
+
+        if (gpio_type == "single bit"):
+            gpio_width = 1
+        elif (gpio_type[:3] == "bus"):
+            # <type>bus(31 downto 0)</type> - Example Type Value
+            substring = gpio_type[4:]           # substring = '31 downto 0)'
+            words = substring.split()           # words = ['31', 'downto', '0)']
+            gpio_width = int(words[0]) + 1      # eg. words[0] = 31
+        elif (gpio_type[:5] == "array"):
+            print("ERROR: Array mode type is not yet supported :(")
+        else:
+            print("ERROR: Unknown GPIO Type")
+            print(gpio_type)
+        new_array.append([gpio_name, gpio_mode, gpio_width])
+    return new_array
+
+#################################################
+########## Import XDC Constraints File ##########
+#################################################
+def import_xdc_constraints_file(full_path_to_xdc):
+    # Specify the name of the constraints
+    file_contents = "\nset constraint_name \"constrs_1\""
+
+    # Check if the constraint exists
+
+    ############# Steps to delete existing XDC file #############
+    # export_ip_user_files -of_objects  [get_files {{C:/repo/HDLGen-ChatGPT/User_Projects/Backup_led_Working_io_mapping/CB4CLED/VHDL/AMDprj/CB4CLED.srcs/constrs_1/imports/pynq-z2_v1.0.xdc/PYNQ-Z2 v1.0.xdc}}] -no_script -reset -force -quiet
+    # remove_files  -fileset constrs_1 {{C:/repo/HDLGen-ChatGPT/User_Projects/Backup_led_Working_io_mapping/CB4CLED/VHDL/AMDprj/CB4CLED.srcs/constrs_1/imports/pynq-z2_v1.0.xdc/PYNQ-Z2 v1.0.xdc}}
+    # file delete -force {C:/repo/HDLGen-ChatGPT/User_Projects/Backup_led_Working_io_mapping/CB4CLED/VHDL/AMDprj/CB4CLED.srcs/constrs_1/imports/pynq-z2_v1.0.xdc/PYNQ-Z2 v1.0.xdc} 
+
+    ############# Steps to add new XDC file (note: Copy XDC to project is enabled by import_files command) #############
+    # add_files -fileset constrs_1 -norecurse {{C:/repo/PYNQ-SoC-Builder/pynq-z2_v1.0.xdc/PYNQ-Z2 v1.0.xdc}}
+    # import_files -fileset constrs_1 {{C:/repo/PYNQ-SoC-Builder/pynq-z2_v1.0.xdc/PYNQ-Z2 v1.0.xdc}}
+
+    ############# Steps to check if constraints exist ############# 
+    # file exists C:/repo/HDLGen-ChatGPT/User_Projects/Backup_led_Working_io_mapping/CB4CLED/VHDL/AMDprj/CB4CLED.srcs/constrs_1/imports/pynq-z2_v1.0.xdc
+    # file exists - path to xdc.
+
+    # Step 1: Check if file exists:
+    file_contents += f"\nset xdc_exists [file exists {full_path_to_xdc}]"
+    
+    # Step 2: If file exists - Delete it.
+    file_contents += "\nif {$xdc_exists} {"
+    
+    file_contents += "\n    export_ip_user_files -of_objects  [get_files {{"
+    file_contents += full_path_to_xdc
+    file_contents += "}}] -no_script -reset -force -quiet"
+
+    file_contents += "\n    remove_files  -fileset constrs_1 {{"
+    file_contents += full_path_to_xdc
+    file_contents += "}}"
+
+    file_contents += "\n    file delete -force {"
+    file_contents += full_path_to_xdc
+    file_contents += "}"
+    
+    file_contents += "\n}"
+
+    # Step 3: Add XDC file
+    current_dir = os.getcwd()
+    friendly_current_dir = current_dir.replace("\\", "/")
+    path_to_constraints = friendly_current_dir + "/generated/physical_constr.xdc"       # This needs to be updated with generated constraints
+
+    file_contents += "\nadd_files -fileset constrs_1 -norecurse {"
+    file_contents += path_to_constraints
+    file_contents += "}"
+
+    file_contents += "\nimport_files -force -fileset constrs_1 {"   # -force flag will overwrite physical_constr.xdc if it exists and somehow wasn't deleted.
+    file_contents += path_to_constraints
+    file_contents += "}"
+
+    return file_contents
+
+##########################################
+#   Create VHDL Wrapper and set as top   #
+##########################################
+def create_vhdl_wrapper(bd_filename, path_to_bd):
+    file_contents = f"\nset wrapper_exists [file exists {path_to_bd}/{bd_filename}_wrapper.vhd]"
     file_contents += "\nif {$wrapper_exists} {"
     file_contents += f"\n    export_ip_user_files -of_objects  [get_files {path_to_bd}/{bd_filename}_wrapper.vhd] -no_script -reset -force -quiet"
     file_contents += f"\n    remove_files  {path_to_bd}/{bd_filename}_wrapper.vhd"
@@ -780,23 +1246,30 @@ def generate_tcl(path_to_hdlgen_project, regenerate_bd=True, start_gui=True, kee
     file_contents += f"\n    create_hdl_wrapper {path_to_bd} {bd_filename}"
     file_contents += f"\n    set_wrapper_top {bd_filename}_wrapper"
     file_contents += "\n}"
+    return file_contents
 
-    ########### END OF BLOCK DIAGRAM / WRAPPER CREATION ########### 
+def source_generate_procs():
+    current_dir = os.getcwd()
+    friendly_current_dir = current_dir.replace("\\", "/")
+    file_contents = "source " + friendly_current_dir + "/application/generate_procs.tcl"  # Source the procedures
+    return file_contents
 
-
+##########################################
+#   Return Generate Bitstream Tcl Code   #
+##########################################
+def generate_bitstream(path_to_bd_export, path_to_bd_design):
     # (12) Run Synthesis, Implementation and Generate Bitstream
-    file_contents += "\ngenerate_bitstream"
-    # C:/masters/masters_automation/cb4cled-jn-application_automatic/CB4CLED/vhdl/xilinxprj/automated_bd.tcl
-
-    path_to_bd_export = environment + "/" + AMDproj_folder_rel_path + "/" + bd_filename + ".tcl"   # hotfix changed to environment
-
+    file_contents = "\ngenerate_bitstream"
     # If BD isn't open, export will fail.
-    file_contents += f"\nopen_bd_design {path_to_bd}/{bd_filename}/{bd_filename}.bd"
+    file_contents += f"\nopen_bd_design {path_to_bd_design}"
     file_contents += f"\nexport_bd {path_to_bd_export}"
-    
-    # (13) Save and Quit
-    file_contents += "\nwait_on_run impl_1"
+    return file_contents
 
+####################################
+#   Return Save and Quit Tcl Code  #
+####################################
+def save_and_quit(start_gui, keep_vivado_open):
+    file_contents = "\nwait_on_run impl_1"
     if start_gui:
         if not keep_vivado_open:
             file_contents += "\nstop_gui"
@@ -810,9 +1283,12 @@ def generate_tcl(path_to_hdlgen_project, regenerate_bd=True, start_gui=True, kee
         # file_contents += "\nstop_gui"
         file_contents += "\nclose_design"
         file_contents += "\nexit"
+    return file_contents
 
-    
-    ########## Writing to generate_script.tcl ##########
+########################
+#   Write to Tcl File  #
+########################
+def write_tcl_file(file_contents, gui_application):
     # Check does the /generated/ folder exist
     if not os.path.exists("./generated"):
         os.mkdir("generated")
@@ -826,13 +1302,19 @@ def generate_tcl(path_to_hdlgen_project, regenerate_bd=True, start_gui=True, kee
         if gui_application:
             gui_application.add_to_log_box(f"\nSuccessfully wrote Tcl Script to {os.getcwd()}/generated/generate_script.tcl")
 
+########################
+#   Write to XDC File  #
+########################
+def write_xdc_file(xdc_contents, gui_application):
     with open('generated/physical_constr.xdc', 'w') as file:
         # Export contraints file
         file.write(xdc_contents)
         if gui_application:
             gui_application.add_to_log_box(f"\nSuccessfully wrote constraints file to {os.getcwd()}/generated/physical_constr.xdc")
 
-
+########################
+#   Make XDC Cfg Line  #
+########################
 def add_line_to_xdc(board_gpio, external_pin):
     line_to_add = pynq_constraints[board_gpio]
     line_to_add = line_to_add.replace("signal_name", external_pin)
