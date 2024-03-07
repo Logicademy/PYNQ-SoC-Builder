@@ -834,7 +834,11 @@ def generate_connections(module_source, all_ports_parsed, io_map, gui_applicatio
         # Now we need to know: Target IO port (i.e. LED0) and the bit that is to be connected.
         # Lets assume ONLY 1 can be configured right now.
         if len(occurences) == 0:
-            # Configure as normal if theres no problems
+            
+            # If this signal does not appear in io_map (i.e. no signals in occurences array) set signal up with no I/O.
+            # No XDC constraints required.
+            # No external pins to be generated.
+
             if gpio_mode == "out" and int(gpio_width) <= 32:
                 file_contents += generate_all_input_no_ext_gpio(gpio_name, gpio_width, module_source, gui_application)
                 # Add signal to the list of GPIO to be connected to interconnect (needed for block automation)
@@ -927,26 +931,37 @@ def generate_connections(module_source, all_ports_parsed, io_map, gui_applicatio
 
             pass # No I/O in this port;
 
-        elif gpio_width == 1 and len(occurences) > 0:
+        elif gpio_width == 1 and len(occurences) == 0:  # This will need to be changed to > 0 if support for 1 to many is developed.
+
+            # If gpio_width = 1 and len(occurences) > 0
+            # XDC constraints = {gpio_name}_ext
+            # External Pin is generated.
+
             # Currently just assuming that only 1 I/O per pin.
             # If its more that should only be a change in the XDC file anyways. :) (if same mode)
             
             if gpio_mode == "in" and pynq_constraints_mode[occurences[0][0]]=="in":
                 # Do not know yet what happens if you have two drivers. Probably not good.
                 if gui_application:
-                    gui_application.add_to_log_box("\nDon't know how to configure inputs yet. Skipping IO config.")
+                    gui_application.add_to_log_box("\nDon't know how to configure inputs yet for gpio_mode = in and pynq_constraints_mode = in. Skipping IO config.")
                 file_contents += generate_all_output_no_ext_gpio(gpio_name, gpio_width, module_source, gui_application)
+                
                 # Add signal to the list of GPIO to be connected to interconnect (needed for block automation)
+                # Possible Solution:
+                # - Make the GPIO an ALL OUTPUT (i.e. You cannot write to the signal using Jupyter Notebook anymore.)
+
                 interconnect_signals.append(gpio_name)
             elif gpio_mode == "in" and pynq_constraints_mode[occurences[0][0]]=="out":
                 file_contents += generate_all_output_external_gpio(gpio_name, gpio_width, module_source, occurences, gui_application)
                 interconnect_signals.append(gpio_name)
                 # XDC Constraints
-                
+                xdc_contents += add_line_to_xdc(occurences[0][0], gpio_name+"_ext")
+
             elif gpio_mode == "out" and pynq_constraints_mode[occurences[0][0]]=="in":
                 # This mode is not possible, and should be ignored.
                 if gui_application:
-                    gui_application.add_to_log_box(f"\n{gpio_name} as an output and IO as input is not possible. Configuring without I/O")
+                    gui_application.add_to_log_box(f"\n{gpio_name} as an output and ({occurences[0][0]}) board I/O as input is not possible. Configuring without I/O")
+
                 file_contents += generate_all_input_no_ext_gpio(gpio_name, gpio_width, module_source, gui_application)
                 # Add signal to the list of GPIO to be connected to interconnect (needed for block automation)
                 interconnect_signals.append(gpio_name)
@@ -955,7 +970,7 @@ def generate_connections(module_source, all_ports_parsed, io_map, gui_applicatio
                 file_contents += generate_all_input_external_gpio(gpio_name, gpio_width, module_source, occurences, gui_application)
                 interconnect_signals.append(gpio_name)
                 # run XDC constraints 
-                # # # # # # # # # # #
+                xdc_contents += add_line_to_xdc(occurences[0][0], gpio_name+"_ext")
 
             pass # if the GPIO_width is 1. Make that port external
         elif gpio_width == len(occurences) and gpio_width <= 32:    # It wouldn't be possible but ok to add check anyways for readability.
