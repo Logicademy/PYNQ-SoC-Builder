@@ -1050,7 +1050,7 @@ def create_split_all_inputs(gpio_mode, gpio_name, gpio_width, module_source, gui
     file_contents = ""
     interconnect_signals = []
     
-    print(gpio_name + " is greater than 32 bits. I/O will be split - It has NO I/O connections.")
+    print(gpio_name + " is greater than 32 bits. I/O will be split")
     gpio_width_int = int(gpio_width)
 
     # Splitting up the GPIO is similar as for the gpio_mode == "in" below.
