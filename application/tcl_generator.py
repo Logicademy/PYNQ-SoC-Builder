@@ -788,7 +788,7 @@ def generate_connections(module_source, all_ports_parsed, io_map, gui_applicatio
                 # Interconnect is completed already
                 # Generate XDC
                 for occur in occurences:
-                    xdc_contents += add_line_to_xdc(occur[0], occur[1])
+                    xdc_contents += add_line_to_xdc(occur[0], occur[1]+"_ext")
 
             elif gpio_mode == "out" and last_occur_io_mode=="in":
                 # This mode is not possible, and should be ignored.
@@ -802,7 +802,7 @@ def generate_connections(module_source, all_ports_parsed, io_map, gui_applicatio
                 # Interconnect is completed already
                 # Generate XDC
                 for occur in occurences:
-                    xdc_contents += add_line_to_xdc(occur[0], occur[1])
+                    xdc_contents += add_line_to_xdc(occur[0], occur[1]+"_ext")
             
 
         # Split Signal Instances
