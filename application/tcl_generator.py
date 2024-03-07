@@ -505,6 +505,11 @@ def generate_tcl(path_to_hdlgen_project, regenerate_bd=True, start_gui=True, kee
         file_contents += create_vhdl_wrapper(bd_filename, path_to_bd) 
     elif project_language == "Verilog":
         file_contents += create_verilog_wrapper(bd_filename, path_to_bd)
+    else:
+        print("Couldn't detect language - Deaulting to VHDL")
+        file_contents += create_vhdl_wrapper(bd_filename, path_to_bd)
+        if gui_application:
+            gui_application.add_to_log_box("Couldn't detect language - Defaulting to VHDL")
 
     path_to_bd_export = environment + "/" + AMDproj_folder_rel_path + "/" + bd_filename + ".tcl"   # hotfix changed to environment
     path_to_bd_file = f"{path_to_bd}/{bd_filename}/{bd_filename}.bd"
@@ -683,7 +688,7 @@ def generate_connections(module_source, all_ports_parsed, io_map, gui_applicatio
             for key, value in io_map.items():
                 if gpio_name == io_map[key].split('[')[0]:
                     occurences.append([key, io_map[key]])
-                elif  gpio_name == io_map[key].split('[')[0]:
+                elif  gpio_name == io_map[key]: # Might be redundant 
                     occurences.append([key, io_map[key]])
             
         # Now we need to know: Target IO port (i.e. LED0) and the bit that is to be connected.
@@ -798,7 +803,7 @@ def generate_connections(module_source, all_ports_parsed, io_map, gui_applicatio
                 # Interconnect is completed already
                 # Generate XDC
                 for occur in occurences:
-                    xdc_contents += add_line_to_xdc(occur[0], occur[1]+"_ext")
+                    xdc_contents += add_line_to_xdc(occur[0], occur[1].split('[')[0]+"_ext["+occur[1].split('[')[1])
 
             elif gpio_mode == "out" and last_occur_io_mode=="in":
                 # This mode is not possible, and should be ignored.
@@ -812,12 +817,12 @@ def generate_connections(module_source, all_ports_parsed, io_map, gui_applicatio
                 # Interconnect is completed already
                 # Generate XDC
                 for occur in occurences:
-                    xdc_contents += add_line_to_xdc(occur[0], occur[1]+"_ext")
+                    xdc_contents += add_line_to_xdc(occur[0], occur[1].split('[')[0]+"_ext["+occur[1].split('[')[1])
             
 
         # Split Signal Instances
         
-        elif gpio_width > 0 and len(occurences) > 0 and gpio_width > len(occurences) and gpio_width < 0:
+        elif gpio_width > 0 and len(occurences) > 0 and gpio_width > len(occurences):
             # Need to slice signals -> equal case caught above.
 
             # IMPROVEMENT: We could reduce number of IP used by combining neighbouring bits into a single slice IP. I won't for sake of development time right now.
