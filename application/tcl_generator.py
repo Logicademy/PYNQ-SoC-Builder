@@ -724,7 +724,7 @@ def generate_connections(module_source, all_ports_parsed, io_map, gui_applicatio
 
             pass # No I/O in this port;
 
-        elif gpio_width == 1 and len(occurences) == 0:  # This will need to be changed to > 0 if support for 1 to many is developed.
+        elif gpio_width == 1 and len(occurences) == 1:  # This will need to be changed to > 0 if support for 1 to many is developed.
 
             # If gpio_width = 1 and len(occurences) > 0
             # XDC constraints = {gpio_name}_ext
