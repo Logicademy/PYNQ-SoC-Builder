@@ -293,6 +293,11 @@ def generate_tcl(path_to_hdlgen_project, regenerate_bd=True, start_gui=True, kee
     environment = projectManagerSettings.getElementsByTagName("environment")[0].firstChild.data
     location = projectManagerSettings.getElementsByTagName("location")[0].firstChild.data
 
+    # project_language
+    projectManagerHdl = projectManager.getElementsByTagName("HDL")[0]
+    language = projectManagerHdl.getElementsByTagName("language")[0]
+    project_language = language.getElementsByTagName("name")[0].firstChild.data
+
     if gui_application:
         gui_application.add_to_log_box(f"\nLoaded HDLGen Project: {name} at {path_to_hdlgen_project}")
 
@@ -494,7 +499,12 @@ def generate_tcl(path_to_hdlgen_project, regenerate_bd=True, start_gui=True, kee
         #++++++++# End of Generate New BD File Block #++++++++#
         #+++++++++++++++++++++++++++++++++++++++++++++++++++++#
 
-    file_contents += create_vhdl_wrapper(bd_filename, path_to_bd) 
+
+    # Need to check what mode we are in:
+    if project_language == "VHDL":
+        file_contents += create_vhdl_wrapper(bd_filename, path_to_bd) 
+    elif project_language == "Verilog":
+        file_contents += create_verilog_wrapper(bd_filename, path_to_bd)
 
     path_to_bd_export = environment + "/" + AMDproj_folder_rel_path + "/" + bd_filename + ".tcl"   # hotfix changed to environment
     path_to_bd_file = f"{path_to_bd}/{bd_filename}/{bd_filename}.bd"
@@ -1248,6 +1258,26 @@ def create_vhdl_wrapper(bd_filename, path_to_bd):
     file_contents += "\n}"
     return file_contents
 
+#############################################
+#   Create Verilog Wrapper and set as top   #
+#############################################
+
+def create_verilog_wrapper(bd_filename, path_to_bd):
+    file_contents = f"\nset wrapper_exists [file exists {path_to_bd}/{bd_filename}_wrapper.v]"
+    file_contents += "\nif {$wrapper_exists} {"
+    file_contents += f"\n    export_ip_user_files -of_objects  [get_files {path_to_bd}/{bd_filename}_wrapper.v] -no_script -reset -force -quiet"
+    file_contents += f"\n    remove_files  {path_to_bd}/{bd_filename}_wrapper.v"
+    file_contents += f"\n    file delete -force {path_to_bd}/{bd_filename}_wrapper.v"
+    file_contents += f"\n    update_compile_order -fileset sources_1"
+    file_contents += "\n} else {"
+    file_contents += f"\n    create_hdl_wrapper {path_to_bd} {bd_filename}"
+    file_contents += f"\n    set_wrapper_top {bd_filename}_wrapper"
+    file_contents += "\n}"
+    return file_contents
+
+################################
+#   Import generate_procs.tcl  #
+################################
 def source_generate_procs():
     current_dir = os.getcwd()
     friendly_current_dir = current_dir.replace("\\", "/")
