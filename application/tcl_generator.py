@@ -918,7 +918,7 @@ def generate_connections(module_source, all_ports_parsed, io_map, gui_applicatio
                 file_contents += generate_all_output_no_ext_gpio(gpio_name, gpio_width, module_source, gui_application)
             interconnect_signals.append(gpio_name)
 
-        elif gpio_width > 32 and len(occurences) > 1 and gpio_width < len(occurences):
+        elif gpio_width > 32 and len(occurences) > 0 and gpio_width > len(occurences):
             if gui_application:
                 gui_application.add_to_log_box(f"\nOutput on Signal >32-bit. {gpio_name} {gpio_width} {occurences}")
             print(f"\nOutput on Signal >32-bit. {gpio_name} {gpio_width} {occurences}")
