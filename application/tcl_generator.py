@@ -933,26 +933,7 @@ def generate_connections(module_source, all_ports_parsed, io_map, gui_applicatio
 
             # TODO: This should be looped for each occurence.
 
-            # INPUT TO OUTPUT (sel to LED) ONLY
-            pin_counter = 0
-            gpio_split = []
-            while gpio_width - pin_counter > 0:
-                if gpio_width - pin_counter > 32:
-                    signal_name = f"{gpio_name}_{pin_counter+31}_{pin_counter}"
-                    pin_counter += 32
-                elif gpio_width - pin_counter <= 32:
-                    signal_name = f"{gpio_name}_{gpio_width-1}_{pin_counter}"
-                    pin_counter += gpio_width - pin_counter
-                gpio_split.append(signal_name)
 
-            # Here, we now have an array of ["signal_0_31", "signal_32_63", "signal_64_95"] # We can assume that desired bit is NOT out of range.
-            # Now we need to align the bit with the subsignal and offset the bit.
-            sub_signal_index = bit // 32    #   0-31 = 0, 32-63 = 1, 64-95 = 2 and so on.
-
-            sub_signal = gpio_split[sub_signal_index]   # sub_signal
-            sub_bit_offset = 32*sub_signal_index        #  0-31 = -0, 32-63 = -32, 64-95 = -64 offset and so on
-            sub_bit = bit - sub_bit_offset
-            # We now operate as if we are in <32 bit mode as we know the GPIO to target.
 
             if gpio_mode == "in":
                 returned_contents, returned_interconnect_signals = create_split_all_outputs(gpio_mode, gpio_name, gpio_width, module_source, gui_application)
@@ -964,13 +945,6 @@ def generate_connections(module_source, all_ports_parsed, io_map, gui_applicatio
                 file_contents += returned_contents
                 for conn in returned_interconnect_signals:
                     interconnect_signals.append(conn)
-
-
-
-
-
-
-
 
             for occur in occurences:
                 # Extract info from occurence.
@@ -998,14 +972,64 @@ def generate_connections(module_source, all_ports_parsed, io_map, gui_applicatio
                     if gui_application:
                         gui_application.add_to_log_box("\nInput IO Mapping on Split Input not supported yet. Adding without IO")
 
+                        # GPIO are already added. No need to do anything with XDC.
                     pass
                 elif gpio_mode == "in" and pynq_constraints_mode[board_io]=="out":
-                    pass
-                elif gpio_mode == "out" and pynq_constraints_mode[board_io]=="in":
-                    pass
-                elif gpio_mode == "out" and pynq_constraints_mode[board_io]=="out":
-                    pass
+                    if gui_application:
+                        gui_application.add_to_log_box(f"\n{signal_pin} mapping to ({board_io}) ")
+                    # Slicing signal
 
+                    # Just like normal, make the inital connection.
+                    # Bit and GPIO need to be changed to sub_bit and sub_signal (33 becomes 1 and gpio_name becomes gpio_name_63_32)
+                    pin_counter = 0
+                    gpio_split = []
+                    while gpio_width - pin_counter > 0:
+                        if gpio_width - pin_counter > 32:
+                            signal_name = f"{gpio_name}_{pin_counter+31}_{pin_counter}"
+                            pin_counter += 32
+                            signal_width = 32
+                        elif gpio_width - pin_counter <= 32:
+                            signal_name = f"{gpio_name}_{gpio_width-1}_{pin_counter}"
+                            signal_width = gpio_width - pin_counter
+                            pin_counter += gpio_width - pin_counter
+                        gpio_split.append([signal_name, signal_width])
+
+                    # Here, we now have an array of ["signal_0_31", "signal_32_63", "signal_64_95"] # We can assume that desired bit is NOT out of range.
+                    # Now we need to align the bit with the subsignal and offset the bit.
+                    sub_signal_index = bit // 32    #   0-31 = 0, 32-63 = 1, 64-95 = 2 and so on.
+
+                    sub_signal = gpio_split[sub_signal_index][0]   # sub_signal
+                    sub_width = gpio_split[sub_signal_index][1]
+                    sub_bit_offset = 32*sub_signal_index        #  0-31 = -0, 32-63 = -32, 64-95 = -64 offset and so on
+                    sub_bit = bit - sub_bit_offset
+                    # We now operate as if we are in <32 bit mode as we know the GPIO to target.
+
+
+
+                    file_contents += connect_slice_to_gpio(sub_bit, gpio_mode, sub_signal, sub_width, slice_number, module_source)
+                    # Add External Port to XDC.
+                    xdc_contents += add_line_to_xdc(board_io, sub_signal+"_"+str(slice_number)+"_ext")
+
+                    slice_number += 1   # must be called every time above API is used to ensure there is never any name collisions
+
+
+                elif gpio_mode == "out" and pynq_constraints_mode[board_io]=="in":
+                    # This case is impossible
+                    if gui_application:
+                        gui_application.add_to_log_box(f"\n{signal_pin} as an output and ({board_io}) board I/O as input is not possible. Configuring without I/O")
+                    # The GPIO is already added, no XDC changes needed.
+                    # XDC
+                    
+                elif gpio_mode == "out" and pynq_constraints_mode[board_io]=="out":
+                    if gui_application:
+                        gui_application.add_to_log_box(f"\n{signal_pin} mapping to ({board_io}) ")
+                    
+                    # Output is routed, just add the slice pin.
+                    file_contents += connect_slice_to_gpio(bit, gpio_mode, gpio_name, gpio_width, slice_number, module_source)
+                    # Add External Port to XDC.
+                    xdc_contents += add_line_to_xdc(board_io, gpio_name+"_"+str(slice_number)+"_ext")
+
+                    slice_number += 1   # must be called every time above API is used to ensure there is never any name collisions
 
         else:
             if gui_application:
