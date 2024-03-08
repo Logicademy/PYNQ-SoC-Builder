@@ -481,9 +481,13 @@ def generate_tcl(path_to_hdlgen_project, regenerate_bd=True, start_gui=True, kee
         if gui_application:
                 gui_application.add_to_log_box(f"\nImporting Module: {module_source}")
 
+        # Update compile order might work here
+
         # Export SVG image of the created model
         friendly_cwd = os.getcwd().replace('\\', '/')
-        file_contents += f"\nwrite_bd_layout -format svg {friendly_cwd}/generated/{module_source}.svg"
+        file_contents += f"\nwrite_bd_layout -force -format svg {friendly_cwd}/generated/{module_source}.svg"
+
+
 
         # (5) Add Processor to BD
         file_contents += "\nadd_processing_unit"                        # Import Processing Unit to the BD
