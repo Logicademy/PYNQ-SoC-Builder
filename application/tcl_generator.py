@@ -478,9 +478,9 @@ def generate_tcl(path_to_hdlgen_project, regenerate_bd=True, start_gui=True, kee
         path_to_img_bd = path_to_bd + "/" + img_bd_name + "/" + img_bd_name + ".bd"
 
         # Create block design, import the 
-        file_contents += "create_bd_design 'image_bd'"
-        file_contents += "update_compile_order -fileset sources_1"
-        file_contents += f"create_bd_cell -type module -reference {module_source} {module_source}_0"
+        file_contents += f"\ncreate_bd_design {img_bd_name}"
+        file_contents += "\nupdate_compile_order -fileset sources_1"
+        file_contents += f"\ncreate_bd_cell -type module -reference {module_source} {module_source}_0"
 
     if generate_new_bd_design:
         if gui_application:
@@ -543,16 +543,16 @@ def generate_tcl(path_to_hdlgen_project, regenerate_bd=True, start_gui=True, kee
     # Just before we generate bitstream, reopen first design and export it as SVG before deleting it again.
     if generate_svg:
         # Open the design again
-        file_contents += f"open_bd_design {path_to_img_bd}"
+        file_contents += f"\nopen_bd_design {path_to_img_bd}"
         
         # Export SVG imagea of the created model
         friendly_cwd = os.getcwd().replace('\\', '/')
         file_contents += f"\nwrite_bd_layout -force -format svg {friendly_cwd}/generated/{module_source}.svg"
 
         # Delete it all again
-        file_contents += f"export_ip_user_files -of_objects  [get_files {path_to_img_bd}] -no_script -reset -force -quiet"
-        file_contents += f"remove_files  {path_to_img_bd}"
-        file_contents += f"file delete -force {path_to_bd + "/" + img_bd_name}"
+        file_contents += f"\nexport_ip_user_files -of_objects  [get_files {path_to_img_bd}] -no_script -reset -force -quiet"
+        file_contents += f"\nremove_files  {path_to_img_bd}"
+        file_contents += f"\nfile delete -force {path_to_bd + '/' + img_bd_name}"
 
     file_contents += generate_bitstream(path_to_bd_export,path_to_bd_file)
     file_contents += save_and_quit(start_gui, keep_vivado_open)
