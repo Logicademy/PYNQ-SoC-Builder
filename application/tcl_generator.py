@@ -414,6 +414,7 @@ def generate_tcl(path_to_hdlgen_project, regenerate_bd=True, start_gui=True, kee
     # Wrapper can be Verilog or VHDL
     path_to_wrapper = path_to_bd_folder_check + "/hdl/" + bd_filename + "_wrapper"
 
+    # Use this variables for checking if a wrapper exists
     path_to_vhdl_wrapper_file_check = path_to_wrapper + "vhd"
     path_to_verilog_wrapper_file_check = path_to_wrapper + "v"
 
@@ -448,14 +449,14 @@ def generate_tcl(path_to_hdlgen_project, regenerate_bd=True, start_gui=True, kee
         print("Wrapper exists but BD doesn't, application cannot handle this situation.")
         file_contents += ""
     elif (not wrapper_exists and not bd_exists):
-        print("-> Wrapper and BD not found, generating these components...")
+        print("Wrapper and BD not found, generating these components...")
 
 
     if delete_old_bd_design:
         if gui_application:
             gui_application.add_to_log_box("\nRemoving Old Block Design")
         # TODO: This could have safety checks to in event that one or other doesn't exist.
-        file_contents += f"\ndelete_hdl_wrapper {path_to_wrapper}"  # Wrapper deletes first
+        file_contents += f"\ndelete_hdl_wrapper {path_to_wrapper}"  # Wrapper deletes first - Note Tcl API doesn't want extension
         file_contents += f"\ndelete_file {path_to_bd_file_check}"       # then the BD design
 
     ## Mess is fine here.
