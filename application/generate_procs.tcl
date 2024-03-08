@@ -161,13 +161,46 @@ proc validate_bd {} {
 	validate_bd_design
 }
 
+# Delete HDL Wrapper
+# - The path_to_wrapper_file should contain the path but omit the file extension
+# - For greater reliability, we select the extension in Vivado rather than depending on what HDLGen tells us.
+proc delete_hdl_wrapper {path_to_wrapper_file} {
+	# 1) Check if the wrapper exists, then delete it.
+	set target_lang [get_property TARGET_LANGUAGE [current_project]]
+	if {$target_lang == {Verilog}} {
+		set extension ".v"
+	} else {
+		set extension ".vhd"
+	}
+
+	set full_path "$path_to_wrapper_file$extension"
+	puts [file exists $full_path]
+	if {[file exists $full_path]} {
+		puts "Wrapper Exists: Deleting it now"
+		export_ip_user_files -of_objects  [get_files $full_path] -no_script -reset -force -quiet
+		remove_files  $path_to_wrapper_file
+		file delete -force $path_to_wrapper_file
+	} else {
+		puts "Wrapper didn't exist"
+		puts $path_to_wrapper_file$extension
+	}
+	
+}
+
 # Create HDL Wrapper
 proc create_hdl_wrapper {path_to_bd bd_filename} {
 	# C:/masters/masters_automation/cb4cled-jn-application_automatic/CB4CLED/vhdl/xilinxprj/CB4CLED_Top.srcs/sources_1/bd/automated_bd/automated_bd.bd
 	# C:/masters/masters_automation/cb4cled-jn-application_automatic/CB4CLED/vhdl/xilinxprj/CB4CLED_Top.srcs/sources_1/bd/automated_bd/hdl/automated_bd_wrapper.vhd
+	set target_lang [get_property TARGET_LANGUAGE [current_project]]
 	make_wrapper -files [get_files $path_to_bd/${bd_filename}/${bd_filename}.bd] -top 
-	add_files -norecurse ${path_to_bd}/${bd_filename}/hdl/${bd_filename}_wrapper.vhd
 	update_compile_order -fileset sources_1
+	if {$target_lang == {Verilog}} {
+		add_files -norecurse ${path_to_bd}/${bd_filename}/hdl/${bd_filename}_wrapper.v
+	} else {
+		add_files -norecurse ${path_to_bd}/${bd_filename}/hdl/${bd_filename}_wrapper.vhd
+	}
+	
+
 }
 
 # Set the VHDL wrapper as top.

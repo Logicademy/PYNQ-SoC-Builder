@@ -44,7 +44,7 @@ class File_Manager:
             self.AMDproj_folder = genFolder.getElementsByTagName("vhdl_folder")[4]
         except Exception:
             self.AMDproj_folder = genFolder.getElementsByTagName("verilog_folder")[4]
-        self.AMDproj_folder_path = genFolder.getElementsByTagName("vhdl_folder")[4].firstChild.data
+        self.AMDproj_folder_path = self.AMDproj_folder.firstChild.data
 
         self.pynq_build_path = os.path.join(self.location, "PYNQBuild")
         self.pynq_build_output_path = os.path.join(self.pynq_build_path, "output")
