@@ -105,6 +105,10 @@ def create_jnb(path_to_hdlgen_file, output_filename=None, generic=False):
         else:
             test_cases.append(row)
 
+    # Need to add checks here that if Signals, Mode, or Radix are empty to crash gracefully.
+
+
+
     # print("Signals: ", signals_line)
     # print("Mode: ", mode_line)
     # print("Radix: ", radix_line)

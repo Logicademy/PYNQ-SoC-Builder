@@ -304,13 +304,15 @@ def generate_tcl(path_to_hdlgen_project, regenerate_bd=True, start_gui=True, kee
 
     # genFolder - VHDL Folders
     genFolder = root.getElementsByTagName("genFolder")[0]
-    model_folder = genFolder.getElementsByTagName("vhdl_folder")[0]
-    testbench_folder = genFolder.getElementsByTagName("vhdl_folder")[1]
-    # ChatGPT_folder = genFolder.getElementsByTagName("vhdl_folder")[2]             # Commented as not needed
-    # ChatGPT_Backups_folder = genFolder.getElementsByTagName("vhdl_folder")[3]     # Commented as not needed
     try:
+        model_folder = genFolder.getElementsByTagName("vhdl_folder")[0]
+        testbench_folder = genFolder.getElementsByTagName("vhdl_folder")[1]
+        # ChatGPT_folder = genFolder.getElementsByTagName("vhdl_folder")[2]             # Commented as not needed
+        # ChatGPT_Backups_folder = genFolder.getElementsByTagName("vhdl_folder")[3]     # Commented as not needed
         AMDproj_folder = genFolder.getElementsByTagName("vhdl_folder")[4]
     except Exception:
+        model_folder = genFolder.getElementsByTagName("verilog_folder")[0]
+        testbench_folder = genFolder.getElementsByTagName("verilog_folder")[1]
         AMDproj_folder = genFolder.getElementsByTagName("verilog_folder")[4]
     AMDproj_folder_rel_path = AMDproj_folder.firstChild.data
 
@@ -408,13 +410,17 @@ def generate_tcl(path_to_hdlgen_project, regenerate_bd=True, start_gui=True, kee
     
     path_to_bd_folder_check = path_to_bd + "/" +  bd_filename
     path_to_bd_file_check = path_to_bd_folder_check + "/" + bd_filename + ".bd"
-    path_to_wrapper_file_check = path_to_bd_folder_check + "/hdl/" + bd_filename + "_wrapper.vhd"
+    
+    # Wrapper can be Verilog or VHDL
+    path_to_wrapper = path_to_bd_folder_check + "/hdl/" + bd_filename + "_wrapper"
 
-    # print(path_to_bd_file_check)
-    # print(path_to_wrapper_file_check)
+    # Use this variables for checking if a wrapper exists
+    path_to_vhdl_wrapper_file_check = path_to_wrapper + "vhd"
+    path_to_verilog_wrapper_file_check = path_to_wrapper + "v"
+
 
     bd_exists = os.path.exists(path_to_bd_file_check)
-    wrapper_exists = os.path.exists(path_to_wrapper_file_check)
+    wrapper_exists = os.path.exists(path_to_vhdl_wrapper_file_check) or os.path.exists(path_to_verilog_wrapper_file_check)
 
     if gui_application:
             gui_application.add_to_log_box(f"\nExisting Block Design Found?: {bd_exists}")
@@ -425,6 +431,7 @@ def generate_tcl(path_to_hdlgen_project, regenerate_bd=True, start_gui=True, kee
     print(f"\nExisting HDL Wrapper Found?: {wrapper_exists}")
     print(f"\nRegenerate new BD?: {regenerate_bd}")
 
+    ## This area is a mess.
     if (wrapper_exists and bd_exists):
         if regenerate_bd:
             delete_old_bd_design = True
@@ -433,25 +440,27 @@ def generate_tcl(path_to_hdlgen_project, regenerate_bd=True, start_gui=True, kee
 
     elif (not wrapper_exists and bd_exists):
         print("Wrapper does not exist, BD does exist")
-        if regenerate_bd:
+        if regenerate_bd:   
             file_contents += f"\ndelete_file {path_to_bd_file_check}"  # then the BD design
             delete_old_bd_design = False
             # This section of code could be re-done much better, new workflow later generates wrapper always, therefore
             # we can now handle this situation with no problem.
     elif (wrapper_exists and not bd_exists):
-        print("-> Wrapper exists but BD doesn't, application cannot handle this situation.")
+        print("Wrapper exists but BD doesn't, application cannot handle this situation.")
+        file_contents += ""
     elif (not wrapper_exists and not bd_exists):
-        print("-> Wrapper and BD not found, generating these components...")
+        print("Wrapper and BD not found, generating these components...")
 
 
     if delete_old_bd_design:
         if gui_application:
             gui_application.add_to_log_box("\nRemoving Old Block Design")
         # TODO: This could have safety checks to in event that one or other doesn't exist.
-        file_contents += f"\ndelete_file {path_to_wrapper_file_check}"  # Wrapper deletes first
+        file_contents += f"\ndelete_hdl_wrapper {path_to_wrapper}"  # Wrapper deletes first - Note Tcl API doesn't want extension
         file_contents += f"\ndelete_file {path_to_bd_file_check}"       # then the BD design
 
-    
+    ## Mess is fine here.
+
         #+++++++++++++++++++++++++++++++++++++++++++++++++++++++#
         #++++++++# Start of Generate New BD File Block #++++++++#
         #+++++++++++++++++++++++++++++++++++++++++++++++++++++++#
@@ -501,15 +510,15 @@ def generate_tcl(path_to_hdlgen_project, regenerate_bd=True, start_gui=True, kee
 
 
     # Need to check what mode we are in:
-    if project_language == "VHDL":
-        file_contents += create_vhdl_wrapper(bd_filename, path_to_bd) 
-    elif project_language == "Verilog":
-        file_contents += create_verilog_wrapper(bd_filename, path_to_bd)
-    else:
-        print("Couldn't detect language - Deaulting to VHDL")
-        file_contents += create_vhdl_wrapper(bd_filename, path_to_bd)
-        if gui_application:
-            gui_application.add_to_log_box("Couldn't detect language - Defaulting to VHDL")
+    # if project_language == "VHDL":
+    file_contents += create_vhdl_wrapper(bd_filename, path_to_bd) 
+    # elif project_language == "Verilog":
+    #     file_contents += create_verilog_wrapper(bd_filename, path_to_bd)
+    # else:
+    #     print("Couldn't detect language - Deaulting to VHDL")
+    #     file_contents += create_vhdl_wrapper(bd_filename, path_to_bd)
+    #     if gui_application:
+    #         gui_application.add_to_log_box("Couldn't detect language - Defaulting to VHDL")
 
     path_to_bd_export = environment + "/" + AMDproj_folder_rel_path + "/" + bd_filename + ".tcl"   # hotfix changed to environment
     path_to_bd_file = f"{path_to_bd}/{bd_filename}/{bd_filename}.bd"
