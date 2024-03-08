@@ -465,6 +465,23 @@ def generate_tcl(path_to_hdlgen_project, regenerate_bd=True, start_gui=True, kee
         #++++++++# Start of Generate New BD File Block #++++++++#
         #+++++++++++++++++++++++++++++++++++++++++++++++++++++++#
 
+
+    # We need to    1) Create the BD File
+    #               2) Go do some other things
+    #               3) Come back and export SVG / Delete the block diagram
+    # Why? - BD is exported as blank, can't use same BD as whats actually used for 
+    # bitstream gen cos it generates full picture too fast
+    
+    generate_svg = True
+    if generate_svg:
+        img_bd_name = "image_bd"
+        path_to_img_bd = path_to_bd + "/" + img_bd_name + "/" + img_bd_name + ".bd"
+
+        # Create block design, import the 
+        file_contents += "create_bd_design 'image_bd'"
+        file_contents += "update_compile_order -fileset sources_1"
+        file_contents += f"create_bd_cell -type module -reference {module_source} {module_source}_0"
+
     if generate_new_bd_design:
         if gui_application:
             gui_application.add_to_log_box("\nGenerating New Block Design")
@@ -480,13 +497,6 @@ def generate_tcl(path_to_hdlgen_project, regenerate_bd=True, start_gui=True, kee
         file_contents += f"\nadd_module {module_source} {module_source}_0"  # Import the user-created module
         if gui_application:
                 gui_application.add_to_log_box(f"\nImporting Module: {module_source}")
-
-        # Update compile order might work here
-
-        # Export SVG image of the created model
-        friendly_cwd = os.getcwd().replace('\\', '/')
-        file_contents += f"\nwrite_bd_layout -force -format svg {friendly_cwd}/generated/{module_source}.svg"
-
 
 
         # (5) Add Processor to BD
@@ -530,9 +540,25 @@ def generate_tcl(path_to_hdlgen_project, regenerate_bd=True, start_gui=True, kee
     path_to_bd_export = environment + "/" + AMDproj_folder_rel_path + "/" + bd_filename + ".tcl"   # hotfix changed to environment
     path_to_bd_file = f"{path_to_bd}/{bd_filename}/{bd_filename}.bd"
 
+    # Just before we generate bitstream, reopen first design and export it as SVG before deleting it again.
+    if generate_svg:
+        # Open the design again
+        file_contents += f"open_bd_design {path_to_img_bd}"
+        
+        # Export SVG imagea of the created model
+        friendly_cwd = os.getcwd().replace('\\', '/')
+        file_contents += f"\nwrite_bd_layout -force -format svg {friendly_cwd}/generated/{module_source}.svg"
+
+        # Delete it all again
+        file_contents += f"export_ip_user_files -of_objects  [get_files {path_to_img_bd}] -no_script -reset -force -quiet"
+        file_contents += f"remove_files  {path_to_img_bd}"
+        file_contents += f"file delete -force {path_to_bd + "/" + img_bd_name}"
+
     file_contents += generate_bitstream(path_to_bd_export,path_to_bd_file)
     file_contents += save_and_quit(start_gui, keep_vivado_open)
     write_tcl_file(file_contents, gui_application)
+
+
 
             #++++++++++++++++++++++++++++++++++++++++#
             #++++++++# END OF MAIN FUNCTION #++++++++#
