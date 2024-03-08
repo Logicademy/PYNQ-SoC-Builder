@@ -475,17 +475,19 @@ def generate_tcl(path_to_hdlgen_project, regenerate_bd=True, start_gui=True, kee
         if gui_application:
                 gui_application.add_to_log_box(f"\nCreating Block Design: {bd_filename}")
         
-        # (4) Add Processor to BD
-        file_contents += "\nadd_processing_unit"                        # Import Processing Unit to the BD
-        if gui_application:
-                gui_application.add_to_log_box(f"\nAdding Processing Unit")
-        
-
-        # (5) Add User Created Model to BD
+        # (4) Add User Created Model to BD
         file_contents += "\nset_property source_mgmt_mode All [current_project]"    # Setting automatic mode for source management
         file_contents += f"\nadd_module {module_source} {module_source}_0"  # Import the user-created module
         if gui_application:
                 gui_application.add_to_log_box(f"\nImporting Module: {module_source}")
+
+        # Export SVG image of the created model
+        file_contents += f"\nwrite_bd_layout -format svg {os.join(os.getcwd(), f"/generated/{module_source}.svg")}"
+        
+        # (5) Add Processor to BD
+        file_contents += "\nadd_processing_unit"                        # Import Processing Unit to the BD
+        if gui_application:
+                gui_application.add_to_log_box(f"\nAdding Processing Unit")
         
         # Running this as safety
         file_contents += "\nupdate_compile_order -fileset sources_1"
