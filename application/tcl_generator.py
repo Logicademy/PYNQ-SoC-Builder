@@ -479,8 +479,11 @@ def generate_tcl(path_to_hdlgen_project, regenerate_bd=True, start_gui=True, kee
 
         # Create block design, import the 
         file_contents += f"\ncreate_bd_design {img_bd_name}"
-        file_contents += "\nupdate_compile_order -fileset sources_1"
-        file_contents += f"\ncreate_bd_cell -type module -reference {module_source} {module_source}_0"
+        # file_contents += "\nupdate_compile_order -fileset sources_1"
+        # file_contents += f"\ncreate_bd_cell -type module -reference {module_source} {module_source}_0"
+        file_contents += "\nset_property source_mgmt_mode All [current_project]"    # Setting automatic mode for source management
+        file_contents += f"\nadd_module {module_source} {module_source}_0"  # Import the user-created module
+
 
     if generate_new_bd_design:
         if gui_application:
@@ -548,7 +551,8 @@ def generate_tcl(path_to_hdlgen_project, regenerate_bd=True, start_gui=True, kee
         # Open the design again
         file_contents += f"\nopen_bd_design {path_to_img_bd}"
         
-        # Export SVG imagea of the created model
+        # Export SVG image of the created model
+        print(f"Attempting to export SVG at {location}/PYNQBuild/generated/{module_source}.svg")
         friendly_cwd = os.getcwd().replace('\\', '/')
         file_contents += f"\nwrite_bd_layout -force -format svg {location}/PYNQBuild/generated/{module_source}.svg"
 
