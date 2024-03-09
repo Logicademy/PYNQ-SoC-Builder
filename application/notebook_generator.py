@@ -690,8 +690,8 @@ def generate_gui_controller(compName, parsed_all_ports):
     for port in parsed_all_ports:
         if port[1] == "in":
             input_setup +=  f"\n\t{port[0]}_tbox = widgets.Text("
-            input_setup +=  "\n\t\tvalue='',"
-            input_setup +=  "\n\t\tplaceholder='0x or 0b',"
+            input_setup +=  "\n\t\tvalue='0x0',"
+            input_setup +=  "\n\t\tplaceholder='',"
             input_setup +=  f"\n\t\tdescription='{port[0]}:',"
             input_setup +=  "\n\t\tdisabled=False"
             input_setup +=  "\n\t)"
@@ -714,7 +714,44 @@ def generate_gui_controller(compName, parsed_all_ports):
     py_code += "\n\n\t# Create Set Button Widgets"
     
     py_code += "\n\tdef on_button_click(arg):"
-    py_code += "\n\t\tprint(arg)"
+    
+    read_input_checkbox = ""
+    truncated_msgs = ""
+    write_inputs = ""
+
+    read_output_ports = ""
+    set_output_checkboxes = ""
+
+    for port in parsed_all_ports:
+        if port[1] == "in":
+            # Code to read the value from each input text box
+            read_input_checkbox += f"\n\t\t{port[0]}_value = {port[0]}_tbox.value"
+            # Code to check if a signal has been truncated and to print relevant msg to user.
+            truncated_msgs += f"\n\t\ttruncated, {port[0]}_value = check_max_value({port[0]}, {port[2]})"
+            truncated_msgs += "\n\t\tif truncated:"
+            truncated_msgs += f"\n\t\t\tprint(f\"{port[0]} value provided is > {port[3]} bits, input has been truncated to: "
+            truncated_msgs += "{hex("+port[0]+")}\")"
+            # Write inputs
+            write_inputs += f"\n\t\t{port[0]}.write(0, {port[0]}_value)" 
+            
+        elif port[1] == "out":
+            read_output_ports += f"\n\t\t{port[0]}_value = {port[0]}.read(0)"
+            set_output_checkboxes += f"\n\t\t{port[0]}_tbox.value = hex({port[0]}_value)"
+
+
+
+    py_code += "\n\t\t# Read Values from User Inputs"
+    py_code += read_input_checkbox
+    py_code += "\n\n\t\t# Check Validity of Inputs"
+    py_code += truncated_msgs
+    py_code += "\n\n\t\t# Write Inputs"
+    py_code += write_inputs
+    py_code += "\n\n\t\ttime.sleep(0.00000002)"
+    py_code += "\n\n\t\t# Read Output Signals"
+    py_code += read_output_ports
+    py_code += "\n\n\t\t# Update Textboxes"
+    py_code += set_output_checkboxes
+
 
     py_code += "\n\n\tdisplay_button = Button(description='Set Signals', button_style='info', layout=Layout(width='auto', margin='auto'))"
     py_code += "\n\tdisplay_button.on_click(on_button_click)"
