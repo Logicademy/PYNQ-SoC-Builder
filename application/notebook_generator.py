@@ -262,11 +262,11 @@ def create_jnb(path_to_hdlgen_file, output_filename=None, generic=False):
     if gui_controller:
         markdown_cell = nbf.v4.new_markdown_cell(f"## Component GUI-based Controller")
         notebook.cells.append(markdown_cell)
-        code_cell = nbf.v4.new_code_cell(f"display(generate_gui())")
+        code_cell = nbf.v4.new_code_cell(f"display(generate_gui(svg_content))")
         notebook.cells.append(code_cell)
 
         # Here we need to write the GUI based code and add it to the py_code_contents
-        py_file_contents += generate_gui_controller(compName, parsed_all_ports)
+        py_file_contents += generate_gui_controller(compName, parsed_all_ports, location)
 
     ##### Break here if only dealing with skeleton code.
     # Possible To-do here is a "example" cell showing how to use signals
@@ -666,20 +666,22 @@ def hex_to_padded_chunks(hex_number, desired_bits):
 
     return hex_arrays
 
-def generate_gui_controller(compName, parsed_all_ports):
+def generate_gui_controller(compName, parsed_all_ports, location):
 
     py_code = ""
 
     current_cwd = os.getcwd().replace("\\", "/")
-    svg_path = current_cwd + "/generated/image.svg"
+    svg_path = location.replace("\\", "/") + f"/PYNQBuild/generated/{compName}.svg"
      
     svg_data = ""
     with open(svg_path, 'r') as file:
         svg_data = file.read()
 
-    py_code += f"\nsvg_content = {svg_data}"
+    svg_data = svg_data.replace("\"", "'")
+    svg_data = svg_data.replace('\n', r'\n')
+    py_code += f"\nsvg_content = \"{svg_data}\""
 
-    py_code += "\n\n\ndef generate_gui():"
+    py_code += "\n\n\ndef generate_gui(svg_content):"
     # py_code += f"\n\tfile_path = '{compName}.svg'"
     # py_code += "\n\n\t#Read the SVG content from the file"
     # py_code += "\n\twith open(file_path, 'r') as file:"
