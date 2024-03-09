@@ -698,22 +698,51 @@ def generate_gui_controller(compName, parsed_all_ports, location):
     output_setup = ""
     num_input = 0
     num_output = 0
+
+    py_code += "\n\t\tdef update_button_state(change, label, button):"
+    py_code += "\n\t\t\tif change['new']:"
+    py_code += "\n\t\t\t\tbutton.value = True"
+    py_code += "\n\t\t\t\tbutton.description = '1'"
+    py_code += "\n\t\t\t\tbutton.button_style = 'success'  # Green color"
+    py_code += "\n\t\t\telse:"
+    py_code += "\n\t\t\t\tbutton.value = False"
+    py_code += "\n\t\t\t\tbutton.description = '0'"
+    py_code += "\n\t\t\t\tbutton.button_style = 'danger'   # Red color"
+
     for port in parsed_all_ports:
         if port[1] == "in":
-            input_setup +=  f"\n\t{port[0]}_tbox = widgets.Text("
-            input_setup +=  "\n\t\tvalue='0x0',"
-            input_setup +=  "\n\t\tplaceholder='',"
-            input_setup +=  f"\n\t\tdescription='{port[0]}:',"
-            input_setup +=  "\n\t\tdisabled=False"
-            input_setup +=  "\n\t)"
+            if port[2] == 1:
+                # Create Button
+                input_setup +=  f"\n\t{port[0]}_btn = widgets.ToggleButton("
+                input_setup +=  "\n\t\tvalue='False',"
+                input_setup +=  f"\n\t\tdescription='0',"
+                input_setup +=  "\n\t\tdisabled=False,"
+                input_setup +=  "\n\t\tbutton_style='danger'"
+                input_setup +=  "\n\t)"
+                # Create Label
+                input_setup += f"\n\t{port[0]}_lbl = widgets.Label(value='{port[0]}')"
+                # Add Event Listener
+                input_setup += f"{port[0]}_btn.observe(lambda change: update_button_state(change, {port[0]}_lbl, {port[0]}_btn), names='value')"
+                # hbox = HBox([label1, toggle_button1, label2, toggle_button2])
+                input_setup += f"{port[0]}_hbox = HBox([{port[0]}_lbl, {port[0]}_btn])"
+            else:  
+                input_setup +=  f"\n\t{port[0]}_tbox = widgets.Text("
+                input_setup +=  "\n\t\tvalue='0x0',"
+                input_setup +=  "\n\t\tplaceholder='',"
+                input_setup +=  f"\n\t\tdescription='{port[0]}:',"
+                input_setup +=  "\n\t\tdisabled=False"
+                input_setup +=  "\n\t)"
             num_input += 1
         elif port[1] == "out":
-            output_setup +=  f"\n\t{port[0]}_tbox = widgets.Text("
-            output_setup +=  "\n\t\tvalue='',"
-            output_setup +=  "\n\t\tplaceholder='',"
-            output_setup +=  f"\n\t\tdescription='{port[0]}:',"
-            output_setup +=  "\n\t\tdisabled=True"
-            output_setup +=  "\n\t)"
+            if port[2] == -1:   # This will be used to make red/green light on output later
+                pass
+            else:
+                output_setup +=  f"\n\t{port[0]}_tbox = widgets.Text("
+                output_setup +=  "\n\t\tvalue='',"
+                output_setup +=  "\n\t\tplaceholder='',"
+                output_setup +=  f"\n\t\tdescription='{port[0]}:',"
+                output_setup +=  "\n\t\tdisabled=True"
+                output_setup +=  "\n\t)"
             num_output += 1
 
     py_code += "\n\n\t# Create Input Widgets"
@@ -736,23 +765,29 @@ def generate_gui_controller(compName, parsed_all_ports, location):
 
     for port in parsed_all_ports:
         if port[1] == "in":
-            # Code to read the value from each input text box
-            read_input_checkbox += f"\n\t\t{port[0]}_value = {port[0]}_tbox.value"
-            # Code to check if a signal has been truncated and to print relevant msg to user.
-            truncated_msgs += f"\n\t\ttruncated, {port[0]}_value = check_max_value({port[0]}_value, {port[2]})"
-            truncated_msgs += "\n\t\tif truncated:"
-            truncated_msgs += f"\n\t\t\tprint(f\"{port[0]} value provided is > {port[2]} bits, input has been truncated to: "
-            truncated_msgs += "{hex("+port[0]+"_value)}\")"
-            # Write inputs
-            write_inputs += f"\n\t\t{port[0]}.write(0, {port[0]}_value)" 
-            # Set placeholder values of textboxes to last pushed value
-            set_placeholders += f"\n\t\t{port[0]}_tbox.placeholder = str({port[0]}_tbox.value)"
+            if port[2] == 1:
+                # Set value int 1 or 0 if true or false respectively.
+                read_input_checkbox += f"\n\t\t{port[0]}_value = 1 if {port[0]}_btn.value else 0"
+                # No need to run any truncated msgs checks as the value can only be 1/0. 
+                # Set the values
+                write_inputs += f"\n\t\t{port[0]}.write(0, {port[0]}_value)" 
+                # No need to worry about setting placeholders either.
+            else:
+                # Code to read the value from each input text box
+                read_input_checkbox += f"\n\t\t{port[0]}_value = {port[0]}_tbox.value"
+                # Code to check if a signal has been truncated and to print relevant msg to user.
+                truncated_msgs += f"\n\t\ttruncated, {port[0]}_value = check_max_value({port[0]}_value, {port[2]})"
+                truncated_msgs += "\n\t\tif truncated:"
+                truncated_msgs += f"\n\t\t\tprint(f\"{port[0]} value provided is > {port[2]} bits, input has been truncated to: "
+                truncated_msgs += "{hex("+port[0]+"_value)}\")"
+                # Write inputs
+                write_inputs += f"\n\t\t{port[0]}.write(0, {port[0]}_value)" 
+                # Set placeholder values of textboxes to last pushed value
+                set_placeholders += f"\n\t\t{port[0]}_tbox.placeholder = str({port[0]}_tbox.value)"
             
         elif port[1] == "out":
             read_output_ports += f"\n\t\t{port[0]}_value = {port[0]}.read(0)"
             set_output_checkboxes += f"\n\t\t{port[0]}_tbox.value = hex({port[0]}_value)"
-
-
 
     py_code += "\n\t\t# Read Values from User Inputs"
     py_code += read_input_checkbox
