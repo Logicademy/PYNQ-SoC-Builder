@@ -714,12 +714,13 @@ def generate_gui_controller(compName, parsed_all_ports, location):
 
     for port in parsed_all_ports:
         if port[1] == "in":
-            if port[2] == 1:
+            if port[2] == -1:
                 # Create Button
                 input_setup +=  f"\n\t{port[0]}_btn = widgets.ToggleButton("
                 input_setup +=  "\n\t\tvalue=False,"
                 input_setup +=  f"\n\t\tdescription='0',"
                 input_setup +=  "\n\t\tdisabled=False,"
+                # input_setup +=  "\n\t\tlayout=Layout(width='auto', margin='auto'),"
                 input_setup +=  "\n\t\tbutton_style='danger'"
                 input_setup +=  "\n\t)"
                 # Create Label
@@ -737,12 +738,13 @@ def generate_gui_controller(compName, parsed_all_ports, location):
                 input_setup +=  "\n\t)"
             num_input += 1
         elif port[1] == "out":
-            if port[2] == 1:   # This will be used to make red/green light on output later
+            if port[2] == -1:   # This will be used to make red/green light on output later
                 # Create Button
                 output_setup +=  f"\n\t{port[0]}_btn = widgets.ToggleButton("
                 output_setup +=  "\n\t\tvalue=False,"
                 output_setup +=  f"\n\t\tdescription='0',"
                 output_setup +=  "\n\t\tdisabled=True,"
+                output_setup +=  "\n\t\tlayout=Layout(width='auto', margin='auto'),"
                 output_setup +=  "\n\t\tbutton_style='danger'"
                 output_setup +=  "\n\t)"
                 # Create Label
@@ -778,7 +780,7 @@ def generate_gui_controller(compName, parsed_all_ports, location):
 
     for port in parsed_all_ports:
         if port[1] == "in":
-            if port[2] == 1:
+            if port[2] == -1:
                 # Set value int 1 or 0 if true or false respectively.
                 read_input_checkbox += f"\n\t\t{port[0]}_value = 1 if {port[0]}_btn.value else 0"
                 # No need to run any truncated msgs checks as the value can only be 1/0. 
@@ -800,10 +802,10 @@ def generate_gui_controller(compName, parsed_all_ports, location):
             
         elif port[1] == "out":
             read_output_ports += f"\n\t\t{port[0]}_value = {port[0]}.read(0)"
-            if port[2] == 1:
+            if port[2] == -1:
                 # Set value int 1 or 0 if true or false respectively.
                 set_output_checkboxes += f"\n\t\t{port[0]}_btn.button_style = 'success' if {port[0]}_value==1 else 'danger'"
-                set_output_checkboxes += f"\n\t\t{port[0]}_btn.value = 1 if {port[0]}_value==1 else 0"
+                set_output_checkboxes += f"\n\t\t{port[0]}_btn.description = '1' if {port[0]}_value==1 else '0'"
                 # No need to run any truncated msgs checks as the value can only be 1/0. 
                 # Set the values
                 # No need to worry about setting placeholders either.
@@ -847,13 +849,13 @@ def generate_gui_controller(compName, parsed_all_ports, location):
     # Form Placement Code    
     for port in parsed_all_ports:
         if port[1] == "in":
-            if port[2] == 1:
+            if port[2] == -1:
                 input_widgets_placement += f"\n\tgrid[{input_grid_depth_index}, 0] = {port[0]}_hbox"
             else:
                 input_widgets_placement += f"\n\tgrid[{input_grid_depth_index}, 0] = {port[0]}_tbox"
             input_grid_depth_index += 1
         elif port[1] == "out":
-            if port[2] == 1:
+            if port[2] == -1:
                 output_widgets_placement += f"\n\tgrid[{output_grid_depth_index}, 2] = {port[0]}_hbox"
             else:
                 output_widgets_placement += f"\n\tgrid[{output_grid_depth_index}, 2] = {port[0]}_tbox"
