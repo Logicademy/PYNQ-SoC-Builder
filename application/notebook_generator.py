@@ -13,7 +13,7 @@ def create_jnb(path_to_hdlgen_file, output_filename=None, generic=False):
     # PY File Imports
     py_file_contents += "import ipywidgets as widgets"
     py_file_contents += "\nfrom IPython.display import SVG, display"
-    py_file_contents += "\nfrom ipywidgets import GridspecLayout, Output"
+    py_file_contents += "\nfrom ipywidgets import GridspecLayout, Output, HBox"
     py_file_contents += "\nfrom ipywidgets import Button, Layout, jslink, IntText, IntSlider"
     py_file_contents += "\nfrom pynq import Overlay"
     py_file_contents += "\nimport pandas as pd"
@@ -429,10 +429,6 @@ def create_jnb(path_to_hdlgen_file, output_filename=None, generic=False):
 
         test_results_string = test_results_string[:-2] + "]" # delete the last 
 
-
-
-
-
         code_cell_contents += test_results_string
         
         code_cell_contents += "\n\t\tdf = pd.DataFrame({"
@@ -445,6 +441,18 @@ def create_jnb(path_to_hdlgen_file, output_filename=None, generic=False):
         code_cell_contents += "\n\telse:"
         code_cell_contents += "\n\t\tprint('Invalid Test Number Provided')"
 
+        code_cell_contents += "\n\n# Split Number into Blocks"
+        code_cell_contents += "\ndef split_into_blocks(number, num_blocks):"
+        code_cell_contents += "\n\tblock_size = 32"
+        code_cell_contents += "\n\tmask = (1 << block_size) - 1  # Create a mask with 32 bits set to 1"
+        code_cell_contents += "\n\tblocks = []"
+        code_cell_contents += "\n\tfor i in range(0, 32*blocks, block_size):"
+        code_cell_contents += "\n\t\tblock = (number & mask)"
+        code_cell_contents += "\n\t\tblocks.append(block)"
+        code_cell_contents += "\n\t\tnumber >>= block_size"
+        code_cell_contents += "\n\treturn blocks"
+
+        code_cell_contents += "\n" + create_large_classes_from_port_map(parsed_all_ports)
 
         #### END OF PYTHON TEST CASE SET UP CODE BLOCK - SENDING TO PYTHON FILE ####
         py_file_contents += "\n\n# Test Case Set Up Code\n\n" + code_cell_contents
@@ -714,7 +722,7 @@ def generate_gui_controller(compName, parsed_all_ports, location):
             if port[2] == 1:
                 # Create Button
                 input_setup +=  f"\n\t{port[0]}_btn = widgets.ToggleButton("
-                input_setup +=  "\n\t\tvalue='False',"
+                input_setup +=  "\n\t\tvalue=False,"
                 input_setup +=  f"\n\t\tdescription='0',"
                 input_setup +=  "\n\t\tdisabled=False,"
                 input_setup +=  "\n\t\tbutton_style='danger'"
@@ -722,9 +730,9 @@ def generate_gui_controller(compName, parsed_all_ports, location):
                 # Create Label
                 input_setup += f"\n\t{port[0]}_lbl = widgets.Label(value='{port[0]}')"
                 # Add Event Listener
-                input_setup += f"{port[0]}_btn.observe(lambda change: update_button_state(change, {port[0]}_lbl, {port[0]}_btn), names='value')"
+                input_setup += f"\n\t{port[0]}_btn.observe(lambda change: update_button_state(change, {port[0]}_lbl, {port[0]}_btn), names='value')"
                 # hbox = HBox([label1, toggle_button1, label2, toggle_button2])
-                input_setup += f"{port[0]}_hbox = HBox([{port[0]}_lbl, {port[0]}_btn])"
+                input_setup += f"\n\t{port[0]}_hbox = HBox([{port[0]}_lbl, {port[0]}_btn])"
             else:  
                 input_setup +=  f"\n\t{port[0]}_tbox = widgets.Text("
                 input_setup +=  "\n\t\tvalue='0x0',"
@@ -826,10 +834,16 @@ def generate_gui_controller(compName, parsed_all_ports, location):
     # Form Placement Code    
     for port in parsed_all_ports:
         if port[1] == "in":
-            input_widgets_placement += f"\n\tgrid[{input_grid_depth_index}, 0] = {port[0]}_tbox"
+            if port[2] == 1:
+                input_widgets_placement += f"\n\tgrid[{input_grid_depth_index}, 0] = {port[0]}_hbox"
+            else:
+                input_widgets_placement += f"\n\tgrid[{input_grid_depth_index}, 0] = {port[0]}_tbox"
             input_grid_depth_index += 1
         elif port[1] == "out":
-            output_widgets_placement += f"\n\tgrid[{output_grid_depth_index}, 2] = {port[0]}_tbox"
+            if port[2] == 1:
+                output_widgets_placement += f"\n\tgrid[{output_grid_depth_index}, 2] = {port[0]}_hbox"
+            else:
+                output_widgets_placement += f"\n\tgrid[{output_grid_depth_index}, 2] = {port[0]}_tbox"
             output_grid_depth_index += 1
     
     # Place button at end of inputs after loop
@@ -902,3 +916,52 @@ def parse_all_ports(all_ports):
             print(gpio_type)
         new_array.append([gpio_name, gpio_mode, gpio_width])
     return new_array
+
+
+def large_signal_split_names(gpio_name, gpio_width):
+    pin_counter = 0
+    return_array = []
+    while gpio_width - pin_counter > 0:
+        if gpio_width - pin_counter > 32:
+            return_array.append(f"{gpio_name}_{pin_counter+31}_{pin_counter}")
+            pin_counter += 32
+        elif gpio_width - pin_counter <= 32:
+            return_array.append(f"{gpio_name}_{gpio_width-1}_{pin_counter}")
+            pin_counter += gpio_width - pin_counter        
+    return return_array
+def create_class_for_large_signal(gpio_name, gpio_mode, gpio_width):
+    code_string = ""
+    code_string += f"\n\nclass {gpio_name}_class:"
+
+    array_of_signal = large_signal_split_names(gpio_name, gpio_width)
+    code_string += "\n\tdef __init__(self):"
+    code_string += f"\n\t\tpass\n"
+    code_string += "\n\tdef read(self, offset):"
+    code_string += f"\n\t\tblocks = split_into_blocks(value, {len(array_of_signal)})"
+    code_string += f"\n\t\treadings = {len(array_of_signal)} * [None]"
+    for x in range(0, len(array_of_signal)):
+        code_string += f"\n\t\tblock[{x}] = {array_of_signal[x]}.read(offset)"
+    code_string += "\n\t\tresult = 0"
+    code_string += "\n\t\tfor block in blocks:"
+    code_string += "\n\t\t\tresult = (result << 32) | block"
+    code_string += "\n\t\treturn result\n"
+
+    if gpio_mode == "in":
+        code_string += "\n\tdef write(self,offset, value):"
+        code_string += f"\n\t\tblocks = split_into_blocks(value, {len(array_of_signal)})"
+        for x in range(0, len(array_of_signal)):
+            code_string += f"\n\t\t{array_of_signal[x]}.write(offset, blocks[{x}])"
+
+    return code_string
+
+def create_large_classes_from_port_map(parsed_port_map):
+    code = ""
+    for signal in parsed_port_map:
+        gpio_name = signal[0]
+        gpio_mode = signal[1]
+        gpio_width = signal[2]
+
+        if gpio_width > 32:
+            code += create_class_for_large_signal(gpio_name, gpio_mode, gpio_width)
+
+    return code
