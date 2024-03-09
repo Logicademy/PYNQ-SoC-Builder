@@ -3,6 +3,7 @@ import xml.dom.minidom
 import csv
 from io import StringIO
 import html
+import os
 
 # Function to generate JNB, takes HDLGen file path and notebook name as parameters
 def create_jnb(path_to_hdlgen_file, output_filename=None, generic=False):
@@ -669,11 +670,20 @@ def generate_gui_controller(compName, parsed_all_ports):
 
     py_code = ""
 
+    current_cwd = os.getcwd().replace("\\", "/")
+    svg_path = current_cwd + "/generated/image.svg"
+     
+    svg_data = ""
+    with open(svg_path, 'r') as file:
+        svg_data = file.read()
+
+    py_code += f"\nsvg_content = {svg_data}"
+
     py_code += "\n\n\ndef generate_gui():"
-    py_code += f"\n\tfile_path = '{compName}.svg'"
-    py_code += "\n\n\t#Read the SVG content from the file"
-    py_code += "\n\twith open(file_path, 'r') as file:"
-    py_code += "\n\t\tsvg_content = file.read()"
+    # py_code += f"\n\tfile_path = '{compName}.svg'"
+    # py_code += "\n\n\t#Read the SVG content from the file"
+    # py_code += "\n\twith open(file_path, 'r') as file:"
+    # py_code += "\n\t\tsvg_content = file.read()"
 
     py_code += "\n\t# Format SVG Data"
     py_code += "\n\tsvg_content = svg_content.split('<?xml', 1)[-1]"
@@ -727,10 +737,10 @@ def generate_gui_controller(compName, parsed_all_ports):
             # Code to read the value from each input text box
             read_input_checkbox += f"\n\t\t{port[0]}_value = {port[0]}_tbox.value"
             # Code to check if a signal has been truncated and to print relevant msg to user.
-            truncated_msgs += f"\n\t\ttruncated, {port[0]}_value = check_max_value({port[0]}, {port[2]})"
+            truncated_msgs += f"\n\t\ttruncated, {port[0]}_value = check_max_value({port[0]}_value, {port[2]})"
             truncated_msgs += "\n\t\tif truncated:"
             truncated_msgs += f"\n\t\t\tprint(f\"{port[0]} value provided is > {port[2]} bits, input has been truncated to: "
-            truncated_msgs += "{hex("+port[0]+")}\")"
+            truncated_msgs += "{hex("+port[0]+"_value)}\")"
             # Write inputs
             write_inputs += f"\n\t\t{port[0]}.write(0, {port[0]}_value)" 
             
@@ -790,6 +800,33 @@ def generate_gui_controller(compName, parsed_all_ports):
     py_code += output_widgets_placement
 
     py_code += "\n\n\treturn grid"
+
+    py_code += "\n\n\ndef check_max_value(number_str, num_bits):"
+    py_code += "\n\ttry:"
+    py_code += "\n\t\t# Extracting the base and value from the input string"
+    py_code += "\n\t\tif number_str.startswith('0x'):"
+    py_code += "\n\t\t\tbase = 16"
+    py_code += "\n\t\t\tvalue = int(number_str, base)"
+    py_code += "\n\t\telif number_str.startswith('0b'):"
+    py_code += "\n\t\t\tbase = 2"
+    py_code += "\n\t\t\tvalue = int(number_str, base)"
+    py_code += "\n\t\telse:"
+    py_code += "\n\t\t\tbase = 10"
+    py_code += "\n\t\t\tvalue = int(number_str, base)"
+    py_code += "\n"
+    py_code += "\n\t\t# Calculating the maximum representable value based on the number of bits"
+    py_code += "\n\t\tmax_value = 2**num_bits - 1"
+    py_code += "\n"
+    py_code += "\n\t\t# Checking if the value exceeds the maximum"
+    py_code += "\n\t\tif value > max_value:"
+    py_code += "\n\t\t\t# Truncate the value to fit within the specified number of bits"
+    py_code += "\n\t\t\ttruncated_value = value % (2**num_bits)"
+    py_code += "\n\t\t\treturn True, truncated_value"
+    py_code += "\n\t\telse:"
+    py_code += "\n\t\t\treturn False, value"
+    py_code += "\n\texcept ValueError:"
+    py_code += "\n\t\treturn False, None"
+    
 
     return py_code
 

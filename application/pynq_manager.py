@@ -31,6 +31,7 @@ class Pynq_Manager:
             self.location = projectManagerSettings.getElementsByTagName("location")[0].firstChild.data
             self.pynq_build_path = os.path.join(self.location, "PYNQBuild")
             self.pynq_build_output_path = os.path.join(self.pynq_build_path, "output")
+            self.pynq_build_generated_path = os.path.join(self.pynq_build_path, "generated")
         else:
             self.vivado_bat_path = vivado_bat_path              # Path to vivado .bat file
         
@@ -112,11 +113,13 @@ class Pynq_Manager:
         return bd_exists
 
     def generate_tcl(self, regenerate_bd=True, start_gui=True, keep_vivado_open=False, skip_board_config=False, io_map=None, gui_app=None):
+        self.check_generated_path_and_mkdir()
         tcl_gen.generate_tcl(self.hdlgen_project_path, regenerate_bd=regenerate_bd, start_gui=start_gui, keep_vivado_open=keep_vivado_open, skip_board_config=skip_board_config, io_map=io_map, gui_application=gui_app)
 
     def run_vivado(self):
         # D:\Xilinx\Vivado\2019.1\bin\vivado.bat -mode tcl -source C:/masters/masters_automation/generate_script.tcl
         try:
+            self.check_generated_path_and_mkdir()
             print("Starting Vivado")
             vivado_process = subprocess.run([self.vivado_bat_path, "-mode", "tcl", "-source", "./generated/generate_script.tcl"], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
             print("Bit stream generation is complete")
@@ -141,6 +144,12 @@ class Pynq_Manager:
             os.makedirs(self.pynq_build_output_path)
         except FileExistsError:
             print("PYNQBuild/output exists already.")
+
+    def check_generated_path_and_mkdir(self):
+        try:
+            os.makedirs(self.pynq_build_generated_path)
+        except FileExistsError:
+            print("PYNQBuild/generated exists already.")
 
     def generate_jnb(self, generic=False):
         self.check_path_and_mkdir()
