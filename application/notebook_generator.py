@@ -446,7 +446,7 @@ def create_jnb(path_to_hdlgen_file, output_filename=None, generic=False):
         code_cell_contents += "\n\tblock_size = 32"
         code_cell_contents += "\n\tmask = (1 << block_size) - 1  # Create a mask with 32 bits set to 1"
         code_cell_contents += "\n\tblocks = []"
-        code_cell_contents += "\n\tfor i in range(0, 32*blocks, block_size):"
+        code_cell_contents += "\n\tfor i in range(0, 32*num_blocks, block_size):"
         code_cell_contents += "\n\t\tblock = (number & mask)"
         code_cell_contents += "\n\t\tblocks.append(block)"
         code_cell_contents += "\n\t\tnumber >>= block_size"
@@ -737,8 +737,18 @@ def generate_gui_controller(compName, parsed_all_ports, location):
                 input_setup +=  "\n\t)"
             num_input += 1
         elif port[1] == "out":
-            if port[2] == -1:   # This will be used to make red/green light on output later
-                pass
+            if port[2] == 1:   # This will be used to make red/green light on output later
+                # Create Button
+                output_setup +=  f"\n\t{port[0]}_btn = widgets.ToggleButton("
+                output_setup +=  "\n\t\tvalue=False,"
+                output_setup +=  f"\n\t\tdescription='0',"
+                output_setup +=  "\n\t\tdisabled=True,"
+                output_setup +=  "\n\t\tbutton_style='danger'"
+                output_setup +=  "\n\t)"
+                # Create Label
+                output_setup += f"\n\t{port[0]}_lbl = widgets.Label(value='{port[0]}')"
+                # hbox = HBox([label1, toggle_button1, label2, toggle_button2])
+                output_setup += f"\n\t{port[0]}_hbox = HBox([{port[0]}_lbl, {port[0]}_btn])"
             else:
                 output_setup +=  f"\n\t{port[0]}_tbox = widgets.Text("
                 output_setup +=  "\n\t\tvalue='',"
@@ -790,7 +800,15 @@ def generate_gui_controller(compName, parsed_all_ports, location):
             
         elif port[1] == "out":
             read_output_ports += f"\n\t\t{port[0]}_value = {port[0]}.read(0)"
-            set_output_checkboxes += f"\n\t\t{port[0]}_tbox.value = hex({port[0]}_value)"
+            if port[2] == 1:
+                # Set value int 1 or 0 if true or false respectively.
+                set_output_checkboxes += f"\n\t\t{port[0]}_btn.button_style = 'success' if {port[0]}_value==1 else 'danger'"
+                set_output_checkboxes += f"\n\t\t{port[0]}_btn.value = 1 if {port[0]}_value==1 else 0"
+                # No need to run any truncated msgs checks as the value can only be 1/0. 
+                # Set the values
+                # No need to worry about setting placeholders either.
+            else:                
+                set_output_checkboxes += f"\n\t\t{port[0]}_tbox.value = hex({port[0]}_value)"
 
     py_code += "\n\t\t# Read Values from User Inputs"
     py_code += read_input_checkbox
@@ -933,10 +951,9 @@ def create_class_for_large_signal(gpio_name, gpio_mode, gpio_width):
     code_string += "\n\tdef __init__(self):"
     code_string += f"\n\t\tpass\n"
     code_string += "\n\tdef read(self, offset):"
-    code_string += f"\n\t\tblocks = split_into_blocks(value, {len(array_of_signal)})"
-    code_string += f"\n\t\treadings = {len(array_of_signal)} * [None]"
+    code_string += f"\n\t\tblocks = {len(array_of_signal)} * [None]"
     for x in range(0, len(array_of_signal)):
-        code_string += f"\n\t\tblock[{x}] = {array_of_signal[x]}.read(offset)"
+        code_string += f"\n\t\tblocks[{x}] = {array_of_signal[x]}.read(offset)"
     code_string += "\n\t\tresult = 0"
     code_string += "\n\t\tfor block in blocks:"
     code_string += "\n\t\t\tresult = (result << 32) | block"
