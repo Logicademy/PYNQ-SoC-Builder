@@ -304,9 +304,13 @@ def create_jnb(path_to_hdlgen_file, output_filename=None, generic=False):
 
 
         # Test Set Up Python Code Block
-        markdown_cell = nbf.v4.new_markdown_cell("# Test Execution Set-Up Code")
-        notebook.cells.append(markdown_cell) 
+        # markdown_cell = nbf.v4.new_markdown_cell("# Test Execution Set-Up Code")
+        # notebook.cells.append(markdown_cell) 
 
+        ############################## TEST CASE SET UP PYTHON BLOCK #################################
+        ######## This section looks like it is generating for a code block but it is actually ########
+        ######## being sent to the supplementary Python file.                                 ########
+        ##############################################################################################
 
         code_cell_contents = "# Test Case Set Up"
         code_cell_contents += f"\n# Number Of Test Cases: {len(test_cases)}"
@@ -327,13 +331,6 @@ def create_jnb(path_to_hdlgen_file, output_filename=None, generic=False):
                     output_signals_string += "'"+sub_signals[i] + "', " # signal1, 
         output_signals_string = output_signals_string[:-2] + "]" # delete the last ", " and add "]" instead
         code_cell_contents += output_signals_string
-
-
-
-
-
-
-
 
         # Loop Outputs
                     
@@ -448,8 +445,12 @@ def create_jnb(path_to_hdlgen_file, output_filename=None, generic=False):
         code_cell_contents += "\n\telse:"
         code_cell_contents += "\n\t\tprint('Invalid Test Number Provided')"
 
-        code_cell = nbf.v4.new_code_cell(code_cell_contents)
-        notebook.cells.append(code_cell)
+
+        #### END OF PYTHON TEST CASE SET UP CODE BLOCK - SENDING TO PYTHON FILE ####
+        py_file_contents += "\n\n# Test Case Set Up Code\n\n" + code_cell_contents
+
+        # code_cell = nbf.v4.new_code_cell(code_cell_contents)
+        # notebook.cells.append(code_cell)
 
         # Loop to Generate each test case
         test_number = 0
@@ -514,7 +515,7 @@ def create_jnb(path_to_hdlgen_file, output_filename=None, generic=False):
             
 
             # Testbench Plan Cell
-            markdown_cell_contents = f"**Test Case: {test_number}**\n\n"
+            markdown_cell_contents = f"## Test Case: {test_number}\n\n"
             # Row 1 Signals:
             markdown_cell_contents += "| "
             for s in signals_line:
