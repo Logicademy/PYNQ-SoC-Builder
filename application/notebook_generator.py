@@ -6,6 +6,17 @@ import html
 
 # Function to generate JNB, takes HDLGen file path and notebook name as parameters
 def create_jnb(path_to_hdlgen_file, output_filename=None, generic=False):
+    
+    py_file_contents = ""   # This file is used to store the accompanying Python code for GUI controller, test APIs etc.
+
+    # PY File Imports
+    py_file_contents += "import ipywidgets as widgets"
+    py_file_contents += "\nfrom IPython.display import SVG, display"
+    py_file_contents += "\nfrom ipywidgets import GridspecLayout, Output"
+    py_file_contents += "\nfrom ipywidgets import Button, Layout, jslink, IntText, IntSlider"
+    py_file_contents += "\nfrom pynq import Overlay"
+    py_file_contents += "\nimport pandas as pd"
+    py_file_contents += "\nimport time"
 
     # Open HDLGen xml and get root node.
     hdlgen = xml.dom.minidom.parse(path_to_hdlgen_file)
@@ -58,6 +69,7 @@ def create_jnb(path_to_hdlgen_file, output_filename=None, generic=False):
         else:
             print("Line 59 NBG: Invalid Port")
 
+    parsed_all_ports = parse_all_ports(all_ports)
 
     # Retrieve TB Data from HDLGen
     testbench = root.getElementsByTagName("testbench")[0]
@@ -144,12 +156,14 @@ def create_jnb(path_to_hdlgen_file, output_filename=None, generic=False):
     # Python Set Up Markdown Block
     markdown_cell = nbf.v4.new_markdown_cell(f"## Python Set Up")
     notebook.cells.append(markdown_cell)
+    
+    # Need to add code cell which runs %run {compName}.py
+    code_cell_contents = f"%run {compName}.py"
+
     # Python Set Up Code Block
-    code_cell_contents = "from pynq import Overlay"
-    code_cell_contents += "\nimport pandas as pd"
-    code_cell_contents += "\nimport time"
-    code_cell_contents += "\n\n# Import Overlay"
-    code_cell_contents += f"\n{compName} = Overlay(\"{compName}.bit\")"
+    # Import Overlay
+    py_file_contents += "\n\n# Import Overlay"
+    py_file_contents += f"\n{compName} = Overlay(\"{compName}.bit\")"
     
     # This portion needs to be remodelled to support >32 bit signals which have been divided.
 
@@ -226,25 +240,37 @@ def create_jnb(path_to_hdlgen_file, output_filename=None, generic=False):
                 large_input_signals.append(input_split)
                     
         
-    code_cell_contents += "\n# Declare Signal Objects"
+    py_file_contents += "\n\n# Declare Signal Objects"
     for sig in split_signals:
-        code_cell_contents += f"\n{sig[0]} = {compName}.{sig[0]}"
+        py_file_contents += f"\n{sig[0]} = {compName}.{sig[0]}"
 
 
     if clock_enabled:
-        code_cell_contents += "\n# Set-Up Clock Function\ndef run_clock_pulse():"
-        code_cell_contents += "\n\ttime.sleep(0.0000002)"
-        code_cell_contents += "\n\tclk.write(0,1)"
-        code_cell_contents += "\n\ttime.sleep(0.0000002)"
-        code_cell_contents += "\n\tclk.write(0,0)\n"
+        py_file_contents += "\n\n# Set-Up Clock Function\ndef run_clock_pulse():"
+        py_file_contents += "\n\ttime.sleep(0.0000002)"
+        py_file_contents += "\n\tclk.write(0,1)"
+        py_file_contents += "\n\ttime.sleep(0.0000002)"
+        py_file_contents += "\n\tclk.write(0,0)\n"
+
+    # I moved this from if not generic as I think that set up code wasn't generating properly.
+    code_cell = nbf.v4.new_code_cell(code_cell_contents)
+    notebook.cells.append(code_cell)
+
+    # Here we need to insert GUI Controller.
+    gui_controller = True
+    if gui_controller:
+        markdown_cell = nbf.v4.new_markdown_cell(f"## Component GUI-based Controller")
+        notebook.cells.append(markdown_cell)
+        code_cell = nbf.v4.new_code_cell(f"display(generate_gui())")
+        notebook.cells.append(code_cell)
+
+        # Here we need to write the GUI based code and add it to the py_code_contents
+        py_file_contents += generate_gui_controller(compName, parsed_all_ports)
 
     ##### Break here if only dealing with skeleton code.
     # Possible To-do here is a "example" cell showing how to use signals
 
     if not generic:
-
-        code_cell = nbf.v4.new_code_cell(code_cell_contents)
-        notebook.cells.append(code_cell)
 
         # Testbench Plan Title Cell
         markdown_cell = nbf.v4.new_markdown_cell("# Test Plan")
@@ -601,6 +627,9 @@ def create_jnb(path_to_hdlgen_file, output_filename=None, generic=False):
         
     print(f"Notebook Generated at: {output_file}")
 
+    output_py_file = f'{output_filename}\{name}.py'
+    with open(output_py_file, 'w') as pyf:
+        f.write(py_file_contents)
 
 def hex_to_padded_chunks(hex_number, desired_bits):
     # Convert hex to binary and remove the '0b' prefix
@@ -634,3 +663,130 @@ def hex_to_padded_chunks(hex_number, desired_bits):
     # print(hex_arrays)
 
     return hex_arrays
+
+def generate_gui_controller(compName, parsed_all_ports):
+
+    py_code = ""
+
+    py_code += "\ndef generate_gui():"
+    py_code += f"\n\tfile_path = '{compName}.svg'"
+    py_code += "\n\n\t#Read the SVG content from the file"
+    py_code += "\n\twith open(file_path, 'r') as file:"
+    py_code += "\n\t\tsvg_content = file.read()"
+    py_code += "\n\n\t# Create Input Widgets"
+
+
+
+# def generate_gui():
+#     file_path = 'RISCV_ALU.svg'
+#     svg_content=""
+
+#     # Read the SVG content from the file
+#     with open(file_path, 'r') as file:
+#         svg_content = file.read()
+
+#     # Create Input Widgets
+#     selALUOp_tbox = widgets.Text(
+#         value='',
+#         placeholder='0x0',
+#         description='selALUOp:',
+#         disabled=False   
+#     )
+#     A_tbox = widgets.Text(
+#         value='',
+#         placeholder='0x00000000',
+#         description='A:',
+#         disabled=False   
+#     )
+#     B_tbox = widgets.Text(
+#         value='',
+#         placeholder='0x00000000',
+#         description='B:',
+#         disabled=False   
+#     )
+
+#     # Create Output Widgets
+#     ALUOut_tbox = widgets.Text(
+#         value='',
+#         placeholder='',
+#         description='ALUOut:',
+#         disabled=True   
+#     )
+#     branch_tbox = widgets.Text(
+#         value='',
+#         placeholder='',
+#         description='branch:',
+#         disabled=True   
+#     )
+
+#     # Set Signals Handler
+#     def on_button_click(arg):
+#         print(arg)
+#         print("Set Signals")
+
+#     # Set Signals Button
+#     display_button = Button(description="Set Signals", button_style="info", layout=Layout(width='auto', margin='auto'))
+#     display_button.on_click(on_button_click)
+
+#     # Format SVG Data
+#     svg_content = svg_content.split("<?xml", 1)[-1]
+#     svg_with_tags = f'<svg>{svg_content}</svg>'
+
+#     # Create Widget Object for SVG
+#     output_svg = Output()
+#     with output_svg:
+#         display(SVG(data=svg_with_tags))
+
+#     # Define Grid Layout
+#     grid = GridspecLayout(4, 3) 
+
+#     # Set the Grid Widgets
+#     # Image (Centre, Full Height)
+#     grid[:, 1] = output_svg
+
+#     # Input Widgets
+#     grid[0, 0] = selALUOp_tbox
+#     grid[1, 0] = A_tbox
+#     grid[2, 0] = B_tbox
+#     grid[3,0] = display_button
+
+#     # Output Widgets
+#     grid[0, 2] = ALUOut_tbox
+#     grid[1, 2] = branch_tbox
+
+#     # Return Grid
+#     return grid
+    
+
+
+########################################################################
+########## Parse all ports format from XML into useful format ##########
+########################################################################
+def parse_all_ports(all_ports):
+    # All ports recieved as in HDLGen XML.
+    #    signame = sig.getElementsByTagName("name")[0]
+    #    mode = sig.getElementsByTagName("mode")[0]
+    #    type = sig.getElementsByTagName("type")[0]
+    #    desc = sig.getElementsByTagName("description")[0]
+    # Job here is to convert into:
+    # [signal_name, gpio_mode, gpio_width]
+    new_array = []
+    for io in all_ports:
+        gpio_name = io[0]   # GPIO Name
+        gpio_mode = io[1]   # GPIO Mode (in/out)
+        gpio_type = io[2]   # GPIO Type (single bit/bus/array)
+
+        if (gpio_type == "single bit"):
+            gpio_width = 1
+        elif (gpio_type[:3] == "bus"):
+            # <type>bus(31 downto 0)</type> - Example Type Value
+            substring = gpio_type[4:]           # substring = '31 downto 0)'
+            words = substring.split()           # words = ['31', 'downto', '0)']
+            gpio_width = int(words[0]) + 1      # eg. words[0] = 31
+        elif (gpio_type[:5] == "array"):
+            print("ERROR: Array mode type is not yet supported :(")
+        else:
+            print("ERROR: Unknown GPIO Type")
+            print(gpio_type)
+        new_array.append([gpio_name, gpio_mode, gpio_width])
+    return new_array
