@@ -452,11 +452,11 @@ def create_jnb(path_to_hdlgen_file, output_filename=None, generic=False):
         code_cell_contents += "\n\t\tnumber >>= block_size"
         code_cell_contents += "\n\treturn blocks"
 
-        code_cell_contents += "\n" + create_large_classes_from_port_map(parsed_all_ports)
 
         #### END OF PYTHON TEST CASE SET UP CODE BLOCK - SENDING TO PYTHON FILE ####
         py_file_contents += "\n\n# Test Case Set Up Code\n\n" + code_cell_contents
 
+        py_file_contents += "\n" + create_large_classes_from_port_map(parsed_all_ports)
         # code_cell = nbf.v4.new_code_cell(code_cell_contents)
         # notebook.cells.append(code_cell)
 
@@ -481,16 +481,21 @@ def create_jnb(path_to_hdlgen_file, output_filename=None, generic=False):
                 radix_val = radix_line[val+1]   # This should be fine, +1 to skip "Radix" at start of line
                 radix_form = radix_val.strip()    # trim whatever whitespace that might be there
                 radix_form = radix_form[-1]        # Radix form is the last letter in value
-                
+                radix_number = radix_val.split("'")[0]  # Number in radix
+
+
                 value = filtered_test[val]
                 signal_name = signals_line[val+1]
 
                 if radix_form == 'h':
                     # If the signal is short, just story it, if the signal is large then we want to divide it into 32 bit chunks
-                    if signal_name in small_input_signals:
+                    
+                    # Bypassing splits
+                    
+                    # if signal_name in small_input_signals:
+                    if True:
                         test_converted_to_decimal_from_radix_dictionary[signal_name] = f"int(\"{value}\", 16)"
                     else:
-                        radix_number = 64
                         test_converted_to_decimal_from_radix_dictionary[signal_name] = hex_to_padded_chunks(value, radix_number)
                     
 
@@ -499,14 +504,17 @@ def create_jnb(path_to_hdlgen_file, output_filename=None, generic=False):
                     # test_converted_to_decimal_from_radix.append(str(decimal_value))
                     test_converted_to_decimal_from_radix.append(f"int(\"{value}\", 16)")
                 elif radix_form == 'b':
-                    if signal_name in small_input_signals:
+                    # Bypassing splitting now
+                    # if signal_name in small_input_signals:
+                    if True:
                         test_converted_to_decimal_from_radix_dictionary[signal_name] = f"int(\"{value}\", 2)"
                     # Convert for binary
                     # decimal_value = int(value, 2)
                     # test_converted_to_decimal_from_radix.append(str(decimal_value))
                     test_converted_to_decimal_from_radix.append(f"int(\"{value}\", 2)")
                 elif radix_form == "d":
-                    if signal_name in small_input_signals:
+                    # if signal_name in small_input_signals:
+                    if True:
                         test_converted_to_decimal_from_radix_dictionary[signal_name] = f"{value}"
 
                     
@@ -575,8 +583,6 @@ def create_jnb(path_to_hdlgen_file, output_filename=None, generic=False):
                 else:
                     code_cell_contents += f"{key}.write(0, {value})\n"
 
-
-
             while delay_total >= 1 and clock_enabled:
                 # run clock 
                 code_cell_contents += "\nrun_clock_pulse()"
@@ -586,17 +592,6 @@ def create_jnb(path_to_hdlgen_file, output_filename=None, generic=False):
             # Break
             code_cell_contents += "\n\n# Recording Outputs"
             code_cell_contents += f"\nsave_and_print_test({test_number})"
-            # code_cell_contents += "\ntst_res = []"
-            # # Checking Output:
-            # for i in range(len(sub_signals)):
-            #     if sub_modes[i] == "out":
-            #         code_cell_contents += f"\ntst_res.append(True if {sub_signals[i]}.read(0) == {test_converted_to_decimal_from_radix[i]} else False)"
-
-            # code_cell_contents += f"\ntest_results[{test_number}] = all(tst_res)"
-
-            # Code to print summary and present results.
-            #code_cell_contents += 
-
 
             test_number += 1    # Increment Test Number after use.
             code_cell = nbf.v4.new_code_cell(code_cell_contents)
@@ -929,6 +924,7 @@ def large_signal_split_names(gpio_name, gpio_width):
             return_array.append(f"{gpio_name}_{gpio_width-1}_{pin_counter}")
             pin_counter += gpio_width - pin_counter        
     return return_array
+
 def create_class_for_large_signal(gpio_name, gpio_mode, gpio_width):
     code_string = ""
     code_string += f"\n\nclass {gpio_name}_class:"
@@ -947,10 +943,13 @@ def create_class_for_large_signal(gpio_name, gpio_mode, gpio_width):
     code_string += "\n\t\treturn result\n"
 
     if gpio_mode == "in":
-        code_string += "\n\tdef write(self,offset, value):"
+        code_string += "\n\tdef write(self, offset, value):"
         code_string += f"\n\t\tblocks = split_into_blocks(value, {len(array_of_signal)})"
         for x in range(0, len(array_of_signal)):
             code_string += f"\n\t\t{array_of_signal[x]}.write(offset, blocks[{x}])"
+
+    # Instanciate the class
+    code_string += f"\n{gpio_name} = {gpio_name}_class()"
 
     return code_string
 
