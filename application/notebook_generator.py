@@ -259,7 +259,7 @@ def create_jnb(path_to_hdlgen_file, output_filename=None, generic=False):
     # Here we need to insert GUI Controller.
     gui_controller = True
     if gui_controller:
-        markdown_cell = nbf.v4.new_markdown_cell(f"## Component GUI-based Controller")
+        markdown_cell = nbf.v4.new_markdown_cell(f"## Component Controller")
         notebook.cells.append(markdown_cell)
         code_cell = nbf.v4.new_code_cell(f"display(generate_gui(svg_content))")
         notebook.cells.append(code_cell)
@@ -732,6 +732,7 @@ def generate_gui_controller(compName, parsed_all_ports, location):
 
     read_output_ports = ""
     set_output_checkboxes = ""
+    set_placeholders = ""
 
     for port in parsed_all_ports:
         if port[1] == "in":
@@ -744,6 +745,8 @@ def generate_gui_controller(compName, parsed_all_ports, location):
             truncated_msgs += "{hex("+port[0]+"_value)}\")"
             # Write inputs
             write_inputs += f"\n\t\t{port[0]}.write(0, {port[0]}_value)" 
+            # Set placeholder values of textboxes to last pushed value
+            set_placeholders += f"\n\t\t{port[0]}_tbox.placeholder = str({port[0]}_tbox.value)"
             
         elif port[1] == "out":
             read_output_ports += f"\n\t\t{port[0]}_value = {port[0]}.read(0)"
@@ -757,6 +760,8 @@ def generate_gui_controller(compName, parsed_all_ports, location):
     py_code += truncated_msgs
     py_code += "\n\n\t\t# Write Inputs"
     py_code += write_inputs
+    py_code += "\n\n\t\t# Set input placeholders"
+    py_code += set_placeholders
     py_code += "\n\n\t\ttime.sleep(0.00000002)"
     py_code += "\n\n\t\t# Read Output Signals"
     py_code += read_output_ports
