@@ -516,7 +516,7 @@ def generate_tcl(path_to_hdlgen_project, regenerate_bd=True, start_gui=True, kee
         if io_map and gui_application:
             gui_application.add_to_log_box(f"\nIO Map Present: {io_map}")
 
-        returned_contents, created_signals = generate_connections(module_source, all_ports_parsed, io_map, gui_application, location)
+        returned_contents, created_signals = generate_connections(module_source, all_ports_parsed, io_map, location, gui_application)
         file_contents += returned_contents
 
         file_contents += connect_interconnect_reset_and_run_block_automation(created_signals, gui_application)
@@ -701,7 +701,7 @@ def generate_all_output_no_ext_gpio(gpio_name, gpio_width, module_source, gui_ap
 ##########################################
 ########## Generate Connections ##########
 ##########################################
-def generate_connections(module_source, all_ports_parsed, io_map, gui_application=None, location):
+def generate_connections(module_source, all_ports_parsed, io_map, location, gui_application=None):
     xdc_contents = ""
     file_contents = ""
     interconnect_signals = []
