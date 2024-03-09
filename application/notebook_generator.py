@@ -143,6 +143,14 @@ def create_jnb(path_to_hdlgen_file, output_filename=None, generic=False):
     markdown_cell = nbf.v4.new_markdown_cell(f"# {title}")
     notebook.cells.append(markdown_cell) # Add cell to notebook
 
+    # Python Set Up Markdown Block
+    markdown_cell = nbf.v4.new_markdown_cell(f"#### Python Environment Set Up")
+    notebook.cells.append(markdown_cell)
+    
+    code_cell_contents = f"%run {compName}.py"
+    code_cell = nbf.v4.new_code_cell(code_cell_contents)
+    notebook.cells.append(code_cell)
+
     # Component Description
     markdown_cell = nbf.v4.new_markdown_cell(f"## Component Description\n\n{description}")
     notebook.cells.append(markdown_cell) 
@@ -154,18 +162,13 @@ def create_jnb(path_to_hdlgen_file, output_filename=None, generic=False):
     markdown_cell = nbf.v4.new_markdown_cell(markdown_cell_contents)
     notebook.cells.append(markdown_cell)
 
-    # Python Set Up Markdown Block
-    markdown_cell = nbf.v4.new_markdown_cell(f"## Python Set Up")
-    notebook.cells.append(markdown_cell)
-    
-    # Need to add code cell which runs %run {compName}.py
-    code_cell_contents = f"%run {compName}.py"
+
 
     # Python Set Up Code Block
     # Import Overlay
     py_file_contents += "\n\n# Import Overlay"
     py_file_contents += f"\n{compName} = Overlay(\"{compName}.bit\")"
-    
+
     # This portion needs to be remodelled to support >32 bit signals which have been divided.
 
     # code_cell_contents += "\n# Inputs:"
@@ -252,10 +255,6 @@ def create_jnb(path_to_hdlgen_file, output_filename=None, generic=False):
         py_file_contents += "\n\tclk.write(0,1)"
         py_file_contents += "\n\ttime.sleep(0.0000002)"
         py_file_contents += "\n\tclk.write(0,0)\n"
-
-    # I moved this from if not generic as I think that set up code wasn't generating properly.
-    code_cell = nbf.v4.new_code_cell(code_cell_contents)
-    notebook.cells.append(code_cell)
 
     # Here we need to insert GUI Controller.
     gui_controller = True
