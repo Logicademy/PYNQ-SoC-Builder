@@ -629,7 +629,7 @@ def create_jnb(path_to_hdlgen_file, output_filename=None, generic=False):
 
     output_py_file = f'{output_filename}\{name}.py'
     with open(output_py_file, 'w') as pyf:
-        f.write(py_file_contents)
+        pyf.write(py_file_contents)
 
 def hex_to_padded_chunks(hex_number, desired_bits):
     # Convert hex to binary and remove the '0b' prefix
@@ -668,19 +668,19 @@ def generate_gui_controller(compName, parsed_all_ports):
 
     py_code = ""
 
-    py_code += "\ndef generate_gui():"
+    py_code += "\n\n\ndef generate_gui():"
     py_code += f"\n\tfile_path = '{compName}.svg'"
     py_code += "\n\n\t#Read the SVG content from the file"
     py_code += "\n\twith open(file_path, 'r') as file:"
     py_code += "\n\t\tsvg_content = file.read()"
 
-    py_code += "\n# Format SVG Data"
-    py_code += "\nsvg_content = svg_content.split('<?xml', 1)[-1]"
-    py_code += "\nsvg_with_tags = f'<svg>{svg_content}</svg>'"
-    py_code += "\n\n# Create Widget Object for SVG"
-    py_code += "\noutput_svg = Output()"
-    py_code += "\nwith output_svg:"
-    py_code += "\n\tdisplay(SVG(data=svg_with_tags))"
+    py_code += "\n\t# Format SVG Data"
+    py_code += "\n\tsvg_content = svg_content.split('<?xml', 1)[-1]"
+    py_code += "\n\tsvg_with_tags = f'<svg>{svg_content}</svg>'"
+    py_code += "\n\n\t# Create Widget Object for SVG"
+    py_code += "\n\toutput_svg = Output()"
+    py_code += "\n\twith output_svg:"
+    py_code += "\n\t\tdisplay(SVG(data=svg_with_tags))"
 
     input_setup = ""
     output_setup = ""
@@ -688,20 +688,20 @@ def generate_gui_controller(compName, parsed_all_ports):
     num_output = 0
     for port in parsed_all_ports:
         if port[1] == "in":
-            input_setup +=  f"\t\n{port[0]}_tbox = widgets.Text("
-            input_setup +=  "\t\nvalue='',"
-            input_setup +=  "\t\nplaceholder='0x or 0b',"
-            input_setup +=  f"\t\ndescription='{port[0]}:',"
-            input_setup +=  "\t\ndisabled=False"
-            input_setup +=  "\t\n)"
+            input_setup +=  f"\n\t{port[0]}_tbox = widgets.Text("
+            input_setup +=  "\n\t\tvalue='',"
+            input_setup +=  "\n\t\tplaceholder='0x or 0b',"
+            input_setup +=  f"\n\t\tdescription='{port[0]}:',"
+            input_setup +=  "\n\t\tdisabled=False"
+            input_setup +=  "\n\t)"
             num_input += 1
         elif port[1] == "out":
-            output_setup +=  f"\t\n{port[0]}_tbox = widgets.Text("
-            output_setup +=  "\t\nvalue='',"
-            output_setup +=  "\t\nplaceholder='',"
-            output_setup +=  f"\t\ndescription='{port[0]}:',"
-            output_setup +=  "\t\ndisabled=True"
-            output_setup +=  "\t\n)"
+            output_setup +=  f"\n\t{port[0]}_tbox = widgets.Text("
+            output_setup +=  "\n\t\tvalue='',"
+            output_setup +=  "\n\t\tplaceholder='',"
+            output_setup +=  f"\n\t\tdescription='{port[0]}:',"
+            output_setup +=  "\n\t\tdisabled=True"
+            output_setup +=  "\n\t)"
             num_output += 1
 
     py_code += "\n\n\t# Create Input Widgets"
@@ -726,7 +726,7 @@ def generate_gui_controller(compName, parsed_all_ports):
 
     
 
-    py_code += "\n\n\t# Set the Grid Widgets\nSet Image (Centre, Full Height)"
+    py_code += "\n\n\t# Set the Grid Widgets\n\t# Set Image (Centre, Full Height)"
     py_code += "\n\tgrid[:,1] = output_svg"
 
     input_grid_depth_index = 0
@@ -737,14 +737,14 @@ def generate_gui_controller(compName, parsed_all_ports):
     # Form Placement Code    
     for port in parsed_all_ports:
         if port[1] == "in":
-            input_widgets_placement += f"\n\tgrid[{input_grid_depth_index}] = {port[0]}_tbox"
+            input_widgets_placement += f"\n\tgrid[{input_grid_depth_index}, 0] = {port[0]}_tbox"
             input_grid_depth_index += 1
         elif port[1] == "out":
-            output_widgets_placement += f"\n\tgrid[{output_grid_depth_index}] = {port[0]}_tbox"
+            output_widgets_placement += f"\n\tgrid[{output_grid_depth_index}, 2] = {port[0]}_tbox"
             output_grid_depth_index += 1
     
     # Place button at end of inputs after loop
-    input_widgets_placement += f"\n\tgrid[{input_grid_depth_index}] = display_button"
+    input_widgets_placement += f"\n\tgrid[{input_grid_depth_index}, 0] = display_button"
     
     py_code += "\n\n\t# Input Widgets"
     py_code += input_widgets_placement
