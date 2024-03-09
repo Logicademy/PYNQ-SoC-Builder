@@ -729,7 +729,7 @@ def generate_gui_controller(compName, parsed_all_ports):
             # Code to check if a signal has been truncated and to print relevant msg to user.
             truncated_msgs += f"\n\t\ttruncated, {port[0]}_value = check_max_value({port[0]}, {port[2]})"
             truncated_msgs += "\n\t\tif truncated:"
-            truncated_msgs += f"\n\t\t\tprint(f\"{port[0]} value provided is > {port[3]} bits, input has been truncated to: "
+            truncated_msgs += f"\n\t\t\tprint(f\"{port[0]} value provided is > {port[2]} bits, input has been truncated to: "
             truncated_msgs += "{hex("+port[0]+")}\")"
             # Write inputs
             write_inputs += f"\n\t\t{port[0]}.write(0, {port[0]}_value)" 
