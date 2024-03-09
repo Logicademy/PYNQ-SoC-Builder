@@ -673,91 +673,87 @@ def generate_gui_controller(compName, parsed_all_ports):
     py_code += "\n\n\t#Read the SVG content from the file"
     py_code += "\n\twith open(file_path, 'r') as file:"
     py_code += "\n\t\tsvg_content = file.read()"
+
+    py_code += "\n# Format SVG Data"
+    py_code += "\nsvg_content = svg_content.split('<?xml', 1)[-1]"
+    py_code += "\nsvg_with_tags = f'<svg>{svg_content}</svg>'"
+    py_code += "\n\n# Create Widget Object for SVG"
+    py_code += "\noutput_svg = Output()"
+    py_code += "\nwith output_svg:"
+    py_code += "\n\tdisplay(SVG(data=svg_with_tags))"
+
+    input_setup = ""
+    output_setup = ""
+    num_input = 0
+    num_output = 0
+    for port in parsed_all_ports:
+        if port[1] == "in":
+            input_setup +=  f"\t\n{port[0]}_tbox = widgets.Text("
+            input_setup +=  "\t\nvalue='',"
+            input_setup +=  "\t\nplaceholder='0x or 0b',"
+            input_setup +=  f"\t\ndescription='{port[0]}:',"
+            input_setup +=  "\t\ndisabled=False"
+            input_setup +=  "\t\n)"
+            num_input += 1
+        elif port[1] == "out":
+            output_setup +=  f"\t\n{port[0]}_tbox = widgets.Text("
+            output_setup +=  "\t\nvalue='',"
+            output_setup +=  "\t\nplaceholder='',"
+            output_setup +=  f"\t\ndescription='{port[0]}:',"
+            output_setup +=  "\t\ndisabled=True"
+            output_setup +=  "\t\n)"
+            num_output += 1
+
     py_code += "\n\n\t# Create Input Widgets"
+    py_code += input_setup
 
+    py_code += "\n\n\t# Create Output Widgets"
+    py_code += output_setup
 
+    py_code += "\n\n\t# Create Set Button Widgets"
+    
+    py_code += "\n\tdef on_button_click(arg):"
+    py_code += "\n\t\tprint(arg)"
 
-# def generate_gui():
-#     file_path = 'RISCV_ALU.svg'
-#     svg_content=""
+    py_code += "\n\n\tdisplay_button = Button(description='Set Signals', button_style='info', layout=Layout(width='auto', margin='auto'))"
+    py_code += "\n\tdisplay_button.on_click(on_button_click)"
 
-#     # Read the SVG content from the file
-#     with open(file_path, 'r') as file:
-#         svg_content = file.read()
+    py_code += "\n\n\t# Define Grid Layout"
+    grid_depth = max(num_input, num_output)
+    if num_input > num_output:
+        grid_depth += 1
+    py_code += f"\n\tgrid = GridspecLayout({grid_depth},3)"
 
-#     # Create Input Widgets
-#     selALUOp_tbox = widgets.Text(
-#         value='',
-#         placeholder='0x0',
-#         description='selALUOp:',
-#         disabled=False   
-#     )
-#     A_tbox = widgets.Text(
-#         value='',
-#         placeholder='0x00000000',
-#         description='A:',
-#         disabled=False   
-#     )
-#     B_tbox = widgets.Text(
-#         value='',
-#         placeholder='0x00000000',
-#         description='B:',
-#         disabled=False   
-#     )
-
-#     # Create Output Widgets
-#     ALUOut_tbox = widgets.Text(
-#         value='',
-#         placeholder='',
-#         description='ALUOut:',
-#         disabled=True   
-#     )
-#     branch_tbox = widgets.Text(
-#         value='',
-#         placeholder='',
-#         description='branch:',
-#         disabled=True   
-#     )
-
-#     # Set Signals Handler
-#     def on_button_click(arg):
-#         print(arg)
-#         print("Set Signals")
-
-#     # Set Signals Button
-#     display_button = Button(description="Set Signals", button_style="info", layout=Layout(width='auto', margin='auto'))
-#     display_button.on_click(on_button_click)
-
-#     # Format SVG Data
-#     svg_content = svg_content.split("<?xml", 1)[-1]
-#     svg_with_tags = f'<svg>{svg_content}</svg>'
-
-#     # Create Widget Object for SVG
-#     output_svg = Output()
-#     with output_svg:
-#         display(SVG(data=svg_with_tags))
-
-#     # Define Grid Layout
-#     grid = GridspecLayout(4, 3) 
-
-#     # Set the Grid Widgets
-#     # Image (Centre, Full Height)
-#     grid[:, 1] = output_svg
-
-#     # Input Widgets
-#     grid[0, 0] = selALUOp_tbox
-#     grid[1, 0] = A_tbox
-#     grid[2, 0] = B_tbox
-#     grid[3,0] = display_button
-
-#     # Output Widgets
-#     grid[0, 2] = ALUOut_tbox
-#     grid[1, 2] = branch_tbox
-
-#     # Return Grid
-#     return grid
     
 
+    py_code += "\n\n\t# Set the Grid Widgets\nSet Image (Centre, Full Height)"
+    py_code += "\n\tgrid[:,1] = output_svg"
+
+    input_grid_depth_index = 0
+    input_widgets_placement = ""
+    output_grid_depth_index = 0
+    output_widgets_placement = ""
+
+    # Form Placement Code    
+    for port in parsed_all_ports:
+        if port[1] == "in":
+            input_widgets_placement += f"\n\tgrid[{input_grid_depth_index}] = {port[0]}_tbox"
+            input_grid_depth_index += 1
+        elif port[1] == "out":
+            output_widgets_placement += f"\n\tgrid[{output_grid_depth_index}] = {port[0]}_tbox"
+            output_grid_depth_index += 1
+    
+    # Place button at end of inputs after loop
+    input_widgets_placement += f"\n\tgrid[{input_grid_depth_index}] = display_button"
+    
+    py_code += "\n\n\t# Input Widgets"
+    py_code += input_widgets_placement
+    py_code += "\n\n\t# Output Widgets"
+    py_code += output_widgets_placement
+
+    py_code += "\n\n\treturn grid"
+
+    return py_code
 
 ########################################################################
 ########## Parse all ports format from XML into useful format ##########
