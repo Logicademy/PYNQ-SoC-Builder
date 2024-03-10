@@ -5,7 +5,12 @@ class DashesInHDLFileError(Exception):
         self.message = message
         super().__init__(self.message)
 
-def check_for_dashes(path_to_hdl):
+def check_for_dashes(hdlgen_project):
+    
+    
+    
+    
+    path_to_hdl = ""
     try:
         with open(path_to_hdl, 'r') as file:
             # Flag to check if "architecture" has been found

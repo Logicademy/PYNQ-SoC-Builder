@@ -7,6 +7,7 @@ import application.notebook_generator as nbg
 import xml.dom.minidom
 import os
 import shutil 
+import application.checks as checks
 
 # Define location of vivado exe, this might need to be the bat file we will see.
 # D:\Xilinx\Vivado\2019.1\bin\vivado.bat -mode tcl
@@ -117,6 +118,16 @@ class Pynq_Manager:
         tcl_gen.generate_tcl(self.hdlgen_project_path, regenerate_bd=regenerate_bd, start_gui=start_gui, keep_vivado_open=keep_vivado_open, skip_board_config=skip_board_config, io_map=io_map, gui_application=gui_app)
 
     def run_vivado(self):
+        try:
+            checks.check_for_dashes(self.hdlgen_project_path)
+        except checks.DashesInHDLFileError:
+            print(f"PYNQ Manager Detected Dashes in HDL File {self.hdlgen_project_path}")
+            raise checks.DashesInHDLFileError
+        except Exception as e:
+            print(f"Expection Occured in Run Vivado: {e}")
+            print("Pynq_Manager.run_vivado() returning without action.")
+            return
+        
         # D:\Xilinx\Vivado\2019.1\bin\vivado.bat -mode tcl -source C:/masters/masters_automation/generate_script.tcl
         try:
             self.check_generated_path_and_mkdir()
