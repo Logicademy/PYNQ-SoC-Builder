@@ -233,6 +233,77 @@ class In_Progress_Page(ctk.CTkFrame):
         # Run any closing code: Perhaps print a summary to the log.
         self.add_to_log_box("\n\n===== Summary =====\nTime to build: MM:SS\netc.etc.etc.")
 
+    def run_synthesis_logger(self, path_to_log):
+        self.quit_synthesis_logger = False
+        waiting_counter = 0
+
+        while not os.path.exists(path_to_log):
+            if waiting_counter % 6 == 0:    # Print every three seconds
+                self.add_to_synthesis_log_box("\nWaiting for synthesis job to start")
+            time.sleep(0.5)
+            waiting_counter += 1
+            if self.quit_synthesis_logger:
+                self.add_to_synthesis_log_box("\nQuit Synthesis Logger Asserted...stopping.")
+                return
+
+        while True:
+            time.sleep(1)
+            pass
+
+
+                while not os.path.exists(vivado_log_path):
+                    self.add_to_log_box("\nWaiting for Vivado to launch...")
+                    time.sleep(1)
+
+
+
+                with open(vivado_log_path, 'r') as file:
+                    while True:
+                        line = file.readline()
+                        if not line:
+                            # End of file reached, wait for the next line to become available
+                            time.sleep(1)  # Adjust the sleep duration as needed
+                        else:
+                            # Process the line as needed
+                            # Look for specific indicators of whats happening.
+                            # line
+                            if line == "":
+                                pass
+                                # Protection for the next check, if empty string, skip.
+                                # continue  - we dont need this to continue cos it'll infinite loop
+                            elif line[0] == "#":
+                                pass
+                                # If line starts with #, its from sourced file and we dont care.
+                                # continue
+                            elif "open_project" in line:
+                                self.add_to_log_box("\nOpening Vivado Project")
+                                self.add_to_log_box("\n"+line)
+                            elif "create_bd_design" in line:
+                                self.add_to_log_box("\nCreate BD Design")
+                                self.add_to_log_box("\n"+line)
+                            elif "_0_0_synth_1" in line:
+                                self.add_to_log_box("\nStarting synthesis")
+                                self.add_to_log_box("\n"+line)
+                            elif "Launched impl_1..." in line:
+                                self.add_to_log_box("\nLaunching Implementation")
+                                self.add_to_log_box("\n"+line)
+                                self.add_to_log_box("\nSee nextline for log path:")
+                                self.add_to_log_box(file.readline())
+                            elif "Waiting for impl_1 to finish..." in line:
+                                self.add_to_log_box("\nWaiting for impl_1 to finish...see impl log tab for more details.")
+                                time.sleep(1)
+                            elif "write_bitstream completed successfully" in line:
+                                self.add_to_log_box("\nBitstream written successfully.")
+                            elif "exit" in line:
+                                self.add_to_log_box("\nExit command issued to Vivado. Waiting for Vivado to close.")
+                                # Stall the process until the flag is updated by other thread.
+                                while self.app.build_running:
+                                    time.sleep(1)
+                                    pass
+                                break
+                            if self.current_running_mode != "run_viv":
+                                    break
+
 
     def run_all(self):
         self.progress_bar.start()
