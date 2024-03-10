@@ -1,4 +1,5 @@
 import os
+import xml.dom.minidom
 
 class DashesInHDLFileError(Exception):
     def __init__(self, message="Error: --- Dashes found in HDL Source File, have you completed HDLGen-ChatGPT workflow?"):
@@ -7,10 +8,36 @@ class DashesInHDLFileError(Exception):
 
 def check_for_dashes(hdlgen_project):
     
+    hdlgen = xml.dom.minidom.parse(hdlgen_project)
+    root = hdlgen.documentElement
+
+    # Project Manager - Settings
+    projectManager = root.getElementsByTagName("projectManager")[0]
+    projectManagerSettings = projectManager.getElementsByTagName("settings")[0]
+    name = projectManagerSettings.getElementsByTagName("name")[0].firstChild.data
+    environment = projectManagerSettings.getElementsByTagName("environment")[0].firstChild.data
+    location = projectManagerSettings.getElementsByTagName("location")[0].firstChild.data
+
+    # Project Manager - HDL
+    projectManagerHdl = projectManager.getElementsByTagName("HDL")[0]
+    language = projectManagerHdl.getElementsByTagName("language")[0]
+    project_language = language.getElementsByTagName("name")[0].firstChild.data
+
+    # genFolder - VHDL Folders
+    genFolder = root.getElementsByTagName("genFolder")[0]
+    mode = ""
+    try:
+        model_folder = genFolder.getElementsByTagName("vhdl_folder")[0]
+        mode = ".vhd"
+    except Exception:
+        model_folder = genFolder.getElementsByTagName("verilog_folder")[0]
+        mode = ".v"
+    model_folder_rel_path = model_folder.firstChild.data    
     
+    path_to_hdl = environment + "/" + model_folder_rel_path + "/" + name + mode
+    path_to_hdl = path_to_hdl.replace("\\", "/")
+    print(path_to_hdl)
     
-    
-    path_to_hdl = ""
     try:
         with open(path_to_hdl, 'r') as file:
             # Flag to check if "architecture" has been found
