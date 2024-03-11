@@ -121,7 +121,7 @@ class In_Progress_Page(ctk.CTkFrame):
         #   - if in vivado mode, the log file
         self.syn_log_path = "C:/repo/HDLGen-ChatGPT-Latest/User_Projects/ToLuke/FIFOs/FIFO4x64Top/VHDL/AMDprj/FIFO4x64Top.runs/synth_1/runme.log"
         syn_thread = threading.Thread(target=self.run_synthesis_logger)
-        syn_thread.start()
+        # syn_thread.start()
         logger_thread = threading.Thread(target=self.run_logger)
         logger_thread.start()   # Start the logger thread
 
@@ -149,7 +149,7 @@ class In_Progress_Page(ctk.CTkFrame):
         # This is the logger function, it will be run on it's own thread and be responsible for updating the log window.
         #   Variables:
         #       - self.add_to_log_box(string) -> Updates the log box
-
+        
         # Function Steps:
         #   1) Whilst the build_running flag is false, we wait. (Run logger called before program commences)
         #   2) When program starts, we move to main loop of the logger.
@@ -170,6 +170,7 @@ class In_Progress_Page(ctk.CTkFrame):
             time.sleep(0.1)
 
         while self.app.build_running:
+            
             # Main logger loop
             if self.current_running_mode == "gen_tcl":
                 # self.add_to_log_box("\nGenerating Tcl Script for Vivado")
@@ -233,6 +234,9 @@ class In_Progress_Page(ctk.CTkFrame):
                                 break
                             if self.current_running_mode != "run_viv":
                                     break
+                            if self.app.vivado_force_quit_event and self.app.vivado_force_quit_event.is_set():
+                                print("Quitting logger due to quit event.")
+                                break
             elif self.current_running_mode == "cpy_dir":
                 # To be handled by copy_dir API
                 # self.add_to_log_box("\nCopying Bitstream to <project>/PYNQBuild/output folder")
@@ -343,8 +347,22 @@ class In_Progress_Page(ctk.CTkFrame):
         # Setting mode for the logger thread
         self.current_running_mode = "run_viv"
 
+        print("Inprogress: Starting Vivado")
         pm_obj = pm.Pynq_Manager(self.app.hdlgen_path)
-        pm_obj.run_vivado()
+        pm_obj.run_vivado(self.app.vivado_force_quit_event)
+        print("In progress vivado ended")
+        # time.sleep(0.1)
+
+        time.sleep(0.1)
+
+
+        # new_thread = multiprocessing.Process(target=pm_obj.run_vivado)
+        # new_thread.start()
+
+        # while pm_obj.get_vivado_running:
+        #     time.sleep(0.5)
+        #     print("Vivado is running...")
+
         if assert_complete:
             self.operation_completed()
 
