@@ -134,7 +134,6 @@ class Application:
             response = self.dialog_response
             if response == "yes":
                 # terminate process, by continuing past this if block
-                self.kill_vivado = True
                 pass
             elif response == "no":
                 # leave and take no action

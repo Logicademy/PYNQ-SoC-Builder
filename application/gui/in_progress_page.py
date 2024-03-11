@@ -345,17 +345,18 @@ class In_Progress_Page(ctk.CTkFrame):
         self.current_running_mode = "run_viv"
 
         pm_obj = pm.Pynq_Manager(self.app.hdlgen_path)
-        new_thread = multiprocessing.Process(target=pm_obj.run_vivado)
-        new_thread.start()
+        pm_obj.run_vivado()
+        time.sleep(0.1)
+        # new_thread = multiprocessing.Process(target=pm_obj.run_vivado)
+        # new_thread.start()
 
-        while new_thread.is_alive():
-            print("Vivado is running...")
-            if self.app.kill_vivado:
-                print("MURDER VIVADO!!!!")
-                new_thread.kill()
-                
-                self.app.kill_vivado = False
+        # while pm_obj.get_vivado_running:
+        #     time.sleep(0.5)
+        #     print("Vivado is running...")
+
         
+
+
         if assert_complete:
             self.operation_completed()
 
