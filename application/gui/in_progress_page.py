@@ -237,9 +237,14 @@ class In_Progress_Page(ctk.CTkFrame):
                 # Run Vivado Mode
                 vivado_log_path = os.path.join(os.getcwd(), "vivado.log")
 
-                while not os.path.exists(vivado_log_path):
+                while not os.path.exists(vivado_log_path) :
                     self.add_to_log_box("\nWaiting for Vivado to launch...")
                     time.sleep(1)
+                    if self.app.vivado_force_quit_event.is_set():
+                        break
+
+                if self.app.vivado_force_quit_event.is_set():
+                        break
 
                 with open(vivado_log_path, 'r') as file:
                     while True:
@@ -257,6 +262,18 @@ class In_Progress_Page(ctk.CTkFrame):
                                 # continue  - we dont need this to continue cos it'll infinite loop
                             elif line[0] == "#":
                                 pass
+                            elif line.startswith("CRITICAL WARNING"):
+                                self.add_to_log_box("\n"+line)
+                            elif line.startswith("ERROR"):
+                                # If the line starts with error, print all the remaining lines in the buffer really then quit.
+                                self.add_to_log_box("\n"+line)
+                                self.app.vivado_force_quit_event.set()
+                                while True:
+                                    line = file.readline()
+                                    if not line:
+                                        break
+                                    self.add_to_log_box("\n"+line)
+                                    time.sleep(0.05)
                                 # If line starts with #, its from sourced file and we dont care.
                                 # continue
                             elif "open_project" in line:
