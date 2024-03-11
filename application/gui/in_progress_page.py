@@ -6,9 +6,11 @@ import pyperclip
 import threading
 import time
 import application.checks as checks
+import xml.dom.minidom
 
 class In_Progress_Page(ctk.CTkFrame):
     def __init__(self, app):
+
         ctk.CTkFrame.__init__(self, app.root)
         self.app = app
 
@@ -101,9 +103,13 @@ class In_Progress_Page(ctk.CTkFrame):
     def copy_logs_to_clip(self):
         pyperclip.copy(self.log_data)
 
-    def add_to_log_box(self, text):
+    def add_to_log_box(self, text, set_text=False):
+        if set_text:
+            self.log_data += text
+        else:
+            self.log_data += text
+
         self.log_text_box.configure(state="normal")
-        self.log_data += text
         self.log_text_box.delete("0.0", "end")  # delete all text
         self.log_text_box.insert("0.0", self.log_data) # repost all text
         self.log_text_box.configure(state="disabled")
@@ -112,9 +118,12 @@ class In_Progress_Page(ctk.CTkFrame):
         # Scroll to the last line
         self.log_text_box.see(last_line_index)
 
-    def add_to_synthesis_log_box(self, text):
+    def add_to_synthesis_log_box(self, text, set_text=False):
+        if set_text:
+            self.synthesis_log_data = text
+        else:
+            self.synthesis_log_data += text
         self.synthesis_log_text_box.configure(state="normal")
-        self.synthesis_log_data += text
         self.synthesis_log_text_box.delete("0.0", "end")  # delete all text
         self.synthesis_log_text_box.insert("0.0", self.synthesis_log_data) # repost all text
         self.synthesis_log_text_box.configure(state="disabled")
@@ -123,9 +132,12 @@ class In_Progress_Page(ctk.CTkFrame):
         # Scroll to the last line
         self.synthesis_log_text_box.see(last_line_index)
 
-    def add_to_implementation_log_box(self, text):
+    def add_to_implementation_log_box(self, text, set_text=False):
+        if set_text:
+            self.implementation_log_data = text
+        else:
+            self.implementation_log_data += text
         self.implementation_log_text_box.configure(state="normal")
-        self.implementation_log_data += text
         self.implementation_log_text_box.delete("0.0", "end")  # delete all text
         self.implementation_log_text_box.insert("0.0", self.implementation_log_data) # repost all text
         self.implementation_log_text_box.configure(state="disabled")
@@ -166,11 +178,46 @@ class In_Progress_Page(ctk.CTkFrame):
         #   - the current stage
         #   - if in vivado mode, the log file
         # self.syn_log_path = "C:/repo/HDLGen-ChatGPT-Latest/User_Projects/ToLuke/FIFOs/FIFO4x64Top/VHDL/AMDprj/FIFO4x64Top.runs/synth_1/runme.log"
-        self.syn_log_path = "C:/repo/HDLGen-ChatGPT-Latest/User_Projects/ToLuke/FIFOs/FIFO4x64Top/VHDL/AMDprj/FIFO4x64Top.runs/FIFO4x64Top_bd_processing_system7_0_0_synth_1/runme.log"
-        self.impl_log_path = "C:/repo/HDLGen-ChatGPT-Latest/User_Projects/ToLuke/FIFOs/FIFO4x64Top/VHDL/AMDprj/FIFO4x64Top.runs/impl_1/runme.log"
 
-        # Delete before running
+        # Parsing data from HDLGen
+        hdlgen = xml.dom.minidom.parse(self.app.hdlgen_path)
+        root = hdlgen.documentElement
 
+        # Project Manager - Settings
+        projectManager = root.getElementsByTagName("projectManager")[0]
+        projectManagerSettings = projectManager.getElementsByTagName("settings")[0]
+        name = projectManagerSettings.getElementsByTagName("name")[0].firstChild.data
+        environment = projectManagerSettings.getElementsByTagName("environment")[0].firstChild.data
+        location = projectManagerSettings.getElementsByTagName("location")[0].firstChild.data
+
+        # genFolder - VHDL Folders
+        genFolder = root.getElementsByTagName("genFolder")[0]
+        try:
+            AMDproj_folder = genFolder.getElementsByTagName("vhdl_folder")[4]
+        except Exception:
+            AMDproj_folder = genFolder.getElementsByTagName("verilog_folder")[4]
+        AMDproj_folder_rel_path = AMDproj_folder.firstChild.data
+
+        # "C:/repo/HDLGen-ChatGPT-Latest/User_Projects/ToLuke/FIFOs/FIFO4x64Top/VHDL/AMDprj/FIFO4x64Top.runs/FIFO4x64Top_bd_processing_system7_0_0_synth_1/runme.log"
+        self.syn_path = environment + "/" + AMDproj_folder_rel_path + "/" + name + ".runs/" + name + "_bd_processing_system7_0_0_synth1/runme.log"
+        # "C:/repo/HDLGen-ChatGPT-Latest/User_Projects/ToLuke/FIFOs/FIFO4x64Top/VHDL/AMDprj/FIFO4x64Top.runs/impl_1/runme.log"
+        self.impl_path = environment + "/" + AMDproj_folder_rel_path + "/" + name + ".runs/impl_1/runme.log"
+
+        # Delete old Synthesis Log
+        if os.path.exists(self.syn_path):
+            # If it exists, delete the file
+            os.remove(self.syn_path)
+            print(f"The file {self.syn_path} has been deleted.")
+        else:
+            print(f"The file {self.syn_path} does not exist.")
+
+        # Delete old Implementation Log
+        if os.path.exists(self.impl_path):
+            # If it exists, delete the file
+            os.remove(self.impl_path)
+            print(f"The file {self.impl_path} has been deleted.")
+        else:
+            print(f"The file {self.impl_path} does not exist.")
 
 
         
@@ -340,8 +387,9 @@ class In_Progress_Page(ctk.CTkFrame):
         waiting_counter = 0
 
         while not os.path.exists(path_to_log):
-            if waiting_counter % 6 == 0:    # Print every three seconds
-                self.add_to_synthesis_log_box("\nWaiting for synthesis job to start")
+            dots = "."*(waiting_counter//2%5)
+            self.add_to_synthesis_log_box("\nWaiting for synthesis job to start" + dots, True)
+
             time.sleep(0.5)
             waiting_counter += 1
             if self.quit_synthesis_logger:
@@ -358,6 +406,23 @@ class In_Progress_Page(ctk.CTkFrame):
                     if line == "":
                         time.sleep(0.5)  # Wait 0.5 seconds just to stop infinite loop
                         continue        # If blank line, just skip to next line
+                    elif line.startswith("CRITICAL WARNING"):
+                                self.add_to_log_box("\n"+line)
+                    elif line.startswith("ERROR"):
+                        # If the line starts with error, print all the remaining lines in the buffer really then quit.
+                        self.add_to_log_box("\n"+line)
+                        self.app.vivado_force_quit_event.set()
+                        while True:
+                            line = file.readline()
+                            if not line:
+                                break
+                            self.add_to_log_box("\n"+line)
+                            time.sleep(0.05)
+                        self.app.vivado_force_quit_event.set()  # Quit
+                        self.app.top_level_message = "Error occured during Synthesis - Please synthesis design before running SoC Builder"
+                        self.app.open_alert()                   # Warn User
+                        # If line starts with #, its from sourced file and we dont care.
+                        # continue
                     else:
                         self.add_to_synthesis_log_box("\n" + line)
                 
@@ -375,10 +440,10 @@ class In_Progress_Page(ctk.CTkFrame):
         waiting_counter = 0
 
         while not os.path.exists(path_to_log):
-            if waiting_counter % 6 == 0:    # Print every three seconds
-                self.add_to_implementation_log_box("\nWaiting for implementation job to start")
+            dots = "."*(waiting_counter//2%5)
+            self.add_to_implementation_log_box("\nWaiting for implementation job to start" + dots, True)
             time.sleep(0.5)
-            waiting_counter += 1
+            waiting_counter+=1
             if self.quit_synthesis_logger:
                 self.add_to_implementation_log_box("\nQuit Implementation Logger Asserted...stopping.")
                 return
