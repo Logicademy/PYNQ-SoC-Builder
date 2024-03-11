@@ -5,6 +5,7 @@ import application.pynq_manager as pm
 import pyperclip
 import threading
 import time
+import application.checks as checks
 
 class In_Progress_Page(ctk.CTkFrame):
     def __init__(self, app):
@@ -28,6 +29,8 @@ class In_Progress_Page(ctk.CTkFrame):
 
         self.log_data = ""
         self.synthesis_log_data = ""
+        self.implementation_log_data = ""
+        
         # scrolling_label = ctk.CTkLabel(row_1_scrollable_frame, text=log_data, wraplength=480, anchor="e")
         self.scrolling_entry_variable = ctk.StringVar()
         self.scrolling_entry_variable.set(self.log_data)
@@ -44,6 +47,11 @@ class In_Progress_Page(ctk.CTkFrame):
         self.synthesis_log_text_box.insert("0.0", self.log_data)
         self.synthesis_log_text_box.configure(state="disabled")
         self.synthesis_log_text_box.grid(row=1, column=0)
+
+        self.implementation_log_text_box = ctk.CTkTextbox(row_1_frame, width=500, height=170, corner_radius=0)
+        self.implementation_log_text_box.insert("0.0", self.log_data)
+        self.implementation_log_text_box.configure(state="disabled")
+        self.implementation_log_text_box.grid(row=2, column=0)
 
         row_2_frame = ctk.CTkFrame(self,width=500, height=30)
         row_2_frame.grid(row=2, column=0, sticky="nsew")
@@ -99,7 +107,7 @@ class In_Progress_Page(ctk.CTkFrame):
         self.log_text_box.delete("0.0", "end")  # delete all text
         self.log_text_box.insert("0.0", self.log_data) # repost all text
         self.log_text_box.configure(state="disabled")
-            # Get the last line index
+        # Get the last line index
         last_line_index = self.log_text_box.index('end-1c linestart')
         # Scroll to the last line
         self.log_text_box.see(last_line_index)
@@ -114,6 +122,17 @@ class In_Progress_Page(ctk.CTkFrame):
         last_line_index = self.synthesis_log_text_box.index('end-1c linestart')
         # Scroll to the last line
         self.synthesis_log_text_box.see(last_line_index)
+
+    def add_to_implementation_log_box(self, text):
+        self.implementation_log_text_box.configure(state="normal")
+        self.implementation_log_data += text
+        self.implementation_log_text_box.delete("0.0", "end")  # delete all text
+        self.implementation_log_text_box.insert("0.0", self.implementation_log_data) # repost all text
+        self.implementation_log_text_box.configure(state="disabled")
+        # Get the last line index
+        last_line_index = self.implementation_log_text_box.index('end-1c linestart')
+        # Scroll to the last line
+        self.implementation_log_text_box.see(last_line_index)
 
     def run_pynq_manager(self):
 
@@ -146,11 +165,22 @@ class In_Progress_Page(ctk.CTkFrame):
         # The logger will need to know: 
         #   - the current stage
         #   - if in vivado mode, the log file
-        self.syn_log_path = "C:/repo/HDLGen-ChatGPT-Latest/User_Projects/ToLuke/FIFOs/FIFO4x64Top/VHDL/AMDprj/FIFO4x64Top.runs/synth_1/runme.log"
-        syn_thread = threading.Thread(target=self.run_synthesis_logger)
-        # syn_thread.start()
+        # self.syn_log_path = "C:/repo/HDLGen-ChatGPT-Latest/User_Projects/ToLuke/FIFOs/FIFO4x64Top/VHDL/AMDprj/FIFO4x64Top.runs/synth_1/runme.log"
+        self.syn_log_path = "C:/repo/HDLGen-ChatGPT-Latest/User_Projects/ToLuke/FIFOs/FIFO4x64Top/VHDL/AMDprj/FIFO4x64Top.runs/FIFO4x64Top_bd_processing_system7_0_0_synth_1/runme.log"
+        self.impl_log_path = "C:/repo/HDLGen-ChatGPT-Latest/User_Projects/ToLuke/FIFOs/FIFO4x64Top/VHDL/AMDprj/FIFO4x64Top.runs/impl_1/runme.log"
+
+        # Delete before running
+
+
+
+        
         logger_thread = threading.Thread(target=self.run_logger)
         logger_thread.start()   # Start the logger thread
+        syn_thread = threading.Thread(target=self.run_synthesis_logger)
+        syn_thread.start()
+        impl_thread = threading.Thread(target=self.run_implementation_logger)
+        impl_thread.start()
+
 
         # Execute Program
         self.app.vivado_force_quit_event.clear()                    # Reset the quit flag
@@ -185,7 +215,7 @@ class In_Progress_Page(ctk.CTkFrame):
 
         i = 0
         j = 0
-        while not self.app.build_running:
+        while not self.app.build_running and not self.app.vivado_force_quit_event.is_set():
             i += 1
             # run_logger thread is called before the application starts, therefore we wait.
             # We check if build has started every tenth of a second, only posting a message every 1 second.
@@ -200,11 +230,8 @@ class In_Progress_Page(ctk.CTkFrame):
         while self.app.build_running:
             
             # Main logger loop
-            if self.current_running_mode == "gen_tcl":
-                # self.add_to_log_box("\nGenerating Tcl Script for Vivado")
-                # Generate Tcl File Mode
-                pass
-            elif self.current_running_mode == "run_viv":
+
+            if self.current_running_mode == "run_viv":
                 # self.add_to_log_box("\nExecuting Tcl Script in Vivado")
                 # Here we need to search for the various triggers
                 # Run Vivado Mode
@@ -213,8 +240,6 @@ class In_Progress_Page(ctk.CTkFrame):
                 while not os.path.exists(vivado_log_path):
                     self.add_to_log_box("\nWaiting for Vivado to launch...")
                     time.sleep(1)
-
-
 
                 with open(vivado_log_path, 'r') as file:
                     while True:
@@ -265,23 +290,23 @@ class In_Progress_Page(ctk.CTkFrame):
                             if self.app.vivado_force_quit_event and self.app.vivado_force_quit_event.is_set():
                                 print("Quitting logger due to quit event.")
                                 break
-            elif self.current_running_mode == "cpy_dir":
-                # To be handled by copy_dir API
-                # self.add_to_log_box("\nCopying Bitstream to <project>/PYNQBuild/output folder")
-                # Copy to Directory Mode
-                pass
-            elif self.current_running_mode == "gen_jnb":
-                # To be handled by copy_dir API
-                # self.add_to_log_box("\nGenerating Jupyter Notebook")
-                # Generate Jupyter Notebook Mode
-                pass
+            # elif self.current_running_mode == "cpy_dir":
+            #     # To be handled by copy_dir API
+            #     # self.add_to_log_box("\nCopying Bitstream to <project>/PYNQBuild/output folder")
+            #     # Copy to Directory Mode
+            #     pass
+            # elif self.current_running_mode == "gen_jnb":
+            #     # To be handled by copy_dir API
+            #     # self.add_to_log_box("\nGenerating Jupyter Notebook")
+            #     # Generate Jupyter Notebook Mode
+            #     pass
             elif self.current_running_mode == None:
                 # This mode should never be possible reach.
                 self.add_to_log_box("\nBuild Idle.")
-                pass
-            else:
-                self.add_to_log_box("\nError: Unaccessible code section reached")
-                pass
+
+            if self.app.vivado_force_quit_event.is_set():
+                break
+
             time.sleep(1)    
 
         # Finally section
@@ -322,7 +347,42 @@ class In_Progress_Page(ctk.CTkFrame):
                 elif not self.app.build_running:
                     print("Quitting synthesis due to quit event.")
                     break
+                time.sleep(0.05)
 
+    def run_implementation_logger(self):
+        path_to_log = self.impl_log_path
+        self.quit_implementation_logger = False
+        waiting_counter = 0
+
+        while not os.path.exists(path_to_log):
+            if waiting_counter % 6 == 0:    # Print every three seconds
+                self.add_to_implementation_log_box("\nWaiting for implementation job to start")
+            time.sleep(0.5)
+            waiting_counter += 1
+            if self.quit_synthesis_logger:
+                self.add_to_implementation_log_box("\nQuit Implementation Logger Asserted...stopping.")
+                return
+
+        with open(path_to_log, 'r') as file:
+            while True:
+                line = file.readline()
+                if not line:
+                    time.sleep(1)   # No line in buffer, wait 1 sec and read again
+                else:
+                    # Handle line
+                    if line == "":
+                        time.sleep(0.5)  # Wait 0.5 seconds just to stop infinite loop
+                        continue        # If blank line, just skip to next line
+                    else:
+                        self.add_to_implementation_log_box("\n" + line)
+                
+                if self.app.vivado_force_quit_event and self.app.vivado_force_quit_event.is_set():
+                    print("Quitting implementation due to quit event.")
+                    break
+                elif not self.app.build_running:
+                    print("Quitting implementation due to quit event.")
+                    break
+                time.sleep(0.05)
 
     def run_all(self):
         self.progress_bar.start()
@@ -395,7 +455,13 @@ class In_Progress_Page(ctk.CTkFrame):
 
         print("Inprogress: Starting Vivado")
         pm_obj = pm.Pynq_Manager(self.app.hdlgen_path)
-        pm_obj.run_vivado(self.app.vivado_force_quit_event)
+        try:
+            pm_obj.run_vivado(self.app.vivado_force_quit_event)
+        except checks.DashesInHDLFileError:
+            self.app.vivado_force_quit_event.set()  # Quit
+            self.app.top_level_message = "Triple Dashes (---) detected in HDL file architecture, have you inserted generated code from ChatGPT?"
+            self.app.open_alert()                   # Warn User
+            
         print("In progress vivado ended")
         # time.sleep(0.1)
 

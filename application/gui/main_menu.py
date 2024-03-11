@@ -183,7 +183,7 @@ class Main_Menu(ctk.CTkFrame):
             # Move to page two:
             if proceed:
                 self.app.show_page(self.app.page2)
-                self.app.root.geometry("500x410")
+                self.app.root.geometry("500x580")
             else:
                 # Do nothing
                 pass
