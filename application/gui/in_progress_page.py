@@ -6,6 +6,7 @@ import pyperclip
 import threading
 import time
 
+import multiprocessing
 class In_Progress_Page(ctk.CTkFrame):
     def __init__(self, app):
         ctk.CTkFrame.__init__(self, app.root)
@@ -121,7 +122,7 @@ class In_Progress_Page(ctk.CTkFrame):
         #   - if in vivado mode, the log file
         self.syn_log_path = "C:/repo/HDLGen-ChatGPT-Latest/User_Projects/ToLuke/FIFOs/FIFO4x64Top/VHDL/AMDprj/FIFO4x64Top.runs/synth_1/runme.log"
         syn_thread = threading.Thread(target=self.run_synthesis_logger)
-        syn_thread.start()
+        # syn_thread.start()
         logger_thread = threading.Thread(target=self.run_logger)
         logger_thread.start()   # Start the logger thread
 
@@ -344,7 +345,17 @@ class In_Progress_Page(ctk.CTkFrame):
         self.current_running_mode = "run_viv"
 
         pm_obj = pm.Pynq_Manager(self.app.hdlgen_path)
-        pm_obj.run_vivado()
+        new_thread = multiprocessing.Process(target=pm_obj.run_vivado)
+        new_thread.start()
+
+        while new_thread.is_alive():
+            print("Vivado is running...")
+            if self.app.kill_vivado:
+                print("MURDER VIVADO!!!!")
+                new_thread.kill()
+                
+                self.app.kill_vivado = False
+        
         if assert_complete:
             self.operation_completed()
 

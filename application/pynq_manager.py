@@ -133,7 +133,7 @@ class Pynq_Manager:
             self.check_generated_path_and_mkdir()
             print("Starting Vivado")
             # Need to add a check here to see if the destination tcl file exists.
-            vivado_process = subprocess.run([self.vivado_bat_path, "-mode", "tcl", "-source", f"{self.pynq_build_generated_path}/generate_script.tcl"], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+            subprocess.run([self.vivado_bat_path, "-mode", "tcl", "-source", f"{self.pynq_build_generated_path}/generate_script.tcl"], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
             print("Bit stream generation is complete")
         except Exception as e:
             print("Exception")
