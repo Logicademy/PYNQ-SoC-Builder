@@ -165,7 +165,7 @@ proc delete_file_safely {path_to_file extension} {
 	puts [file exists $path_to_file]
 	if {[file exists $path_to_file]} {
 		puts "Wrapper Exists: Deleting it now"
-		export_ip_user_files -of_objects  [get_files $$path_to_file$extension] -no_script -reset -force -quiet
+		export_ip_user_files -of_objects  [get_files $path_to_file$extension] -no_script -reset -force -quiet
 		remove_files  $path_to_file$extension
 		file delete -force $path_to_file
 	} else {
