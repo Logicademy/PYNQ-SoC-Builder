@@ -287,6 +287,13 @@ class In_Progress_Page(ctk.CTkFrame):
                         continue        # If blank line, just skip to next line
                     else:
                         self.add_to_synthesis_log_box("\n" + line)
+                
+                if self.app.vivado_force_quit_event and self.app.vivado_force_quit_event.is_set():
+                    print("Quitting synthesis due to quit event.")
+                    break
+                elif not self.app.build_running:
+                    print("Quitting synthesis due to quit event.")
+                    break
 
 
     def run_all(self):
