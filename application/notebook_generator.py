@@ -74,9 +74,12 @@ def create_jnb(path_to_hdlgen_file, output_filename=None, generic=False):
 
     # Retrieve TB Data from HDLGen
     testbench = root.getElementsByTagName("testbench")[0]
-    TBNote = testbench.getElementsByTagName("TBNote")[0]
-    TBNoteData = TBNote.firstChild.data
-
+    try:
+        TBNote = testbench.getElementsByTagName("TBNote")[0]
+        TBNoteData = TBNote.firstChild.data
+    except Exception:
+        print("No TBNoteData - asserting generic generation")
+        generic = True
     # Parsing TB data into variables
     # Convert HTML entities into their coorresponding characters
     decoded_string = html.unescape(TBNoteData)
