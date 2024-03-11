@@ -37,12 +37,10 @@ class Application:
         self.top_level_message = None
         self.dialog_response = None
 
-        # Kill Vivado Threading Event
+        # Build Status Flags
+        self.build_running = False              # If build process is running, this flag will be True
         self.vivado_force_quit_event = threading.Event()
 
-        # Shared flags
-        self.build_running = False              # If build process is running, this flag will be True
-        self.subprocess_exit_signal = threading.Event()    # If force closed, threading.Event() used to signal close to running threads.
         self.io_configuration = {
             "led0":"None",
             "led1":"None",
