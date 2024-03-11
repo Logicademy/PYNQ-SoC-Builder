@@ -274,6 +274,9 @@ class In_Progress_Page(ctk.CTkFrame):
                                         break
                                     self.add_to_log_box("\n"+line)
                                     time.sleep(0.05)
+                                self.app.vivado_force_quit_event.set()  # Quit
+                                self.app.top_level_message = "Error in Vivado Project - Please check log for more details"
+                                self.app.open_alert()                   # Warn User
                                 # If line starts with #, its from sourced file and we dont care.
                                 # continue
                             elif "open_project" in line:
