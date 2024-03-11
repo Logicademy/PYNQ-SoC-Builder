@@ -56,12 +56,17 @@ class In_Progress_Page(ctk.CTkFrame):
         bottom_row_frame.grid(row=3, column=0, sticky="nsew")
 
         copy_to_clip_button = ctk.CTkButton(bottom_row_frame, width=150, text="Copy Log to Clipboard", command=self.copy_logs_to_clip)
-        self.force_quit_button = ctk.CTkButton(bottom_row_frame, width=150, text="Force Quit", fg_color="red3", hover_color="red4", command=self.app.on_close)
+        self.force_quit_button = ctk.CTkButton(bottom_row_frame, width=150, text="Force Quit", fg_color="red3", hover_color="red4", command=self.on_force_stop)
         self.go_back_complete_button = ctk.CTkButton(bottom_row_frame, width=150, text="OK", fg_color="green3", hover_color="green4", command=self.on_return_button)
         
         bottom_row_frame.columnconfigure(1,weight=1)
         copy_to_clip_button.grid(row=0, column=0)
         self.force_quit_button.grid(row=0, column=1,sticky="e")
+
+    def on_force_stop(self):
+        self.app.vivado_force_quit_event.set()
+        self.operation_completed()
+
 
     def copy_logs_to_clip(self):
         pyperclip.copy(self.log_data)
@@ -126,6 +131,7 @@ class In_Progress_Page(ctk.CTkFrame):
         logger_thread.start()   # Start the logger thread
 
         # Execute Program
+        self.app.vivado_force_quit_event.clear()                    # Reset the quit flag
         if self.app.mode == self.app.page1.mode_menu_options[0]:    # Run All
             thread = threading.Thread(target=self.run_all)
             thread.start()
@@ -305,6 +311,12 @@ class In_Progress_Page(ctk.CTkFrame):
         self.operation_completed()
 
     def generate_tcl(self, assert_complete=True):
+
+        if self.app.vivado_force_quit_event.is_set():
+            self.add_to_log_box("\n\nQuit Event: generate_tcl function cancelled.")
+            print("Quitting generate_tcl due to quit event.")
+            return
+
         regenerate_bd = True # Default
         # start_gui = True 
         # keep_vivado_open = False
@@ -351,6 +363,11 @@ class In_Progress_Page(ctk.CTkFrame):
             self.operation_completed()
 
     def run_vivado(self, assert_complete=True):
+        if self.app.vivado_force_quit_event.is_set():
+            self.add_to_log_box("\n\nQuit Event: run_vivado function cancelled.")
+            print("Quitting run_vivado due to quit event.")
+            return
+        
         # Setting mode for the logger thread
         self.current_running_mode = "run_viv"
 
@@ -374,6 +391,11 @@ class In_Progress_Page(ctk.CTkFrame):
             self.operation_completed()
 
     def copy_to_dir(self, assert_complete=True):
+        if self.app.vivado_force_quit_event.is_set():
+            self.add_to_log_box("\n\nQuit Event: copy_to_dir function cancelled.")
+            print("Quitting copy_to_dir due to quit event.")
+            return
+        
         # Setting mode for the logger thread
         self.current_running_mode = "cpy_dir"
 
@@ -386,6 +408,10 @@ class In_Progress_Page(ctk.CTkFrame):
             self.operation_completed()
 
     def generate_jnb(self, assert_complete=True):
+        if self.app.vivado_force_quit_event.is_set():
+            self.add_to_log_box("\n\nQuit Event: generate_jnb function cancelled.")
+            print("Quitting generate_jnb due to quit event.")
+            return
         # Setting mode for the logger thread
         self.current_running_mode = "gen_jnb"
 

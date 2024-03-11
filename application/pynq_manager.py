@@ -154,8 +154,6 @@ class Pynq_Manager:
             print(e)
 
         finally:
-            if force_close_flag:
-                force_close_flag.clear()
             # Ensure the subprocess is terminated even if the thread exits
             if vivado_process.poll() is None:
                 # Retrieve the process group ID (PGID) using psutil

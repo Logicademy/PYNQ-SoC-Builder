@@ -38,8 +38,8 @@ class Application:
         self.dialog_response = None
 
         # Build Status Flags
-        self.build_running = False              # If build process is running, this flag will be True
-        self.vivado_force_quit_event = threading.Event()
+        self.build_running = False                          # If build process is running, this flag will be True
+        self.vivado_force_quit_event = threading.Event()    # Force quit event threading.Event()
 
         self.io_configuration = {
             "led0":"None",
