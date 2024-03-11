@@ -64,6 +64,28 @@ class In_Progress_Page(ctk.CTkFrame):
         self.force_quit_button.grid(row=0, column=1,sticky="e")
 
     def on_force_stop(self):
+
+        if self.app.build_running:
+            # Prompt user if they are sure:
+            self.app.top_level_message = "Are you sure you wish to force quit?"
+            self.app.open_dialog()
+
+            # Wait for the user to click their response
+            self.app.toplevel_window.wait_window()
+
+            # print(self.dialog_response)
+            response = self.app.dialog_response
+            if response == "yes":
+                # terminate process, by continuing past this if block
+                self.app.vivado_force_quit_event.set()
+                pass
+            elif response == "no":
+                # leave and take no action
+                return
+            else:
+                print("Invalid response from Dialog, not quitting (default)")
+                return
+
         self.app.vivado_force_quit_event.set()
         self.operation_completed()
 
