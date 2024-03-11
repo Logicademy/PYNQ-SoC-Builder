@@ -477,8 +477,10 @@ def generate_tcl(path_to_hdlgen_project, regenerate_bd=True, start_gui=True, kee
         img_bd_name = "image_bd"
         path_to_img_bd = path_to_bd + "/" + img_bd_name + "/" + img_bd_name + ".bd"
 
+        file_contents += f"\ndelete_file_safely {path_to_bd + "/" + img_bd_name + "/" + img_bd_name} .bd"
+
         # Create block design, import the 
-        file_contents += f"\ncreate_bd_design {img_bd_name}"
+        file_contents += f"\ncreate_bd_file {img_bd_name}"
         # file_contents += "\nupdate_compile_order -fileset sources_1"
         # file_contents += f"\ncreate_bd_cell -type module -reference {module_source} {module_source}_0"
         file_contents += "\nset_property source_mgmt_mode All [current_project]"    # Setting automatic mode for source management
