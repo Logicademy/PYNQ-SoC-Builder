@@ -199,7 +199,7 @@ class In_Progress_Page(ctk.CTkFrame):
         AMDproj_folder_rel_path = AMDproj_folder.firstChild.data
 
         # "C:/repo/HDLGen-ChatGPT-Latest/User_Projects/ToLuke/FIFOs/FIFO4x64Top/VHDL/AMDprj/FIFO4x64Top.runs/FIFO4x64Top_bd_processing_system7_0_0_synth_1/runme.log"
-        self.syn_log_path = environment + "/" + AMDproj_folder_rel_path + "/" + name + ".runs/" + name + "_bd_processing_system7_0_0_synth1/runme.log"
+        self.syn_log_path = environment + "/" + AMDproj_folder_rel_path + "/" + name + ".runs/" + name + "_bd_processing_system7_0_0_synth_1/runme.log"
         # "C:/repo/HDLGen-ChatGPT-Latest/User_Projects/ToLuke/FIFOs/FIFO4x64Top/VHDL/AMDprj/FIFO4x64Top.runs/impl_1/runme.log"
         self.impl_log_path = environment + "/" + AMDproj_folder_rel_path + "/" + name + ".runs/impl_1/runme.log"
 
@@ -389,7 +389,6 @@ class In_Progress_Page(ctk.CTkFrame):
         while not os.path.exists(path_to_log):
             dots = "."*(waiting_counter//2%5)
             self.add_to_synthesis_log_box("\nWaiting for synthesis job to start" + dots, True)
-
             time.sleep(0.5)
             waiting_counter += 1
             if self.quit_synthesis_logger:
