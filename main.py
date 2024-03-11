@@ -37,8 +37,8 @@ class Application:
         self.top_level_message = None
         self.dialog_response = None
 
-        # Kill Vivado Flag
-        self.kill_vivado = False
+        # Kill Vivado Threading Event
+        self.vivado_force_quit_event = threading.Event()
 
         # Shared flags
         self.build_running = False              # If build process is running, this flag will be True
@@ -134,6 +134,7 @@ class Application:
             response = self.dialog_response
             if response == "yes":
                 # terminate process, by continuing past this if block
+                self.vivado_force_quit_event.set()
                 pass
             elif response == "no":
                 # leave and take no action
