@@ -1359,7 +1359,7 @@ def save_and_quit(start_gui, keep_vivado_open):
     if start_gui:
         if not keep_vivado_open:
             file_contents += "\nstop_gui"
-            file_contents += "\nclose_design"
+            # file_contents += "\nclose_design"
             file_contents += "\nexit"
         else:
             # GUI started, and user wishes to close Vivado themselves.
@@ -1367,7 +1367,7 @@ def save_and_quit(start_gui, keep_vivado_open):
             pass
     else: # GUI not started, close project, don't run stop_gui command.
         # file_contents += "\nstop_gui"
-        file_contents += "\nclose_design"
+        # file_contents += "\nclose_design"
         file_contents += "\nexit"
     return file_contents
 

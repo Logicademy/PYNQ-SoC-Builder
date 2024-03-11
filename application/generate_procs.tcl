@@ -238,7 +238,7 @@ proc export_bd {bd_tcl_path} {
 
 # Close project and Quit Vivado.
 proc close_and_quit {} {
-	close_project
+	# close_project
 	exit
 }
 
