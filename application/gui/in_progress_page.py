@@ -10,7 +10,7 @@ class In_Progress_Page(ctk.CTkFrame):
     def __init__(self, app):
         ctk.CTkFrame.__init__(self, app.root)
         self.app = app
-        
+
         # Shared Variable:
         self.current_running_mode = None    # Used by logger thread to know what process is running
 
@@ -27,14 +27,23 @@ class In_Progress_Page(ctk.CTkFrame):
         # row_1_scrollable_frame.grid(row=1, column=0, sticky="e") #sticky="ew"
 
         self.log_data = ""
+        self.synthesis_log_data = ""
         # scrolling_label = ctk.CTkLabel(row_1_scrollable_frame, text=log_data, wraplength=480, anchor="e")
         self.scrolling_entry_variable = ctk.StringVar()
         self.scrolling_entry_variable.set(self.log_data)
         
-        self.log_text_box = ctk.CTkTextbox(self, width=500, height=170, corner_radius=0)
+        row_1_frame = ctk.CTkFrame(self,width=500, height=30)
+        row_1_frame.grid(row=1, column=0, sticky="nsew")
+
+        self.log_text_box = ctk.CTkTextbox(row_1_frame, width=500, height=170, corner_radius=0)
         self.log_text_box.insert("0.0", self.log_data)
         self.log_text_box.configure(state="disabled")
-        self.log_text_box.grid(row=1, column=0)
+        self.log_text_box.grid(row=0, column=0)
+
+        self.synthesis_log_text_box = ctk.CTkTextbox(row_1_frame, width=500, height=170, corner_radius=0)
+        self.synthesis_log_text_box.insert("0.0", self.log_data)
+        self.synthesis_log_text_box.configure(state="disabled")
+        self.synthesis_log_text_box.grid(row=1, column=0)
 
         row_2_frame = ctk.CTkFrame(self,width=500, height=30)
         row_2_frame.grid(row=2, column=0, sticky="nsew")
@@ -68,6 +77,17 @@ class In_Progress_Page(ctk.CTkFrame):
         # Scroll to the last line
         self.log_text_box.see(last_line_index)
 
+    def add_to_synthesis_log_box(self, text):
+        self.synthesis_log_text_box.configure(state="normal")
+        self.synthesis_log_data += text
+        self.synthesis_log_text_box.delete("0.0", "end")  # delete all text
+        self.synthesis_log_text_box.insert("0.0", self.synthesis_log_data) # repost all text
+        self.synthesis_log_text_box.configure(state="disabled")
+        # Get the last line index
+        last_line_index = self.synthesis_log_text_box.index('end-1c linestart')
+        # Scroll to the last line
+        self.synthesis_log_text_box.see(last_line_index)
+
     def run_pynq_manager(self):
 
         # Find Vivado log file and delete it.
@@ -99,6 +119,9 @@ class In_Progress_Page(ctk.CTkFrame):
         # The logger will need to know: 
         #   - the current stage
         #   - if in vivado mode, the log file
+        self.syn_log_path = "C:/repo/HDLGen-ChatGPT-Latest/User_Projects/ToLuke/FIFOs/FIFO4x64Top/VHDL/AMDprj/FIFO4x64Top.runs/synth_1/runme.log"
+        syn_thread = threading.Thread(target=self.run_synthesis_logger)
+        syn_thread.start()
         logger_thread = threading.Thread(target=self.run_logger)
         logger_thread.start()   # Start the logger thread
 
@@ -143,7 +166,7 @@ class In_Progress_Page(ctk.CTkFrame):
 
             if i > 10:
                 i -= 10
-                self.add_to_log_box("Waiting for build to start...")
+                self.add_to_log_box("\nWaiting for build to start...")
             time.sleep(0.1)
 
         while self.app.build_running:
@@ -232,8 +255,10 @@ class In_Progress_Page(ctk.CTkFrame):
         # Finally section
         # Run any closing code: Perhaps print a summary to the log.
         self.add_to_log_box("\n\n===== Summary =====\nTime to build: MM:SS\netc.etc.etc.")
+        return
 
-    def run_synthesis_logger(self, path_to_log):
+    def run_synthesis_logger(self):
+        path_to_log = self.syn_log_path
         self.quit_synthesis_logger = False
         waiting_counter = 0
 
@@ -246,63 +271,18 @@ class In_Progress_Page(ctk.CTkFrame):
                 self.add_to_synthesis_log_box("\nQuit Synthesis Logger Asserted...stopping.")
                 return
 
-        while True:
-            time.sleep(1)
-            pass
-
-
-                while not os.path.exists(vivado_log_path):
-                    self.add_to_log_box("\nWaiting for Vivado to launch...")
-                    time.sleep(1)
-
-
-
-                with open(vivado_log_path, 'r') as file:
-                    while True:
-                        line = file.readline()
-                        if not line:
-                            # End of file reached, wait for the next line to become available
-                            time.sleep(1)  # Adjust the sleep duration as needed
-                        else:
-                            # Process the line as needed
-                            # Look for specific indicators of whats happening.
-                            # line
-                            if line == "":
-                                pass
-                                # Protection for the next check, if empty string, skip.
-                                # continue  - we dont need this to continue cos it'll infinite loop
-                            elif line[0] == "#":
-                                pass
-                                # If line starts with #, its from sourced file and we dont care.
-                                # continue
-                            elif "open_project" in line:
-                                self.add_to_log_box("\nOpening Vivado Project")
-                                self.add_to_log_box("\n"+line)
-                            elif "create_bd_design" in line:
-                                self.add_to_log_box("\nCreate BD Design")
-                                self.add_to_log_box("\n"+line)
-                            elif "_0_0_synth_1" in line:
-                                self.add_to_log_box("\nStarting synthesis")
-                                self.add_to_log_box("\n"+line)
-                            elif "Launched impl_1..." in line:
-                                self.add_to_log_box("\nLaunching Implementation")
-                                self.add_to_log_box("\n"+line)
-                                self.add_to_log_box("\nSee nextline for log path:")
-                                self.add_to_log_box(file.readline())
-                            elif "Waiting for impl_1 to finish..." in line:
-                                self.add_to_log_box("\nWaiting for impl_1 to finish...see impl log tab for more details.")
-                                time.sleep(1)
-                            elif "write_bitstream completed successfully" in line:
-                                self.add_to_log_box("\nBitstream written successfully.")
-                            elif "exit" in line:
-                                self.add_to_log_box("\nExit command issued to Vivado. Waiting for Vivado to close.")
-                                # Stall the process until the flag is updated by other thread.
-                                while self.app.build_running:
-                                    time.sleep(1)
-                                    pass
-                                break
-                            if self.current_running_mode != "run_viv":
-                                    break
+        with open(path_to_log, 'r') as file:
+            while True:
+                line = file.readline()
+                if not line:
+                    time.sleep(1)   # No line in buffer, wait 1 sec and read again
+                else:
+                    # Handle line
+                    if line == "":
+                        time.sleep(0.5)  # Wait 0.5 seconds just to stop infinite loop
+                        continue        # If blank line, just skip to next line
+                    else:
+                        self.add_to_synthesis_log_box("\n" + line)
 
 
     def run_all(self):
