@@ -174,11 +174,6 @@ proc delete_file_safely {path_to_file extension} {
 	}
 }
 
-export_ip_user_files -of_objects  [get_files C:/repo/HDLGen-ChatGPT-Latest/User_Projects/ToLuke/FIFOs/FIFO4x64Top/VHDL/AMDprj/FIFO4x64Top.srcs/sources_1/bd/image_bd/image_bd.bd] -no_script -reset -force -quiet
-remove_files  C:/repo/HDLGen-ChatGPT-Latest/User_Projects/ToLuke/FIFOs/FIFO4x64Top/VHDL/AMDprj/FIFO4x64Top.srcs/sources_1/bd/image_bd/image_bd.bd
-file delete -force C:/repo/HDLGen-ChatGPT-Latest/User_Projects/ToLuke/FIFOs/FIFO4x64Top/VHDL/AMDprj/FIFO4x64Top.srcs/sources_1/bd/image_bd
-
-
 # Delete HDL Wrapper
 # - The path_to_wrapper_file should contain the path but omit the file extension
 # - For greater reliability, we select the extension in Vivado rather than depending on what HDLGen tells us.
