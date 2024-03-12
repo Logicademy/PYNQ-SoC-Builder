@@ -80,62 +80,66 @@ def create_jnb(path_to_hdlgen_file, output_filename=None, generic=False):
     except Exception:
         print("No TBNoteData - asserting generic generation")
         generic = True
-    # Parsing TB data into variables
-    # Convert HTML entities into their coorresponding characters
-    decoded_string = html.unescape(TBNoteData)
-    # Replace &#x9; with actual tabs
-    tsv_string = decoded_string.replace("&#x9;", "\t")
-    # Read TSV string into a CSV reader
-    tsv_reader = csv.reader(StringIO(tsv_string), delimiter='\t')
     
-    tsv_data_filtered = []
-    for row in tsv_reader:
-        if row == []:
-            pass
-        elif row and row[0] and row[0][0] == '#':
-            pass
-        else:
-            tsv_data_filtered.append(row)
-    # Convert CSV reader into a list of lists
-    tsv_data = [row for row in tsv_reader]
-
-    # for row in tsv_data_filtered:
-    #     print(row)
-
-    signals_line = ""
-    mode_line = ""
-    radix_line = ""
-    test_cases = []
-
-    for row in tsv_data_filtered:
-        if row[0] == '#':
-            pass
-        elif row[0] == '=':
-            pass
-        elif row[0] == 'Signals':
-            signals_line = row
-        elif row[0] == 'Mode':
-            mode_line = row
-        elif row[0] == 'Radix':
-            radix_line = row
-        else:
-            test_cases.append(row)
-
-    # Need to add checks here that if Signals, Mode, or Radix are empty to crash gracefully.
-
-
-
-    # print("Signals: ", signals_line)
-    # print("Mode: ", mode_line)
-    # print("Radix: ", radix_line)
-
-    signals_tb = []
-    for i in range(len(signals_line)):  # range(1, len(signals_line)-3)
-        signals_tb.append([signals_line[i], mode_line[i], radix_line[i]])
     
-    # print("Test Cases")
-    # for t in test_cases:
-    #     print(t)
+    # Test bench parsing code
+    if not generic:
+        # Parsing TB data into variables
+        # Convert HTML entities into their coorresponding characters
+        decoded_string = html.unescape(TBNoteData)
+        # Replace &#x9; with actual tabs
+        tsv_string = decoded_string.replace("&#x9;", "\t")
+        # Read TSV string into a CSV reader
+        tsv_reader = csv.reader(StringIO(tsv_string), delimiter='\t')
+        
+        tsv_data_filtered = []
+        for row in tsv_reader:
+            if row == []:
+                pass
+            elif row and row[0] and row[0][0] == '#':
+                pass
+            else:
+                tsv_data_filtered.append(row)
+        # Convert CSV reader into a list of lists
+        tsv_data = [row for row in tsv_reader]
+
+        # for row in tsv_data_filtered:
+        #     print(row)
+
+        signals_line = ""
+        mode_line = ""
+        radix_line = ""
+        test_cases = []
+
+        for row in tsv_data_filtered:
+            if row[0] == '#':
+                pass
+            elif row[0] == '=':
+                pass
+            elif row[0] == 'Signals':
+                signals_line = row
+            elif row[0] == 'Mode':
+                mode_line = row
+            elif row[0] == 'Radix':
+                radix_line = row
+            else:
+                test_cases.append(row)
+
+        # Need to add checks here that if Signals, Mode, or Radix are empty to crash gracefully.
+
+
+
+        # print("Signals: ", signals_line)
+        # print("Mode: ", mode_line)
+        # print("Radix: ", radix_line)
+
+        signals_tb = []
+        for i in range(len(signals_line)):  # range(1, len(signals_line)-3)
+            signals_tb.append([signals_line[i], mode_line[i], radix_line[i]])
+    
+        # print("Test Cases")
+        # for t in test_cases:
+        #     print(t)
 
     ####### Start of JNB Generation #######
     
