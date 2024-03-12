@@ -3,9 +3,21 @@ import xml.dom.minidom
 import csv
 from io import StringIO
 import html
+import os
 
 # Function to generate JNB, takes HDLGen file path and notebook name as parameters
 def create_jnb(path_to_hdlgen_file, output_filename=None, generic=False):
+    
+    py_file_contents = ""   # This file is used to store the accompanying Python code for GUI controller, test APIs etc.
+
+    # PY File Imports
+    py_file_contents += "import ipywidgets as widgets"
+    py_file_contents += "\nfrom IPython.display import SVG, display"
+    py_file_contents += "\nfrom ipywidgets import GridspecLayout, Output, HBox"
+    py_file_contents += "\nfrom ipywidgets import Button, Layout, jslink, IntText, IntSlider"
+    py_file_contents += "\nfrom pynq import Overlay"
+    py_file_contents += "\nimport pandas as pd"
+    py_file_contents += "\nimport time"
 
     # Open HDLGen xml and get root node.
     hdlgen = xml.dom.minidom.parse(path_to_hdlgen_file)
@@ -58,68 +70,76 @@ def create_jnb(path_to_hdlgen_file, output_filename=None, generic=False):
         else:
             print("Line 59 NBG: Invalid Port")
 
+    parsed_all_ports = parse_all_ports(all_ports)
 
     # Retrieve TB Data from HDLGen
     testbench = root.getElementsByTagName("testbench")[0]
-    TBNote = testbench.getElementsByTagName("TBNote")[0]
-    TBNoteData = TBNote.firstChild.data
-
-    # Parsing TB data into variables
-    # Convert HTML entities into their coorresponding characters
-    decoded_string = html.unescape(TBNoteData)
-    # Replace &#x9; with actual tabs
-    tsv_string = decoded_string.replace("&#x9;", "\t")
-    # Read TSV string into a CSV reader
-    tsv_reader = csv.reader(StringIO(tsv_string), delimiter='\t')
+    try:
+        TBNote = testbench.getElementsByTagName("TBNote")[0]
+        TBNoteData = TBNote.firstChild.data
+    except Exception:
+        print("No TBNoteData - asserting generic generation")
+        generic = True
     
-    tsv_data_filtered = []
-    for row in tsv_reader:
-        if row == []:
-            pass
-        elif row and row[0] and row[0][0] == '#':
-            pass
-        else:
-            tsv_data_filtered.append(row)
-    # Convert CSV reader into a list of lists
-    tsv_data = [row for row in tsv_reader]
-
-    # for row in tsv_data_filtered:
-    #     print(row)
-
-    signals_line = ""
-    mode_line = ""
-    radix_line = ""
-    test_cases = []
-
-    for row in tsv_data_filtered:
-        if row[0] == '#':
-            pass
-        elif row[0] == '=':
-            pass
-        elif row[0] == 'Signals':
-            signals_line = row
-        elif row[0] == 'Mode':
-            mode_line = row
-        elif row[0] == 'Radix':
-            radix_line = row
-        else:
-            test_cases.append(row)
-
-    # Need to add checks here that if Signals, Mode, or Radix are empty to crash gracefully.
-
-
-
-    # print("Signals: ", signals_line)
-    # print("Mode: ", mode_line)
-    # print("Radix: ", radix_line)
-
-    signals_tb = []
-    for i in range(len(signals_line)):  # range(1, len(signals_line)-3)
-        signals_tb.append([signals_line[i], mode_line[i], radix_line[i]])
     
-    # print("Test Cases")
-    # for t in test_cases:
-    #     print(t)
+    # Test bench parsing code
+    if not generic:
+        # Parsing TB data into variables
+        # Convert HTML entities into their coorresponding characters
+        decoded_string = html.unescape(TBNoteData)
+        # Replace &#x9; with actual tabs
+        tsv_string = decoded_string.replace("&#x9;", "\t")
+        # Read TSV string into a CSV reader
+        tsv_reader = csv.reader(StringIO(tsv_string), delimiter='\t')
+        
+        tsv_data_filtered = []
+        for row in tsv_reader:
+            if row == []:
+                pass
+            elif row and row[0] and row[0][0] == '#':
+                pass
+            else:
+                tsv_data_filtered.append(row)
+        # Convert CSV reader into a list of lists
+        tsv_data = [row for row in tsv_reader]
+
+        # for row in tsv_data_filtered:
+        #     print(row)
+
+        signals_line = ""
+        mode_line = ""
+        radix_line = ""
+        test_cases = []
+
+        for row in tsv_data_filtered:
+            if row[0] == '#':
+                pass
+            elif row[0] == '=':
+                pass
+            elif row[0] == 'Signals':
+                signals_line = row
+            elif row[0] == 'Mode':
+                mode_line = row
+            elif row[0] == 'Radix':
+                radix_line = row
+            else:
+                test_cases.append(row)
+
+        # Need to add checks here that if Signals, Mode, or Radix are empty to crash gracefully.
+
+
+
+        # print("Signals: ", signals_line)
+        # print("Mode: ", mode_line)
+        # print("Radix: ", radix_line)
+
+        signals_tb = []
+        for i in range(len(signals_line)):  # range(1, len(signals_line)-3)
+            signals_tb.append([signals_line[i], mode_line[i], radix_line[i]])
+    
+        # print("Test Cases")
+        # for t in test_cases:
+        #     print(t)
 
     ####### Start of JNB Generation #######
     
@@ -129,6 +149,14 @@ def create_jnb(path_to_hdlgen_file, output_filename=None, generic=False):
     # Title Cell
     markdown_cell = nbf.v4.new_markdown_cell(f"# {title}")
     notebook.cells.append(markdown_cell) # Add cell to notebook
+
+    # Python Set Up Markdown Block
+    markdown_cell = nbf.v4.new_markdown_cell(f"#### Python Environment Set Up")
+    notebook.cells.append(markdown_cell)
+    
+    code_cell_contents = f"%run {compName}.py"
+    code_cell = nbf.v4.new_code_cell(code_cell_contents)
+    notebook.cells.append(code_cell)
 
     # Component Description
     markdown_cell = nbf.v4.new_markdown_cell(f"## Component Description\n\n{description}")
@@ -141,16 +169,13 @@ def create_jnb(path_to_hdlgen_file, output_filename=None, generic=False):
     markdown_cell = nbf.v4.new_markdown_cell(markdown_cell_contents)
     notebook.cells.append(markdown_cell)
 
-    # Python Set Up Markdown Block
-    markdown_cell = nbf.v4.new_markdown_cell(f"## Python Set Up")
-    notebook.cells.append(markdown_cell)
+
+
     # Python Set Up Code Block
-    code_cell_contents = "from pynq import Overlay"
-    code_cell_contents += "\nimport pandas as pd"
-    code_cell_contents += "\nimport time"
-    code_cell_contents += "\n\n# Import Overlay"
-    code_cell_contents += f"\n{compName} = Overlay(\"{compName}.bit\")"
-    
+    # Import Overlay
+    py_file_contents += "\n\n# Import Overlay"
+    py_file_contents += f"\n{compName} = Overlay(\"{compName}.bit\")"
+
     # This portion needs to be remodelled to support >32 bit signals which have been divided.
 
     # code_cell_contents += "\n# Inputs:"
@@ -226,25 +251,33 @@ def create_jnb(path_to_hdlgen_file, output_filename=None, generic=False):
                 large_input_signals.append(input_split)
                     
         
-    code_cell_contents += "\n# Declare Signal Objects"
+    py_file_contents += "\n\n# Declare Signal Objects"
     for sig in split_signals:
-        code_cell_contents += f"\n{sig[0]} = {compName}.{sig[0]}"
+        py_file_contents += f"\n{sig[0]} = {compName}.{sig[0]}"
 
 
     if clock_enabled:
-        code_cell_contents += "\n# Set-Up Clock Function\ndef run_clock_pulse():"
-        code_cell_contents += "\n\ttime.sleep(0.0000002)"
-        code_cell_contents += "\n\tclk.write(0,1)"
-        code_cell_contents += "\n\ttime.sleep(0.0000002)"
-        code_cell_contents += "\n\tclk.write(0,0)\n"
+        py_file_contents += "\n\n# Set-Up Clock Function\ndef run_clock_pulse():"
+        py_file_contents += "\n\ttime.sleep(0.0000002)"
+        py_file_contents += "\n\tclk.write(0,1)"
+        py_file_contents += "\n\ttime.sleep(0.0000002)"
+        py_file_contents += "\n\tclk.write(0,0)\n"
+
+    # Here we need to insert GUI Controller.
+    gui_controller = True
+    if gui_controller:
+        markdown_cell = nbf.v4.new_markdown_cell(f"## Component Controller")
+        notebook.cells.append(markdown_cell)
+        code_cell = nbf.v4.new_code_cell(f"display(generate_gui(svg_content))")
+        notebook.cells.append(code_cell)
+
+        # Here we need to write the GUI based code and add it to the py_code_contents
+        py_file_contents += generate_gui_controller(compName, parsed_all_ports, location)
 
     ##### Break here if only dealing with skeleton code.
     # Possible To-do here is a "example" cell showing how to use signals
 
     if not generic:
-
-        code_cell = nbf.v4.new_code_cell(code_cell_contents)
-        notebook.cells.append(code_cell)
 
         # Testbench Plan Title Cell
         markdown_cell = nbf.v4.new_markdown_cell("# Test Plan")
@@ -278,9 +311,13 @@ def create_jnb(path_to_hdlgen_file, output_filename=None, generic=False):
 
 
         # Test Set Up Python Code Block
-        markdown_cell = nbf.v4.new_markdown_cell("# Test Execution Set-Up Code")
-        notebook.cells.append(markdown_cell) 
+        # markdown_cell = nbf.v4.new_markdown_cell("# Test Execution Set-Up Code")
+        # notebook.cells.append(markdown_cell) 
 
+        ############################## TEST CASE SET UP PYTHON BLOCK #################################
+        ######## This section looks like it is generating for a code block but it is actually ########
+        ######## being sent to the supplementary Python file.                                 ########
+        ##############################################################################################
 
         code_cell_contents = "# Test Case Set Up"
         code_cell_contents += f"\n# Number Of Test Cases: {len(test_cases)}"
@@ -301,13 +338,6 @@ def create_jnb(path_to_hdlgen_file, output_filename=None, generic=False):
                     output_signals_string += "'"+sub_signals[i] + "', " # signal1, 
         output_signals_string = output_signals_string[:-2] + "]" # delete the last ", " and add "]" instead
         code_cell_contents += output_signals_string
-
-
-
-
-
-
-
 
         # Loop Outputs
                     
@@ -406,10 +436,6 @@ def create_jnb(path_to_hdlgen_file, output_filename=None, generic=False):
 
         test_results_string = test_results_string[:-2] + "]" # delete the last 
 
-
-
-
-
         code_cell_contents += test_results_string
         
         code_cell_contents += "\n\t\tdf = pd.DataFrame({"
@@ -422,8 +448,24 @@ def create_jnb(path_to_hdlgen_file, output_filename=None, generic=False):
         code_cell_contents += "\n\telse:"
         code_cell_contents += "\n\t\tprint('Invalid Test Number Provided')"
 
-        code_cell = nbf.v4.new_code_cell(code_cell_contents)
-        notebook.cells.append(code_cell)
+        code_cell_contents += "\n\n# Split Number into Blocks"
+        code_cell_contents += "\ndef split_into_blocks(number, num_blocks):"
+        code_cell_contents += "\n\tblock_size = 32"
+        code_cell_contents += "\n\tmask = (1 << block_size) - 1  # Create a mask with 32 bits set to 1"
+        code_cell_contents += "\n\tblocks = []"
+        code_cell_contents += "\n\tfor i in range(0, 32*num_blocks, block_size):"
+        code_cell_contents += "\n\t\tblock = (number & mask)"
+        code_cell_contents += "\n\t\tblocks.append(block)"
+        code_cell_contents += "\n\t\tnumber >>= block_size"
+        code_cell_contents += "\n\treturn blocks"
+
+
+        #### END OF PYTHON TEST CASE SET UP CODE BLOCK - SENDING TO PYTHON FILE ####
+        py_file_contents += "\n\n# Test Case Set Up Code\n\n" + code_cell_contents
+
+        py_file_contents += "\n" + create_large_classes_from_port_map(parsed_all_ports)
+        # code_cell = nbf.v4.new_code_cell(code_cell_contents)
+        # notebook.cells.append(code_cell)
 
         # Loop to Generate each test case
         test_number = 0
@@ -446,16 +488,21 @@ def create_jnb(path_to_hdlgen_file, output_filename=None, generic=False):
                 radix_val = radix_line[val+1]   # This should be fine, +1 to skip "Radix" at start of line
                 radix_form = radix_val.strip()    # trim whatever whitespace that might be there
                 radix_form = radix_form[-1]        # Radix form is the last letter in value
-                
+                radix_number = radix_val.split("'")[0]  # Number in radix
+
+
                 value = filtered_test[val]
                 signal_name = signals_line[val+1]
 
                 if radix_form == 'h':
                     # If the signal is short, just story it, if the signal is large then we want to divide it into 32 bit chunks
-                    if signal_name in small_input_signals:
+                    
+                    # Bypassing splits
+                    
+                    # if signal_name in small_input_signals:
+                    if True:
                         test_converted_to_decimal_from_radix_dictionary[signal_name] = f"int(\"{value}\", 16)"
                     else:
-                        radix_number = 64
                         test_converted_to_decimal_from_radix_dictionary[signal_name] = hex_to_padded_chunks(value, radix_number)
                     
 
@@ -464,14 +511,17 @@ def create_jnb(path_to_hdlgen_file, output_filename=None, generic=False):
                     # test_converted_to_decimal_from_radix.append(str(decimal_value))
                     test_converted_to_decimal_from_radix.append(f"int(\"{value}\", 16)")
                 elif radix_form == 'b':
-                    if signal_name in small_input_signals:
+                    # Bypassing splitting now
+                    # if signal_name in small_input_signals:
+                    if True:
                         test_converted_to_decimal_from_radix_dictionary[signal_name] = f"int(\"{value}\", 2)"
                     # Convert for binary
                     # decimal_value = int(value, 2)
                     # test_converted_to_decimal_from_radix.append(str(decimal_value))
                     test_converted_to_decimal_from_radix.append(f"int(\"{value}\", 2)")
                 elif radix_form == "d":
-                    if signal_name in small_input_signals:
+                    # if signal_name in small_input_signals:
+                    if True:
                         test_converted_to_decimal_from_radix_dictionary[signal_name] = f"{value}"
 
                     
@@ -488,7 +538,7 @@ def create_jnb(path_to_hdlgen_file, output_filename=None, generic=False):
             
 
             # Testbench Plan Cell
-            markdown_cell_contents = f"**Test Case: {test_number}**\n\n"
+            markdown_cell_contents = f"## Test Case: {test_number}\n\n"
             # Row 1 Signals:
             markdown_cell_contents += "| "
             for s in signals_line:
@@ -540,8 +590,6 @@ def create_jnb(path_to_hdlgen_file, output_filename=None, generic=False):
                 else:
                     code_cell_contents += f"{key}.write(0, {value})\n"
 
-
-
             while delay_total >= 1 and clock_enabled:
                 # run clock 
                 code_cell_contents += "\nrun_clock_pulse()"
@@ -551,17 +599,6 @@ def create_jnb(path_to_hdlgen_file, output_filename=None, generic=False):
             # Break
             code_cell_contents += "\n\n# Recording Outputs"
             code_cell_contents += f"\nsave_and_print_test({test_number})"
-            # code_cell_contents += "\ntst_res = []"
-            # # Checking Output:
-            # for i in range(len(sub_signals)):
-            #     if sub_modes[i] == "out":
-            #         code_cell_contents += f"\ntst_res.append(True if {sub_signals[i]}.read(0) == {test_converted_to_decimal_from_radix[i]} else False)"
-
-            # code_cell_contents += f"\ntest_results[{test_number}] = all(tst_res)"
-
-            # Code to print summary and present results.
-            #code_cell_contents += 
-
 
             test_number += 1    # Increment Test Number after use.
             code_cell = nbf.v4.new_code_cell(code_cell_contents)
@@ -601,6 +638,9 @@ def create_jnb(path_to_hdlgen_file, output_filename=None, generic=False):
         
     print(f"Notebook Generated at: {output_file}")
 
+    output_py_file = f'{output_filename}\{name}.py'
+    with open(output_py_file, 'w') as pyf:
+        pyf.write(py_file_contents)
 
 def hex_to_padded_chunks(hex_number, desired_bits):
     # Convert hex to binary and remove the '0b' prefix
@@ -634,3 +674,319 @@ def hex_to_padded_chunks(hex_number, desired_bits):
     # print(hex_arrays)
 
     return hex_arrays
+
+def generate_gui_controller(compName, parsed_all_ports, location):
+
+    py_code = ""
+
+    current_cwd = os.getcwd().replace("\\", "/")
+    svg_path = location.replace("\\", "/") + f"/PYNQBuild/generated/{compName}.svg"
+     
+    svg_data = ""
+    with open(svg_path, 'r') as file:
+        svg_data = file.read()
+
+    svg_data = svg_data.replace("\"", "'")
+    svg_data = svg_data.replace('\n', r'\n')
+    py_code += f"\nsvg_content = \"{svg_data}\""
+
+    py_code += "\n\n\ndef generate_gui(svg_content):"
+    # py_code += f"\n\tfile_path = '{compName}.svg'"
+    # py_code += "\n\n\t#Read the SVG content from the file"
+    # py_code += "\n\twith open(file_path, 'r') as file:"
+    # py_code += "\n\t\tsvg_content = file.read()"
+
+    py_code += "\n\t# Format SVG Data"
+    py_code += "\n\tsvg_content = svg_content.split('<?xml', 1)[-1]"
+    py_code += "\n\tsvg_with_tags = f'<svg>{svg_content}</svg>'"
+    py_code += "\n\n\t# Create Widget Object for SVG"
+    py_code += "\n\toutput_svg = Output()"
+    py_code += "\n\twith output_svg:"
+    py_code += "\n\t\tdisplay(SVG(data=svg_with_tags))"
+
+    input_setup = ""
+    output_setup = ""
+    num_input = 0
+    num_output = 0
+
+    py_code += "\n\t\tdef update_button_state(change, label, button):"
+    py_code += "\n\t\t\tif change['new']:"
+    py_code += "\n\t\t\t\tbutton.value = True"
+    py_code += "\n\t\t\t\tbutton.description = '1'"
+    py_code += "\n\t\t\t\tbutton.button_style = 'success'  # Green color"
+    py_code += "\n\t\t\telse:"
+    py_code += "\n\t\t\t\tbutton.value = False"
+    py_code += "\n\t\t\t\tbutton.description = '0'"
+    py_code += "\n\t\t\t\tbutton.button_style = 'danger'   # Red color"
+
+    for port in parsed_all_ports:
+        if port[1] == "in":
+            if port[2] == -1:
+                # Create Button
+                input_setup +=  f"\n\t{port[0]}_btn = widgets.ToggleButton("
+                input_setup +=  "\n\t\tvalue=False,"
+                input_setup +=  f"\n\t\tdescription='0',"
+                input_setup +=  "\n\t\tdisabled=False,"
+                # input_setup +=  "\n\t\tlayout=Layout(width='auto', margin='auto'),"
+                input_setup +=  "\n\t\tbutton_style='danger'"
+                input_setup +=  "\n\t)"
+                # Create Label
+                input_setup += f"\n\t{port[0]}_lbl = widgets.Label(value='{port[0]}')"
+                # Add Event Listener
+                input_setup += f"\n\t{port[0]}_btn.observe(lambda change: update_button_state(change, {port[0]}_lbl, {port[0]}_btn), names='value')"
+                # hbox = HBox([label1, toggle_button1, label2, toggle_button2])
+                input_setup += f"\n\t{port[0]}_hbox = HBox([{port[0]}_lbl, {port[0]}_btn])"
+            else:  
+                input_setup +=  f"\n\t{port[0]}_tbox = widgets.Text("
+                input_setup +=  "\n\t\tvalue='0x0',"
+                input_setup +=  "\n\t\tplaceholder='',"
+                input_setup +=  f"\n\t\tdescription='{port[0]}:',"
+                input_setup +=  "\n\t\tdisabled=False"
+                input_setup +=  "\n\t)"
+            num_input += 1
+        elif port[1] == "out":
+            if port[2] == -1:   # This will be used to make red/green light on output later
+                # Create Button
+                output_setup +=  f"\n\t{port[0]}_btn = widgets.ToggleButton("
+                output_setup +=  "\n\t\tvalue=False,"
+                output_setup +=  f"\n\t\tdescription='0',"
+                output_setup +=  "\n\t\tdisabled=True,"
+                output_setup +=  "\n\t\tlayout=Layout(width='auto', margin='auto'),"
+                output_setup +=  "\n\t\tbutton_style='danger'"
+                output_setup +=  "\n\t)"
+                # Create Label
+                output_setup += f"\n\t{port[0]}_lbl = widgets.Label(value='{port[0]}')"
+                # hbox = HBox([label1, toggle_button1, label2, toggle_button2])
+                output_setup += f"\n\t{port[0]}_hbox = HBox([{port[0]}_lbl, {port[0]}_btn])"
+            else:
+                output_setup +=  f"\n\t{port[0]}_tbox = widgets.Text("
+                output_setup +=  "\n\t\tvalue='',"
+                output_setup +=  "\n\t\tplaceholder='',"
+                output_setup +=  f"\n\t\tdescription='{port[0]}:',"
+                output_setup +=  "\n\t\tdisabled=True"
+                output_setup +=  "\n\t)"
+            num_output += 1
+
+    py_code += "\n\n\t# Create Input Widgets"
+    py_code += input_setup
+
+    py_code += "\n\n\t# Create Output Widgets"
+    py_code += output_setup
+
+    py_code += "\n\n\t# Create Set Button Widgets"
+    
+    py_code += "\n\tdef on_button_click(arg):"
+    
+    read_input_checkbox = ""
+    truncated_msgs = ""
+    write_inputs = ""
+
+    read_output_ports = ""
+    set_output_checkboxes = ""
+    set_placeholders = ""
+
+    for port in parsed_all_ports:
+        if port[1] == "in":
+            if port[2] == -1:
+                # Set value int 1 or 0 if true or false respectively.
+                read_input_checkbox += f"\n\t\t{port[0]}_value = 1 if {port[0]}_btn.value else 0"
+                # No need to run any truncated msgs checks as the value can only be 1/0. 
+                # Set the values
+                write_inputs += f"\n\t\t{port[0]}.write(0, {port[0]}_value)" 
+                # No need to worry about setting placeholders either.
+            else:
+                # Code to read the value from each input text box
+                read_input_checkbox += f"\n\t\t{port[0]}_value = {port[0]}_tbox.value"
+                # Code to check if a signal has been truncated and to print relevant msg to user.
+                truncated_msgs += f"\n\t\ttruncated, {port[0]}_value = check_max_value({port[0]}_value, {port[2]})"
+                truncated_msgs += "\n\t\tif truncated:"
+                truncated_msgs += f"\n\t\t\tprint(f\"{port[0]} value provided is > {port[2]} bits, input has been truncated to: "
+                truncated_msgs += "{hex("+port[0]+"_value)}\")"
+                # Write inputs
+                write_inputs += f"\n\t\t{port[0]}.write(0, {port[0]}_value)" 
+                # Set placeholder values of textboxes to last pushed value
+                set_placeholders += f"\n\t\t{port[0]}_tbox.placeholder = str({port[0]}_tbox.value)"
+            
+        elif port[1] == "out":
+            read_output_ports += f"\n\t\t{port[0]}_value = {port[0]}.read(0)"
+            if port[2] == -1:
+                # Set value int 1 or 0 if true or false respectively.
+                set_output_checkboxes += f"\n\t\t{port[0]}_btn.button_style = 'success' if {port[0]}_value==1 else 'danger'"
+                set_output_checkboxes += f"\n\t\t{port[0]}_btn.description = '1' if {port[0]}_value==1 else '0'"
+                # No need to run any truncated msgs checks as the value can only be 1/0. 
+                # Set the values
+                # No need to worry about setting placeholders either.
+            else:                
+                set_output_checkboxes += f"\n\t\t{port[0]}_tbox.value = hex({port[0]}_value)"
+
+    py_code += "\n\t\t# Read Values from User Inputs"
+    py_code += read_input_checkbox
+    py_code += "\n\n\t\t# Check Validity of Inputs"
+    py_code += truncated_msgs
+    py_code += "\n\n\t\t# Write Inputs"
+    py_code += write_inputs
+    py_code += "\n\n\t\t# Set input placeholders"
+    py_code += set_placeholders
+    py_code += "\n\n\t\ttime.sleep(0.00000002)"
+    py_code += "\n\n\t\t# Read Output Signals"
+    py_code += read_output_ports
+    py_code += "\n\n\t\t# Update Textboxes"
+    py_code += set_output_checkboxes
+
+
+    py_code += "\n\n\tdisplay_button = Button(description='Set Signals', button_style='info', layout=Layout(width='auto', margin='auto'))"
+    py_code += "\n\tdisplay_button.on_click(on_button_click)"
+
+    py_code += "\n\n\t# Define Grid Layout"
+    grid_depth = max(num_input, num_output)
+    if num_input > num_output:
+        grid_depth += 1
+    py_code += f"\n\tgrid = GridspecLayout({grid_depth},3)"
+
+    
+
+    py_code += "\n\n\t# Set the Grid Widgets\n\t# Set Image (Centre, Full Height)"
+    py_code += "\n\tgrid[:,1] = output_svg"
+
+    input_grid_depth_index = 0
+    input_widgets_placement = ""
+    output_grid_depth_index = 0
+    output_widgets_placement = ""
+
+    # Form Placement Code    
+    for port in parsed_all_ports:
+        if port[1] == "in":
+            if port[2] == -1:
+                input_widgets_placement += f"\n\tgrid[{input_grid_depth_index}, 0] = {port[0]}_hbox"
+            else:
+                input_widgets_placement += f"\n\tgrid[{input_grid_depth_index}, 0] = {port[0]}_tbox"
+            input_grid_depth_index += 1
+        elif port[1] == "out":
+            if port[2] == -1:
+                output_widgets_placement += f"\n\tgrid[{output_grid_depth_index}, 2] = {port[0]}_hbox"
+            else:
+                output_widgets_placement += f"\n\tgrid[{output_grid_depth_index}, 2] = {port[0]}_tbox"
+            output_grid_depth_index += 1
+    
+    # Place button at end of inputs after loop
+    input_widgets_placement += f"\n\tgrid[{input_grid_depth_index}, 0] = display_button"
+    
+    py_code += "\n\n\t# Input Widgets"
+    py_code += input_widgets_placement
+    py_code += "\n\n\t# Output Widgets"
+    py_code += output_widgets_placement
+
+    py_code += "\n\n\treturn grid"
+
+    py_code += "\n\n\ndef check_max_value(number_str, num_bits):"
+    py_code += "\n\ttry:"
+    py_code += "\n\t\t# Extracting the base and value from the input string"
+    py_code += "\n\t\tif number_str.startswith('0x'):"
+    py_code += "\n\t\t\tbase = 16"
+    py_code += "\n\t\t\tvalue = int(number_str, base)"
+    py_code += "\n\t\telif number_str.startswith('0b'):"
+    py_code += "\n\t\t\tbase = 2"
+    py_code += "\n\t\t\tvalue = int(number_str, base)"
+    py_code += "\n\t\telse:"
+    py_code += "\n\t\t\tbase = 10"
+    py_code += "\n\t\t\tvalue = int(number_str, base)"
+    py_code += "\n"
+    py_code += "\n\t\t# Calculating the maximum representable value based on the number of bits"
+    py_code += "\n\t\tmax_value = 2**num_bits - 1"
+    py_code += "\n"
+    py_code += "\n\t\t# Checking if the value exceeds the maximum"
+    py_code += "\n\t\tif value > max_value:"
+    py_code += "\n\t\t\t# Truncate the value to fit within the specified number of bits"
+    py_code += "\n\t\t\ttruncated_value = value % (2**num_bits)"
+    py_code += "\n\t\t\treturn True, truncated_value"
+    py_code += "\n\t\telse:"
+    py_code += "\n\t\t\treturn False, value"
+    py_code += "\n\texcept ValueError:"
+    py_code += "\n\t\treturn False, None"
+    
+
+    return py_code
+
+########################################################################
+########## Parse all ports format from XML into useful format ##########
+########################################################################
+def parse_all_ports(all_ports):
+    # All ports recieved as in HDLGen XML.
+    #    signame = sig.getElementsByTagName("name")[0]
+    #    mode = sig.getElementsByTagName("mode")[0]
+    #    type = sig.getElementsByTagName("type")[0]
+    #    desc = sig.getElementsByTagName("description")[0]
+    # Job here is to convert into:
+    # [signal_name, gpio_mode, gpio_width]
+    new_array = []
+    for io in all_ports:
+        gpio_name = io[0]   # GPIO Name
+        gpio_mode = io[1]   # GPIO Mode (in/out)
+        gpio_type = io[2]   # GPIO Type (single bit/bus/array)
+
+        if (gpio_type == "single bit"):
+            gpio_width = 1
+        elif (gpio_type[:3] == "bus"):
+            # <type>bus(31 downto 0)</type> - Example Type Value
+            substring = gpio_type[4:]           # substring = '31 downto 0)'
+            words = substring.split()           # words = ['31', 'downto', '0)']
+            gpio_width = int(words[0]) + 1      # eg. words[0] = 31
+        elif (gpio_type[:5] == "array"):
+            print("ERROR: Array mode type is not yet supported :(")
+        else:
+            print("ERROR: Unknown GPIO Type")
+            print(gpio_type)
+        new_array.append([gpio_name, gpio_mode, gpio_width])
+    return new_array
+
+
+def large_signal_split_names(gpio_name, gpio_width):
+    pin_counter = 0
+    return_array = []
+    while gpio_width - pin_counter > 0:
+        if gpio_width - pin_counter > 32:
+            return_array.append(f"{gpio_name}_{pin_counter+31}_{pin_counter}")
+            pin_counter += 32
+        elif gpio_width - pin_counter <= 32:
+            return_array.append(f"{gpio_name}_{gpio_width-1}_{pin_counter}")
+            pin_counter += gpio_width - pin_counter        
+    return return_array
+
+def create_class_for_large_signal(gpio_name, gpio_mode, gpio_width):
+    code_string = ""
+    code_string += f"\n\nclass {gpio_name}_class:"
+
+    array_of_signal = large_signal_split_names(gpio_name, gpio_width)
+    code_string += "\n\tdef __init__(self):"
+    code_string += f"\n\t\tpass\n"
+    code_string += "\n\tdef read(self, offset):"
+    code_string += f"\n\t\tblocks = {len(array_of_signal)} * [None]"
+    for x in range(0, len(array_of_signal)):
+        code_string += f"\n\t\tblocks[{x}] = {array_of_signal[x]}.read(offset)"
+    code_string += "\n\t\tresult = 0"
+    code_string += "\n\t\tfor block in blocks:"
+    code_string += "\n\t\t\tresult = (result << 32) | block"
+    code_string += "\n\t\treturn result\n"
+
+    if gpio_mode == "in":
+        code_string += "\n\tdef write(self, offset, value):"
+        code_string += f"\n\t\tblocks = split_into_blocks(value, {len(array_of_signal)})"
+        for x in range(0, len(array_of_signal)):
+            code_string += f"\n\t\t{array_of_signal[x]}.write(offset, blocks[{x}])"
+
+    # Instanciate the class
+    code_string += f"\n{gpio_name} = {gpio_name}_class()"
+
+    return code_string
+
+def create_large_classes_from_port_map(parsed_port_map):
+    code = ""
+    for signal in parsed_port_map:
+        gpio_name = signal[0]
+        gpio_mode = signal[1]
+        gpio_width = signal[2]
+
+        if gpio_width > 32:
+            code += create_class_for_large_signal(gpio_name, gpio_mode, gpio_width)
+
+    return code

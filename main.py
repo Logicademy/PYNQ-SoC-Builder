@@ -37,9 +37,10 @@ class Application:
         self.top_level_message = None
         self.dialog_response = None
 
-        # Shared flags
-        self.build_running = False              # If build process is running, this flag will be True
-        self.subprocess_exit_signal = threading.Event()    # If force closed, threading.Event() used to signal close to running threads.
+        # Build Status Flags
+        self.build_running = False                          # If build process is running, this flag will be True
+        self.vivado_force_quit_event = threading.Event()    # Force quit event threading.Event()
+
         self.io_configuration = {
             "led0":"None",
             "led1":"None",
@@ -131,6 +132,7 @@ class Application:
             response = self.dialog_response
             if response == "yes":
                 # terminate process, by continuing past this if block
+                self.vivado_force_quit_event.set()
                 pass
             elif response == "no":
                 # leave and take no action

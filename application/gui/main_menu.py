@@ -2,7 +2,6 @@ import customtkinter as ctk
 from tktooltip import ToolTip
 import os
 
-
 class Main_Menu(ctk.CTkFrame):
     def __init__(self, app):
         ctk.CTkFrame.__init__(self, app.root)
@@ -184,7 +183,7 @@ class Main_Menu(ctk.CTkFrame):
             # Move to page two:
             if proceed:
                 self.app.show_page(self.app.page2)
-                self.app.root.geometry("500x240")
+                self.app.root.geometry("500x580")
             else:
                 # Do nothing
                 pass

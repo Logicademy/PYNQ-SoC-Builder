@@ -392,7 +392,7 @@ def generate_tcl(path_to_hdlgen_project, regenerate_bd=True, start_gui=True, kee
     #################################################
     ########## Import XDC Constraints File ##########
     #################################################
-    file_contents += import_xdc_constraints_file(full_path_to_xdc)
+    file_contents += import_xdc_constraints_file(full_path_to_xdc, location)
 
     ###########################################
     ########## Generate Block Design ##########
@@ -465,6 +465,28 @@ def generate_tcl(path_to_hdlgen_project, regenerate_bd=True, start_gui=True, kee
         #++++++++# Start of Generate New BD File Block #++++++++#
         #+++++++++++++++++++++++++++++++++++++++++++++++++++++++#
 
+
+    # We need to    1) Create the BD File
+    #               2) Go do some other things
+    #               3) Come back and export SVG / Delete the block diagram
+    # Why? - BD is exported as blank, can't use same BD as whats actually used for 
+    # bitstream gen cos it generates full picture too fast
+    
+    generate_svg = True
+    if generate_svg:
+        img_bd_name = "image_bd"
+        path_to_img_bd = path_to_bd + "/" + img_bd_name + "/" + img_bd_name + ".bd"
+
+        file_contents += f"\ndelete_file_safely {path_to_bd + '/' + img_bd_name + '/' + img_bd_name} .bd"
+
+        # Create block design, import the 
+        file_contents += f"\ncreate_bd_file {img_bd_name}"
+        # file_contents += "\nupdate_compile_order -fileset sources_1"
+        # file_contents += f"\ncreate_bd_cell -type module -reference {module_source} {module_source}_0"
+        file_contents += "\nset_property source_mgmt_mode All [current_project]"    # Setting automatic mode for source management
+        file_contents += f"\nadd_module {module_source} {module_source}_0"  # Import the user-created module
+
+
     if generate_new_bd_design:
         if gui_application:
             gui_application.add_to_log_box("\nGenerating New Block Design")
@@ -475,17 +497,17 @@ def generate_tcl(path_to_hdlgen_project, regenerate_bd=True, start_gui=True, kee
         if gui_application:
                 gui_application.add_to_log_box(f"\nCreating Block Design: {bd_filename}")
         
-        # (4) Add Processor to BD
-        file_contents += "\nadd_processing_unit"                        # Import Processing Unit to the BD
-        if gui_application:
-                gui_application.add_to_log_box(f"\nAdding Processing Unit")
-        
-
-        # (5) Add User Created Model to BD
+        # (4) Add User Created Model to BD
         file_contents += "\nset_property source_mgmt_mode All [current_project]"    # Setting automatic mode for source management
         file_contents += f"\nadd_module {module_source} {module_source}_0"  # Import the user-created module
         if gui_application:
                 gui_application.add_to_log_box(f"\nImporting Module: {module_source}")
+
+
+        # (5) Add Processor to BD
+        file_contents += "\nadd_processing_unit"                        # Import Processing Unit to the BD
+        if gui_application:
+                gui_application.add_to_log_box(f"\nAdding Processing Unit")
         
         # Running this as safety
         file_contents += "\nupdate_compile_order -fileset sources_1"
@@ -499,7 +521,7 @@ def generate_tcl(path_to_hdlgen_project, regenerate_bd=True, start_gui=True, kee
         if io_map and gui_application:
             gui_application.add_to_log_box(f"\nIO Map Present: {io_map}")
 
-        returned_contents, created_signals = generate_connections(module_source, all_ports_parsed, io_map, gui_application)
+        returned_contents, created_signals = generate_connections(module_source, all_ports_parsed, io_map, location, gui_application)
         file_contents += returned_contents
 
         file_contents += connect_interconnect_reset_and_run_block_automation(created_signals, gui_application)
@@ -523,9 +545,29 @@ def generate_tcl(path_to_hdlgen_project, regenerate_bd=True, start_gui=True, kee
     path_to_bd_export = environment + "/" + AMDproj_folder_rel_path + "/" + bd_filename + ".tcl"   # hotfix changed to environment
     path_to_bd_file = f"{path_to_bd}/{bd_filename}/{bd_filename}.bd"
 
+    # Just before we generate bitstream, reopen first design and export it as SVG before deleting it again.
+    if generate_svg:
+
+        # Check if the directory exists and if not make it.
+
+        # Open the design again
+        file_contents += f"\nopen_bd_design {path_to_img_bd}"
+        
+        # Export SVG image of the created model
+        print(f"Attempting to export SVG at {location}/PYNQBuild/generated/{module_source}.svg")
+        friendly_cwd = os.getcwd().replace('\\', '/')
+        file_contents += f"\nwrite_bd_layout -force -format svg {location}/PYNQBuild/generated/{module_source}.svg"
+
+        # Delete it all again
+        file_contents += f"\nexport_ip_user_files -of_objects  [get_files {path_to_img_bd}] -no_script -reset -force -quiet"
+        file_contents += f"\nremove_files  {path_to_img_bd}"
+        file_contents += f"\nfile delete -force {path_to_bd + '/' + img_bd_name}"
+
     file_contents += generate_bitstream(path_to_bd_export,path_to_bd_file)
     file_contents += save_and_quit(start_gui, keep_vivado_open)
-    write_tcl_file(file_contents, gui_application)
+    write_tcl_file(file_contents, gui_application, location)
+
+
 
             #++++++++++++++++++++++++++++++++++++++++#
             #++++++++# END OF MAIN FUNCTION #++++++++#
@@ -665,7 +707,7 @@ def generate_all_output_no_ext_gpio(gpio_name, gpio_width, module_source, gui_ap
 ##########################################
 ########## Generate Connections ##########
 ##########################################
-def generate_connections(module_source, all_ports_parsed, io_map, gui_application=None):
+def generate_connections(module_source, all_ports_parsed, io_map, location, gui_application=None):
     xdc_contents = ""
     file_contents = ""
     interconnect_signals = []
@@ -1062,7 +1104,7 @@ def generate_connections(module_source, all_ports_parsed, io_map, gui_applicatio
 
         # imagine we somehow swap the key and value of the dictionary:
         # Now check: Is our signal in the swapped dictionary?
-    write_xdc_file(xdc_contents, gui_application)
+    write_xdc_file(xdc_contents, gui_application, location)
     return file_contents, interconnect_signals
 
 #######################################################
@@ -1202,7 +1244,7 @@ def parse_all_ports(all_ports):
 #################################################
 ########## Import XDC Constraints File ##########
 #################################################
-def import_xdc_constraints_file(full_path_to_xdc):
+def import_xdc_constraints_file(full_path_to_xdc, location):
     # Specify the name of the constraints
     file_contents = "\nset constraint_name \"constrs_1\""
 
@@ -1244,7 +1286,7 @@ def import_xdc_constraints_file(full_path_to_xdc):
     # Step 3: Add XDC file
     current_dir = os.getcwd()
     friendly_current_dir = current_dir.replace("\\", "/")
-    path_to_constraints = friendly_current_dir + "/generated/physical_constr.xdc"       # This needs to be updated with generated constraints
+    path_to_constraints = location + "/PYNQBuild/generated/physical_constr.xdc"       # This needs to be updated with generated constraints
 
     file_contents += "\nadd_files -fileset constrs_1 -norecurse {"
     file_contents += path_to_constraints
@@ -1317,7 +1359,7 @@ def save_and_quit(start_gui, keep_vivado_open):
     if start_gui:
         if not keep_vivado_open:
             file_contents += "\nstop_gui"
-            file_contents += "\nclose_design"
+            # file_contents += "\nclose_design"
             file_contents += "\nexit"
         else:
             # GUI started, and user wishes to close Vivado themselves.
@@ -1325,36 +1367,37 @@ def save_and_quit(start_gui, keep_vivado_open):
             pass
     else: # GUI not started, close project, don't run stop_gui command.
         # file_contents += "\nstop_gui"
-        file_contents += "\nclose_design"
+        # file_contents += "\nclose_design"
         file_contents += "\nexit"
     return file_contents
 
 ########################
 #   Write to Tcl File  #
 ########################
-def write_tcl_file(file_contents, gui_application):
+def write_tcl_file(file_contents, gui_application, location):
     # Check does the /generated/ folder exist
-    if not os.path.exists("./generated"):
-        os.mkdir("generated")
-        if gui_application:
-            gui_application.add_to_log_box(f"\nDirectory '{os.getcwd()}/generated/' not found. Created successfully.")
+    # This check is completed in PYNQ_Manager
+    # if not os.path.exists("./generated"):
+    #     os.mkdir("generated")
+    #     if gui_application:
+    #         gui_application.add_to_log_box(f"\nDirectory '{os.getcwd()}/generated/' not found. Created successfully.")
 
-    with open('generated/generate_script.tcl', 'w') as file:
+    with open(f'{location}/PYNQBuild/generated/generate_script.tcl', 'w') as file:
         # Export Tcl Script
         file.write(file_contents)
         # print("generate_script.tcl generated!")
         if gui_application:
-            gui_application.add_to_log_box(f"\nSuccessfully wrote Tcl Script to {os.getcwd()}/generated/generate_script.tcl")
+            gui_application.add_to_log_box(f"\nSuccessfully wrote Tcl Script to {location}/PYNQBuild/generated/generate_script.tcl")
 
 ########################
 #   Write to XDC File  #
 ########################
-def write_xdc_file(xdc_contents, gui_application):
-    with open('generated/physical_constr.xdc', 'w') as file:
+def write_xdc_file(xdc_contents, gui_application, location):
+    with open(f'{location}/PYNQBuild/generated/physical_constr.xdc', 'w') as file:
         # Export contraints file
         file.write(xdc_contents)
         if gui_application:
-            gui_application.add_to_log_box(f"\nSuccessfully wrote constraints file to {os.getcwd()}/generated/physical_constr.xdc")
+            gui_application.add_to_log_box(f"\nSuccessfully wrote constraints file to {location}/PYNQBuild/generated/physical_constr.xdc")
 
 ########################
 #   Make XDC Cfg Line  #

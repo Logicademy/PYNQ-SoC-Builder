@@ -161,6 +161,19 @@ proc validate_bd {} {
 	validate_bd_design
 }
 
+proc delete_file_safely {path_to_file extension} {
+	puts [file exists $path_to_file]
+	if {[file exists $path_to_file]} {
+		puts "Wrapper Exists: Deleting it now"
+		export_ip_user_files -of_objects  [get_files $path_to_file$extension] -no_script -reset -force -quiet
+		remove_files  $path_to_file$extension
+		file delete -force $path_to_file
+	} else {
+		puts "Wrapper didn't exist"
+		puts $path_to_file
+	}
+}
+
 # Delete HDL Wrapper
 # - The path_to_wrapper_file should contain the path but omit the file extension
 # - For greater reliability, we select the extension in Vivado rather than depending on what HDLGen tells us.
@@ -225,7 +238,7 @@ proc export_bd {bd_tcl_path} {
 
 # Close project and Quit Vivado.
 proc close_and_quit {} {
-	close_project
+	# close_project
 	exit
 }
 

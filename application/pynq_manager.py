@@ -7,6 +7,8 @@ import application.notebook_generator as nbg
 import xml.dom.minidom
 import os
 import shutil 
+import application.checks as checks
+import psutil
 
 # Define location of vivado exe, this might need to be the bat file we will see.
 # D:\Xilinx\Vivado\2019.1\bin\vivado.bat -mode tcl
@@ -15,6 +17,7 @@ import shutil
 class Pynq_Manager:
 
     def __init__(self, hdlgen_project_path, vivado_bat_path=None):
+
         self.hdlgen_project_path = hdlgen_project_path      # Path to .hdlgen file
         if vivado_bat_path == None:
             # If the Vivado bat path isn't defined, extract it from the HDLGen XML
@@ -31,10 +34,9 @@ class Pynq_Manager:
             self.location = projectManagerSettings.getElementsByTagName("location")[0].firstChild.data
             self.pynq_build_path = os.path.join(self.location, "PYNQBuild")
             self.pynq_build_output_path = os.path.join(self.pynq_build_path, "output")
+            self.pynq_build_generated_path = os.path.join(self.pynq_build_path, "generated")
         else:
             self.vivado_bat_path = vivado_bat_path              # Path to vivado .bat file
-        
-        
 
     def get_board_config_exists(self):
         # vivado_bat_path = C:\Xilinx\Vivado\2019.1\bin\vivado.bat
@@ -112,17 +114,54 @@ class Pynq_Manager:
         return bd_exists
 
     def generate_tcl(self, regenerate_bd=True, start_gui=True, keep_vivado_open=False, skip_board_config=False, io_map=None, gui_app=None):
+        self.check_generated_path_and_mkdir()
         tcl_gen.generate_tcl(self.hdlgen_project_path, regenerate_bd=regenerate_bd, start_gui=start_gui, keep_vivado_open=keep_vivado_open, skip_board_config=skip_board_config, io_map=io_map, gui_application=gui_app)
 
-    def run_vivado(self):
+    def run_vivado(self, force_close_flag=None):
+        try:
+            checks.check_for_dashes(self.hdlgen_project_path)
+        except checks.DashesInHDLFileError:
+            print(f"PYNQ Manager Detected Dashes in HDL File {self.hdlgen_project_path}")
+            raise checks.DashesInHDLFileError
+        except Exception as e:
+            print(f"Expection Occured in Run Vivado: {e}")
+            print("Pynq_Manager.run_vivado() returning without action.")
+            return
+        
         # D:\Xilinx\Vivado\2019.1\bin\vivado.bat -mode tcl -source C:/masters/masters_automation/generate_script.tcl
         try:
+            self.check_generated_path_and_mkdir()
             print("Starting Vivado")
-            vivado_process = subprocess.run([self.vivado_bat_path, "-mode", "tcl", "-source", "./generated/generate_script.tcl"], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-            print("Bit stream generation is complete")
+            # Need to add a check here to see if the destination tcl file exists.
+            vivado_process = subprocess.Popen([self.vivado_bat_path, "-mode", "tcl", "-source", f"{self.pynq_build_generated_path}/generate_script.tcl"], shell=True, text=True)
+            
+            time.sleep(1)
+
+            while vivado_process.poll() is None:
+                time.sleep(1)
+                if force_close_flag and force_close_flag.is_set():
+                    print("murder vivado")
+                    parent = psutil.Process(vivado_process.pid)
+                    for child in parent.children(recursive=True):
+                        child.terminate()
+                    parent.terminate()
+                    print("waiting 2 seconds to allow vivado time to quit")
+                    time.sleep(2)
+                    break
+
         except Exception as e:
             print("Exception")
             print(e)
+
+        finally:
+            # Ensure the subprocess is terminated even if the thread exits
+            if vivado_process.poll() is None:
+                # Retrieve the process group ID (PGID) using psutil
+                parent = psutil.Process(vivado_process.pid)
+                for child in parent.children(recursive=True):
+                    child.terminate()
+                parent.terminate()
+                
 
     def upload_to_pynq(self):
         pass
@@ -142,10 +181,13 @@ class Pynq_Manager:
         except FileExistsError:
             print("PYNQBuild/output exists already.")
 
+    def check_generated_path_and_mkdir(self):
+        try:
+            os.makedirs(self.pynq_build_generated_path)
+        except FileExistsError:
+            print("PYNQBuild/generated exists already.")
+
     def generate_jnb(self, generic=False):
         self.check_path_and_mkdir()
         dest_path = self.pynq_build_output_path
         nbg.create_jnb(self.hdlgen_project_path, generic=generic, output_filename=dest_path)
-
-
-## Read the docs : https://pysftp.readthedocs.io/en/release_0.2.9/cookbook.html#pysftp-connection-get
