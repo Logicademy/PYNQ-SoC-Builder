@@ -861,8 +861,11 @@ def generate_gui_controller(compName, parsed_all_ports, location):
     svg_path = location.replace("\\", "/") + f"/PYNQBuild/generated/{compName}.svg"
      
     svg_data = ""
-    with open(svg_path, 'r') as file:
-        svg_data = file.read()
+    try:
+        with open(svg_path, 'r') as file:
+            svg_data = file.read()
+    except Exception:
+        print("Could not find SVG file.")
 
     svg_data = svg_data.replace("\"", "'")
     svg_data = svg_data.replace('\n', r'\n')
@@ -980,9 +983,14 @@ def generate_gui_controller(compName, parsed_all_ports, location):
                 input_setup +=  f"\n\t{port[0]}_tbox = widgets.Text("
                 input_setup +=  "\n\t\tvalue='0x0',"
                 input_setup +=  "\n\t\tplaceholder='',"
-                input_setup +=  f"\n\t\tdescription='{port[0]}:',"
+                # input_setup +=  f"\n\t\tdescription='{port[0]}:',"
+                input_setup += "\n\t\tlayout=Layout(width='200px'),"
                 input_setup +=  "\n\t\tdisabled=False"
                 input_setup +=  "\n\t)"
+                input_setup += f"\n\t{port[0]}_lbl = widgets.Label(value='{port[0]}')"
+                input_setup += f"\n\t{port[0]}_hbox = HBox([{port[0]}_lbl, {port[0]}_tbox])"
+                input_setup += "\n\thbox_layout = widgets.Layout(display='flex', justify_content='flex-end', flex_flow='row')"
+                input_setup += f"\n\t{port[0]}_hbox.layout = hbox_layout"
             num_input += 1
         elif port[1] == "out":
             if port[2] == 1:   # This will be used to make red/green light on output later
@@ -1024,9 +1032,13 @@ def generate_gui_controller(compName, parsed_all_ports, location):
                 output_setup +=  f"\n\t{port[0]}_tbox = widgets.Text("
                 output_setup +=  "\n\t\tvalue='',"
                 output_setup +=  "\n\t\tplaceholder='',"
-                output_setup +=  f"\n\t\tdescription='{port[0]}:',"
+                output_setup += "\n\t\tlayout=Layout(width='200px'),"
                 output_setup +=  "\n\t\tdisabled=True"
                 output_setup +=  "\n\t)"
+                output_setup += f"\n\t{port[0]}_lbl = widgets.Label(value='{port[0]}')"
+                output_setup += f"\n\t{port[0]}_hbox = HBox([{port[0]}_tbox, {port[0]}_lbl])"
+                output_setup += "\n\thbox_layout = widgets.Layout(display='flex', justify_content='flex-start', flex_flow='row')"
+                output_setup += f"\n\t{port[0]}_hbox.layout = hbox_layout"
             num_output += 1
 
     py_code += "\n\n\t# Create Input Widgets"
@@ -1107,7 +1119,7 @@ def generate_gui_controller(compName, parsed_all_ports, location):
     py_code += set_output_checkboxes
 
 
-    py_code += "\n\n\tset_signal = Button(description='Set Signals', button_style='info', layout=Layout(width='auto', margin='auto'))"
+    py_code += "\n\n\tset_signal = Button(description='Set Signals', button_style='info')"
     py_code += "\n\tset_signal.on_click(on_button_click)"
     py_code += "\n\tdisplay_button = HBox([set_signal], layout=Layout(justify_content='flex-end'))"
 
@@ -1143,13 +1155,13 @@ def generate_gui_controller(compName, parsed_all_ports, location):
             if port[2] == 1:
                 input_widgets_placement += f"\n\tgrid[{input_grid_depth_index}, 0] = {port[0]}_hbox"
             else:
-                input_widgets_placement += f"\n\tgrid[{input_grid_depth_index}, 0] = {port[0]}_tbox"
+                input_widgets_placement += f"\n\tgrid[{input_grid_depth_index}, 0] = {port[0]}_hbox"
             input_grid_depth_index += 1
         elif port[1] == "out":
             if port[2] <= 8:
                 output_widgets_placement += f"\n\tgrid[{output_grid_depth_index}, 2] = {port[0]}_hbox"
             else:
-                output_widgets_placement += f"\n\tgrid[{output_grid_depth_index}, 2] = {port[0]}_tbox"
+                output_widgets_placement += f"\n\tgrid[{output_grid_depth_index}, 2] = {port[0]}_hbox"
             output_grid_depth_index += 1
     
     # Place button at end of inputs after loop
