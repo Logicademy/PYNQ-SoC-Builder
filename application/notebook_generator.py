@@ -644,6 +644,7 @@ def create_jnb(path_to_hdlgen_file, output_filename=None, generic=False):
     print(f"Notebook Generated at: {output_file}")
 
     output_py_file = f'{output_filename}\{name}.py'
+    py_file_contents = py_file_contents.replace("\t", "    ")
     with open(output_py_file, 'w') as pyf:
         pyf.write(py_file_contents)
 
