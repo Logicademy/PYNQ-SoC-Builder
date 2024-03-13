@@ -505,7 +505,8 @@ class In_Progress_Page(ctk.CTkFrame):
         # If not, pass None.
         use_board_io = self.app.checkbox_values[4]
         if use_board_io:
-            io_map = self.app.io_configuration
+            # io_map = self.app.io_configuration
+            io_map = True # This will be reworked with new GUI - True passed means load from Config
         else:
             io_map = None
 

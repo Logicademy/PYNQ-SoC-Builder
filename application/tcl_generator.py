@@ -272,7 +272,7 @@ verbose_prints = False # Not implemented yet.
 # 12. Run Synthesis, Implementation and Generate Bitstream
 
 def generate_tcl(path_to_hdlgen_project, regenerate_bd=True, start_gui=True, keep_vivado_open=False, skip_board_config=False, io_map=None, gui_application=None):
-    io_map = True   # Force true for testing purposes
+    # io_map = True   # Force true for testing purposes
     if io_map == True:
         # This is the instruction to load from file.
         xmlmanager = xmlman.Xml_Manager(path_to_hdlgen_project)
