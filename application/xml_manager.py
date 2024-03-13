@@ -55,7 +55,25 @@ class Xml_Manager:
         tree = ET.ElementTree(root)
         tree.write(self.pynq_build_path + "/PYNQBuildConfig.xml")
 
-    def read_io_config(self, io_config):
+    def read_io_config(self, io_configuration=None):
+        io_config = {}
+        if io_configuration==None:
+            # Load our default config dictionary
+            io_config = {
+                "led0":"None",
+                "led1":"None",
+                "led2":"None",
+                "led3":"None",
+                "led4_b":"None",
+                "led4_g":"None",
+                "led4_r":"None",
+                "led5_b":"None",
+                "led5_g":"None",
+                "led5_r":"None"
+            }
+        else:
+            io_config = io_configuration
+
         # Load file
         buildconfig = xml.dom.minidom.parse(self.pynq_build_path + "/PYNQBuildConfig.xml")
         # Load root node <PYNQBuild>

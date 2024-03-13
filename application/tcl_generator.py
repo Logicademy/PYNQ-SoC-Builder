@@ -1,6 +1,7 @@
 import xml.dom.minidom
 import os
 import re
+import application.xml_manager as xmlman
 # tcl_generator.py
 # This Python 3 script is responsible for generating a Tcl script file dynamically depending on the project.
 
@@ -272,7 +273,10 @@ verbose_prints = False # Not implemented yet.
 
 def generate_tcl(path_to_hdlgen_project, regenerate_bd=True, start_gui=True, keep_vivado_open=False, skip_board_config=False, io_map=None, gui_application=None):
 
-    xdc_contents =  "" # Initalise the xdc_contents variable - To be moved to generate connections area.
+    if io_map == True:
+        # This is the instruction to load from file.
+        xmlmanager = xmlman.Xml_Manager(path_to_hdlgen_project)
+        io_map = xmlmanager.read_io_config()
 
     # For logging to console window - Look for GUI_APP and use the add_to_log_box API - Seen throughout this project/script.
     if gui_application:
