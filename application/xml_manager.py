@@ -105,8 +105,6 @@ class Xml_Manager:
         return io_config
     
     def write_io_config(self, io_config):
-        # Remove all the old connections
-
         # Load File
         buildconfig = xml.dom.minidom.parse(self.pynq_build_path + "/PYNQBuildConfig.xml")
         # Find root
@@ -139,11 +137,66 @@ class Xml_Manager:
             root.getElementsByTagName("ioConfig")[0].appendChild(connection)
 
         with open(self.pynq_build_path + "/PYNQBuildConfig.xml", "w") as xml_file:
-            buildconfig.writexml(xml_file, addindent="  ", newl='\n')
+            buildconfig.writexml(xml_file, addindent="  ", newl='\n', encoding='')
 
+    def read_proj_config(self):
+        # Load our default config dictionary
+        proj_config = {
+            "open_viv_gui": True,
+            "keep_viv_opn": False,
+            "gen_jnb": True,
+            "use_tstpln": True,
+            "use_board_io": True
+        }
 
-    def write_proj_config(project_config):
-        pass
+        # Load file
+        buildconfig = xml.dom.minidom.parse(self.pynq_build_path + "/PYNQBuildConfig.xml")
+        # Load root node <PYNQBuild>
+        root = buildconfig.documentElement
+        # Find ioConfig node
+        settings = root.getElementsByTagName("settings")
+        # Scan connections, return updated IO Map
+        for entry in settings:
+            name = entry.getElementsByTagName("name")[0].firstChild.data
+            value = entry.getElementsByTagName("value")[0].firstChild.data
 
-    def read_proj_config(project_config):
-        pass
+            # Add to IO Map
+            try:
+                before = proj_config[name] # Do this to raise a key error if the IO doesn't exist in IO Map
+                proj_config[name] = value
+            except KeyError:
+                print(f"The IO ({name}) could not be found in IO map provided. Ignoring setting value: {value}")
+        
+        print(f"Loaded the following io config from file: \n{proj_config}")
+        return proj_config
+    
+    def write_proj_config(self, proj_config):
+        # Load File
+        buildconfig = xml.dom.minidom.parse(self.pynq_build_path + "/PYNQBuildConfig.xml")
+        # Find root
+        root = buildconfig.documentElement
+        # Find settings
+        settings = root.getElementsByTagName("settings")
+        # Delete all existing connections
+        for entry in settings:
+            settings.removeChild(entry)
+
+        for setting, value in proj_config.items():
+
+            entry = buildconfig.createElement("entry")
+
+            name = buildconfig.createElement("name")
+            setting_text = buildconfig.createTextNode(setting)
+            name.appendChild(setting_text)
+
+            value = buildconfig.createElement("value")
+            value_text = buildconfig.createTextNode(value)
+            value.appendChild(value_text)
+
+            entry.appendChild(name)
+            entry.appendChild(value)
+
+            root.getElementsByTagName("settings")[0].appendChild(entry)
+
+        with open(self.pynq_build_path + "/PYNQBuildConfig.xml", "w") as xml_file:
+            buildconfig.writexml(xml_file, addindent="  ", newl='\n', encoding='')
