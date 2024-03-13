@@ -60,6 +60,7 @@ def create_jnb(path_to_hdlgen_file, output_filename=None, generic=False):
     clock_enabled = False
     input_ports = []
     output_ports = []
+    output_ports_names = []
     for port in all_ports:
         if port[0] == 'clk':
             clock_enabled = True
@@ -67,6 +68,7 @@ def create_jnb(path_to_hdlgen_file, output_filename=None, generic=False):
             input_ports.append(port)
         elif port[1] == "out":
             output_ports.append(port)
+            output_ports_names.append(port[0])
         else:
             print("Line 59 NBG: Invalid Port")
 
@@ -578,16 +580,19 @@ def create_jnb(path_to_hdlgen_file, output_filename=None, generic=False):
 
             # test_converted_to_decimal_from_radix_dictionary
             for key, value in test_converted_to_decimal_from_radix_dictionary.items():
-                if isinstance(value, list):
-                    # Find the array in large_input_signals that has same name [1]
-                    for sig in large_input_signals:
-                        if sig[0] == key:
-                            # Found the signal names.
-                            for i in range(0, len(sig)-1):
-                                code_cell_contents += f"{sig[i+1]}.write(0, int(\"{value[i]}\", 16))\n"
+                # if isinstance(value, list):
+                #     # Find the array in large_input_signals that has same name [1]
+                #     for sig in large_input_signals:
+                #         if sig[0] == key:
+                #             # Found the signal names.
+                #             for i in range(0, len(sig)-1):
+                #                 code_cell_contents += f"{sig[i+1]}.write(0, int(\"{value[i]}\", 16))\n"
                     
-                    pass # deal with array
-                else:
+                #     pass # deal with array
+                # else:
+
+                # If the port is NOT in the output GPIO then we should write to it
+                if key not in output_ports_names:
                     code_cell_contents += f"{key}.write(0, {value})\n"
 
             while delay_total >= 1 and clock_enabled:
