@@ -140,3 +140,10 @@ class Xml_Manager:
 
         with open(self.pynq_build_path + "/PYNQBuildConfig.xml", "w") as xml_file:
             buildconfig.writexml(xml_file, addindent="  ", newl='\n')
+
+
+    def write_proj_config(project_config):
+        pass
+
+    def read_proj_config(project_config):
+        pass
