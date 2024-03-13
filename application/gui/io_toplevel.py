@@ -1,6 +1,7 @@
 import customtkinter as ctk
 import xml.dom.minidom
 from tktooltip import ToolTip
+import application.xml_manager as xmlman
 
 class IO_TopLevel_Functions():
     def __init__(self, top_level):
@@ -40,7 +41,6 @@ class IO_TopLevel_Functions():
 
 class Led_Config_Window(ctk.CTkToplevel):
     def __init__(self, app):
-        
         self.io_functions = IO_TopLevel_Functions(self)
 
         ctk.CTkToplevel.__init__(self, app.root)
@@ -50,6 +50,10 @@ class Led_Config_Window(ctk.CTkToplevel):
         self.geometry("600x305")
         header_font = ("Segoe UI", 16, "bold") # Title font
         self.resizable(False, False) # Dont let the window be resizable
+        
+        # Load IO_Config from the XML
+        self.app.io_configuration = xmlman.Xml_Manager(self.app.hdlgen_path).read_io_config()
+
         
         # Need to learn the I/O thats available - What top level signals can we use.
         # LED0: (dropdown) -> dropdown menu will contain all the signals as
@@ -177,6 +181,10 @@ class Led_Config_Window(ctk.CTkToplevel):
             self.app.io_configuration["led5_b"] = self.led_5b_var.get()
             self.app.io_configuration["led5_g"] = self.led_5g_var.get()
             self.app.io_configuration["led5_r"] = self.led_5r_var.get()
+
+            # Save that that file using XML Manager
+            xmlmanager = xmlman.Xml_Manager(self.app.hdlgen_path)
+            xmlmanager.write_io_config(self.app.io_configuration)
 
             # Close Window
             self.destroy()

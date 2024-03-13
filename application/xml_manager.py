@@ -25,6 +25,8 @@ class Xml_Manager:
         self.pynq_build_path = self.location + "/PYNQBuild"
         self.pynq_build_path = self.pynq_build_path.replace("\\", "/")
 
+        self.check_project_xml_exists()
+
     def check_project_xml_exists(self):
         pynq_build_dir_exists = os.path.exists(self.pynq_build_path)
         pynq_build_config_exists = os.path.exists(self.pynq_build_path + "/PYNQBuildConfig.xml")
@@ -81,19 +83,20 @@ class Xml_Manager:
         # Find ioConfig node
         ioConfig = root.getElementsByTagName("ioConfig")[0]
         # Load Connections
-        connections = root.getElementsByTagName("connections")
+        connections = root.getElementsByTagName("connection")
         # Scan connections, return updated IO Map
         for connection in connections:
             io = connection.getElementsByTagName("io")[0].firstChild.data
             signal = connection.getElementsByTagName("signal")[0].firstChild.data
 
             # If the connection goes nowhere, ignore it.
-            if io == None or io == "None":
+            if signal == None or io == "None":
                 continue
 
             # Add to IO Map
             try:
                 before = io_config[io] # Do this to raise a key error if the IO doesn't exist in IO Map
+                print(signal)
                 io_config[io] = signal
             except KeyError:
                 print(f"The IO ({io}) could not be found in IO map provided. Ignoring connection for: {signal}")
@@ -111,10 +114,10 @@ class Xml_Manager:
         # Find ioConfig tag
         ioConfig = root.getElementsByTagName("ioConfig")[0]
         # Load connections
-        connections = ioConfig.getElementsByTagName("connections")
+        connections = ioConfig.getElementsByTagName("connection")
         # Delete all existing connections
         for connection in connections:
-            root.removeChild(connection)
+            ioConfig.removeChild(connection)
 
         for pynq_io, comp_io in io_config.items():
             if comp_io == None or comp_io == "None":
@@ -133,7 +136,7 @@ class Xml_Manager:
             connection.appendChild(signal)
             connection.appendChild(io)
 
-            root.getElementsByTagName("ioCofnig")[0].appendChild(connection)
+            root.getElementsByTagName("ioConfig")[0].appendChild(connection)
 
         with open(self.pynq_build_path + "/PYNQBuildConfig.xml", "w") as xml_file:
-            buildconfig.writexml(xml_file)
+            buildconfig.writexml(xml_file, addindent="  ", newl='\n')
