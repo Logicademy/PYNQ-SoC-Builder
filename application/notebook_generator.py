@@ -712,11 +712,6 @@ def hex_to_padded_chunks(hex_number, desired_bits):
 
 def generate_io_visuals(io_map):
     py_code = "\ndef generate_io_gui():"
-    py_code += "\n\tdef get_bit(bit_position, num):"
-    py_code += "\n\t\tif bit_position >= num.bit_length():"
-    py_code += "\n\t\t\treturn 0"
-    py_code += "\n\t\telse:"
-    py_code += "\n\t\t\treturn (num >> bit_position) & 1"
     py_code += "\n\t# We need to create the LEDs."
     py_code += "\n\tled0_button = widgets.ToggleButton("
     py_code += "\n\t\tvalue=False,"
@@ -881,6 +876,11 @@ def generate_gui_controller(compName, parsed_all_ports, location):
     py_code += f"\n\timg_files = [file for file in list_dir if file.endswith('.png') or file.endswith('.svg') or file.endswith('.jpg')]"
     py_code += f"\n\treturn img_files"
 
+    py_code += "\ndef get_bit(bit_position, num):"
+    py_code += "\n\tif bit_position >= num.bit_length():"
+    py_code += "\n\t\treturn 0"
+    py_code += "\n\telse:"
+    py_code += "\n\t\treturn (num >> bit_position) & 1"
 
     py_code += "\n\n\ndef generate_gui(svg_content):"
     py_code += "\n\timages_found = find_images()"
@@ -980,8 +980,6 @@ def generate_gui_controller(compName, parsed_all_ports, location):
                 input_setup += f"\n\t{port[0]}_hbox = HBox([{port[0]}_lbl, {port[0]}_btn])"
                 input_setup += "\n\thbox_layout = widgets.Layout(display='flex', justify_content='center', flex_flow='row')"
                 input_setup += f"\n\t{port[0]}_hbox.layout = hbox_layout"
-
-
             else:  
                 input_setup +=  f"\n\t{port[0]}_tbox = widgets.Text("
                 input_setup +=  "\n\t\tvalue='0x0',"
