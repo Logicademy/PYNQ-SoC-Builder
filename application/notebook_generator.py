@@ -702,11 +702,12 @@ def generate_gui_controller(compName, parsed_all_ports, location):
     py_code += f"\ndef find_images()"
     py_code += f"\n\tcurr_dir = os.getcwd()"
     py_code += f"\n\tlist_dir = os.listdir(curr_dir)"
-    py_code += f"\n\timg_files = [file for file in files_in_dir if file.endswith('.png') or file.endswith('.svg') or file.endswith('.jpg')]"
+    py_code += f"\n\timg_files = [file for file in list_dir if file.endswith('.png') or file.endswith('.svg') or file.endswith('.jpg')]"
     py_code += f"\n\treturn img_files"
 
 
     py_code += "\n\n\ndef generate_gui(svg_content):"
+    py_code += "\n\timages_found = find_images()"
     # py_code += f"\n\tfile_path = '{compName}.svg'"
     # py_code += "\n\n\t#Read the SVG content from the file"
     # py_code += "\n\twith open(file_path, 'r') as file:"
