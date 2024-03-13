@@ -699,7 +699,7 @@ def generate_gui_controller(compName, parsed_all_ports, location):
     py_code += f"\nimage_index = 1  # Tracks next image to show so that it can be cycled"
 
     py_code += f"\n\n# Find images in the current directory"
-    py_code += f"\ndef find_images"
+    py_code += f"\ndef find_images()"
     py_code += f"\n\tcurr_dir = os.getcwd()"
     py_code += f"\n\tlist_dir = os.listdir(curr_dir)"
     py_code += f"\n\timg_files = [file for file in files_in_dir if file.endswith('.png') or file.endswith('.svg') or file.endswith('.jpg')]"
@@ -737,7 +737,7 @@ def generate_gui_controller(compName, parsed_all_ports, location):
     py_code += "\n\t\t\tbutton.button_style = 'danger'   # Red color"
 
     py_code += "\n\n\t# Change Image Button Handler"
-    py_code += "\n\tdef update_image(arg, grid)"
+    py_code += "\n\tdef update_image(arg, grid):"
     py_code += "\n\t\tglobal image_index # Use global var image_index"
     py_code += "\n\t\tglobal svg_content # Use global var svg_content"
     py_code += "\n\n\t\t# First remove the current image"
