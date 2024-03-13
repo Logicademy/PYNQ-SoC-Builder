@@ -715,15 +715,15 @@ def generate_gui_controller(compName, parsed_all_ports, location):
     num_input = 0
     num_output = 0
 
-    py_code += "\n\t\tdef update_button_state(change, label, button):"
-    py_code += "\n\t\t\tif change['new']:"
-    py_code += "\n\t\t\t\tbutton.value = True"
-    py_code += "\n\t\t\t\tbutton.description = '1'"
-    py_code += "\n\t\t\t\tbutton.button_style = 'success'  # Green color"
-    py_code += "\n\t\t\telse:"
-    py_code += "\n\t\t\t\tbutton.value = False"
-    py_code += "\n\t\t\t\tbutton.description = '0'"
-    py_code += "\n\t\t\t\tbutton.button_style = 'danger'   # Red color"
+    py_code += "\n\tdef update_button_state(change, label, button):"
+    py_code += "\n\t\tif change['new']:"
+    py_code += "\n\t\t\tbutton.value = True"
+    py_code += "\n\t\t\tbutton.description = '1'"
+    py_code += "\n\t\t\tbutton.button_style = 'success'  # Green color"
+    py_code += "\n\t\telse:"
+    py_code += "\n\t\t\tbutton.value = False"
+    py_code += "\n\t\t\tbutton.description = '0'"
+    py_code += "\n\t\t\tbutton.button_style = 'danger'   # Red color"
 
     for port in parsed_all_ports:
         if port[1] == "in":
