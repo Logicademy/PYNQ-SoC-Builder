@@ -884,10 +884,6 @@ def generate_gui_controller(compName, parsed_all_ports, location):
 
     py_code += "\n\n\ndef generate_gui(svg_content):"
     py_code += "\n\timages_found = find_images()"
-    # py_code += f"\n\tfile_path = '{compName}.svg'"
-    # py_code += "\n\n\t#Read the SVG content from the file"
-    # py_code += "\n\twith open(file_path, 'r') as file:"
-    # py_code += "\n\t\tsvg_content = file.read()"
 
     py_code += "\n\t# Format SVG Data"
     py_code += "\n\tsvg_content = svg_content.split('<?xml', 1)[-1]"
@@ -969,7 +965,7 @@ def generate_gui_controller(compName, parsed_all_ports, location):
                 input_setup +=  "\n\t\tvalue=False,"
                 input_setup +=  f"\n\t\tdescription='0',"
                 input_setup +=  "\n\t\tdisabled=False,"
-                # input_setup +=  "\n\t\tlayout=Layout(width='auto', margin='auto'),"
+                input_setup +=  "\n\t\tlayout=Layout(width='50px'),"
                 input_setup +=  "\n\t\tbutton_style='danger'"
                 input_setup +=  "\n\t)"
                 # Create Label
@@ -995,17 +991,35 @@ def generate_gui_controller(compName, parsed_all_ports, location):
                 output_setup +=  "\n\t\tvalue=False,"
                 output_setup +=  f"\n\t\tdescription='0',"
                 output_setup +=  "\n\t\tdisabled=True,"
+                output_setup +=  "\n\t\tlayout=Layout(width='50px'),"
                 output_setup +=  "\n\t\tbutton_style='danger'"
                 output_setup +=  "\n\t)"
 
                 output_setup += f"\n\t{port[0]}_lbl = widgets.Label(value='{port[0]}')"
                 output_setup += "\n\thbox_layout = widgets.Layout(display='flex', justify_content='center', flex_flow='row')"
-                output_setup += f"\n\t{port[0]}_tbox = HBox([{port[0]}_lbl, {port[0]}_btn])"
-                output_setup += f"\n\t{port[0]}_tbox.layout = hbox_layout"
-                # Create Label
-                output_setup += f"\n\t{port[0]}_lbl = widgets.Label(value='{port[0]}')"
                 # hbox = HBox([label1, toggle_button1, label2, toggle_button2])
                 output_setup += f"\n\t{port[0]}_hbox = HBox([{port[0]}_lbl, {port[0]}_btn])"
+                output_setup += f"\n\t{port[0]}_hbox.layout = hbox_layout"
+
+            elif port[2] <= 8:
+                output_setup += "\n\thbox_layout = widgets.Layout(display='flex', justify_content='center', flex_flow='row')"
+                output_setup += f"\n\t{port[0]}_lbl = widgets.Label(value='{port[0]}')"
+                for i in range(0, port[2]):
+                    output_setup +=  f"\n\t{port[0]}_{i}_btn = widgets.ToggleButton("
+                    output_setup +=  "\n\t\tvalue=False,"
+                    output_setup +=  f"\n\t\tdescription='{i}',"
+                    output_setup +=  "\n\t\tdisabled=True,"
+                    output_setup +=  "\n\t\tlayout=Layout(width='25px')," 
+                    output_setup +=  "\n\t\tbutton_style='danger'"
+                    output_setup +=  "\n\t)"
+                
+                output_setup += f"\n\t{port[0]}_hbox = HBox([{port[0]}_lbl"
+                for i in range(0, port[2]):
+                    output_setup += f", {port[0]}_{port[2]-1-i}_btn"    # Reverse order
+                output_setup += "])"
+                output_setup += f"\n\t{port[0]}_hbox.layout = hbox_layout"
+                # Set up 2-8 bit array of lights
+                pass
             else:
                 output_setup +=  f"\n\t{port[0]}_tbox = widgets.Text("
                 output_setup +=  "\n\t\tvalue='',"
@@ -1069,6 +1083,12 @@ def generate_gui_controller(compName, parsed_all_ports, location):
                 # No need to run any truncated msgs checks as the value can only be 1/0. 
                 # Set the values
                 # No need to worry about setting placeholders either.
+            elif port[2] <= 8:
+                for i in range(0, port[2]):
+                    set_output_checkboxes += f"\n\t\t{port[0]}_{i}_btn.button_style = 'success' if get_bit({i}, {port[0]}_value)==1 else 'danger'"
+                    set_output_checkboxes += f"\n\t\t{port[0]}_{i}_btn.description = '1' if get_bit({i}, {port[0]}_value)==1 else '0'"
+                # 2-8 bit array of buttons
+                pass
             else:                
                 set_output_checkboxes += f"\n\t\t{port[0]}_tbox.value = hex({port[0]}_value)"
 
@@ -1118,13 +1138,13 @@ def generate_gui_controller(compName, parsed_all_ports, location):
     # Form Placement Code    
     for port in parsed_all_ports:
         if port[1] == "in":
-            if port[2] == -1:
+            if port[2] == 1:
                 input_widgets_placement += f"\n\tgrid[{input_grid_depth_index}, 0] = {port[0]}_hbox"
             else:
                 input_widgets_placement += f"\n\tgrid[{input_grid_depth_index}, 0] = {port[0]}_tbox"
             input_grid_depth_index += 1
         elif port[1] == "out":
-            if port[2] == -1:
+            if port[2] <= 8:
                 output_widgets_placement += f"\n\tgrid[{output_grid_depth_index}, 2] = {port[0]}_hbox"
             else:
                 output_widgets_placement += f"\n\tgrid[{output_grid_depth_index}, 2] = {port[0]}_tbox"
