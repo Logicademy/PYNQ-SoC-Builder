@@ -6,7 +6,7 @@ import html
 import os
 
 # Function to generate JNB, takes HDLGen file path and notebook name as parameters
-def create_jnb(path_to_hdlgen_file, output_filename=None, generic=False):
+def create_jnb(path_to_hdlgen_file, output_filename=None, generic=False, io_map=None):
     
     py_file_contents = ""   # This file is used to store the accompanying Python code for GUI controller, test APIs etc.
 
@@ -19,6 +19,7 @@ def create_jnb(path_to_hdlgen_file, output_filename=None, generic=False):
     py_file_contents += "\nimport pandas as pd"
     py_file_contents += "\nimport time"
     py_file_contents += "\nimport os"
+    py_file_contents += "\nimport threading"
 
     # Open HDLGen xml and get root node.
     hdlgen = xml.dom.minidom.parse(path_to_hdlgen_file)
@@ -265,6 +266,33 @@ def create_jnb(path_to_hdlgen_file, output_filename=None, generic=False):
         py_file_contents += "\n\tclk.write(0,1)"
         py_file_contents += "\n\ttime.sleep(0.0000002)"
         py_file_contents += "\n\tclk.write(0,0)\n"
+    
+    # This step checks if the IO is configured or just completely empty.
+    # If completely empty, lets just skip.
+    gen_io_gui = False
+    for key, value in io_map.items():
+        if value != "None" and value != None:
+            gen_io_gui = True
+            break
+    
+    if io_map and gen_io_gui:
+        markdown_cell_contents = f"## IO Visualised\n\n"
+
+        markdown_cell_contents += "\n| PYNQ I/O | Component Signal |"
+        markdown_cell_contents += "\n|:----:|:----:|"
+
+        for pynq_io, comp_io in io_map.items():
+            if comp_io == "None" or comp_io == None:
+                continue    # Skip non-connections
+            markdown_cell_contents += f"\n| {pynq_io} | {comp_io} |"
+
+        markdown_cell = nbf.v4.new_markdown_cell(markdown_cell_contents)
+        notebook.cells.append(markdown_cell)
+        
+        code_cell = nbf.v4.new_code_cell(f"display(generate_io_gui())")
+        notebook.cells.append(code_cell)
+
+        py_file_contents += generate_io_visuals(io_map)
 
     # Here we need to insert GUI Controller.
     gui_controller = True
@@ -682,6 +710,154 @@ def hex_to_padded_chunks(hex_number, desired_bits):
 
     return hex_arrays
 
+def generate_io_visuals(io_map):
+    py_code = "\ndef generate_io_gui():"
+    py_code += "\n\tdef get_bit(bit_position, num):"
+    py_code += "\n\t\tif bit_position >= num.bit_length():"
+    py_code += "\n\t\t\treturn 0"
+    py_code += "\n\t\telse:"
+    py_code += "\n\t\t\treturn (num >> bit_position) & 1"
+    py_code += "\n\t# We need to create the LEDs."
+    py_code += "\n\tled0_button = widgets.ToggleButton("
+    py_code += "\n\t\tvalue=False,"
+    py_code += "\n\t\tdescription='0',"
+    py_code += "\n\t\tdisabled=True,"
+    py_code += "\n\t\tbutton_style='danger'"
+    py_code += "\n\t)"
+    py_code += "\n\tled1_button = widgets.ToggleButton("
+    py_code += "\n\t\tvalue=False,"
+    py_code += "\n\t\tdescription='1',"
+    py_code += "\n\t\tdisabled=True,"
+    py_code += "\n\t\tbutton_style='danger'"
+    py_code += "\n\t)"
+    py_code += "\n\tled2_button = widgets.ToggleButton("
+    py_code += "\n\t\tvalue=False,"
+    py_code += "\n\t\tdescription='2',"
+    py_code += "\n\t\tdisabled=True,"
+    py_code += "\n\t\tbutton_style='danger'"
+    py_code += "\n\t)"
+    py_code += "\n\tled3_button = widgets.ToggleButton("
+    py_code += "\n\t\tvalue=False,"
+    py_code += "\n\t\tdescription='3',"
+    py_code += "\n\t\tdisabled=True,"
+    py_code += "\n\t\tbutton_style='danger'"
+    py_code += "\n\t)"
+    py_code += "\n\tleds_label = widgets.Label(value='LEDs')"
+
+    py_code += "\n\tled4_r_button = widgets.ToggleButton("
+    py_code += "\n\t\tvalue=False,"
+    py_code += "\n\t\tdescription='r',"
+    py_code += "\n\t\tdisabled=True,"
+    py_code += "\n\t\tbutton_style='danger'"
+    py_code += "\n\t)"
+    py_code += "\n\tled4_g_button = widgets.ToggleButton("
+    py_code += "\n\t\tvalue=False,"
+    py_code += "\n\t\tdescription='g',"
+    py_code += "\n\t\tdisabled=True,"
+    py_code += "\n\t\tbutton_style='danger'"
+    py_code += "\n\t)"
+    py_code += "\n\tled4_b_button = widgets.ToggleButton("
+    py_code += "\n\t\tvalue=False,"
+    py_code += "\n\t\tdescription='b',"
+    py_code += "\n\t\tdisabled=True,"
+    py_code += "\n\t\tbutton_style='danger'"
+    py_code += "\n\t)"
+    py_code += "\n\tled4_label = widgets.Label(value='RBG LED 4')"
+
+    py_code += "\n\tled5_r_button = widgets.ToggleButton("
+    py_code += "\n\t\tvalue=False,"
+    py_code += "\n\t\tdescription='r',"
+    py_code += "\n\t\tdisabled=True,"
+    py_code += "\n\t\tbutton_style='danger'"
+    py_code += "\n\t)"
+    py_code += "\n\tled5_g_button = widgets.ToggleButton("
+    py_code += "\n\t\tvalue=False,"
+    py_code += "\n\t\tdescription='g',"
+    py_code += "\n\t\tdisabled=True,"
+    py_code += "\n\t\tbutton_style='danger'"
+    py_code += "\n\t)"
+    py_code += "\n\tled5_b_button = widgets.ToggleButton("
+    py_code += "\n\t\tvalue=False,"
+    py_code += "\n\t\tdescription='b',"
+    py_code += "\n\t\tdisabled=True,"
+    py_code += "\n\t\tbutton_style='danger'"
+    py_code += "\n\t)"
+    py_code += "\n\tled5_label = widgets.Label(value='RBG LED 5')"
+
+    py_code += "\n\n\n\tdef update_button(new_value, button):"
+    py_code += "\n\t\tif new_value == 1:"
+    py_code += "\n\t\t\tbutton.value=True"
+    py_code += "\n\t\t\tbutton.button_style='success'"
+    py_code += "\n\t\telif new_value == 0:"
+    py_code += "\n\t\t\tbutton.value=False"
+    py_code += "\n\t\t\tbutton.button_style='danger'"
+
+    py_code += "\n\n\tdef work():"
+    py_code += "\n\t\twhile True:"
+    py_code += "\n\t\t\ttime.sleep(0.1)"
+    py_code += "\n\t\t\t"
+
+    # Here we need to use the IO map.
+
+    # self.io_configuration = {
+    #     "led0":"None",
+    #     "led1":"None",
+    #     "led2":"None",
+    #     "led3":"None",
+    #     "led4_b":"None",
+    #     "led4_g":"None",
+    #     "led4_r":"None",
+    #     "led5_b":"None",
+    #     "led5_g":"None",
+    #     "led5_r":"None"
+    # }
+
+    already_scanned_signals = []
+    for pynq_io, comp_io in io_map.items():
+        
+        if comp_io == "None" or None:
+            # If the I/O isn't connected, we skip it. 
+            # It will still appear in GUI but have no backend code for updating as no connection.
+            continue
+
+        # 1) Read Signal (if not in array)
+        #   -> Add already read signals to an array
+        # 2) Get Bit
+        # 3) Update button
+        comp_signal_name = comp_io.split('[')[0]
+        if comp_signal_name not in already_scanned_signals:
+            py_code += f"\n\t\t\tglobal {comp_signal_name}" # Resolves an inconsistent bug in Jupyter Notebook where {comp_signal_name} cannot be found
+            py_code += f"\n\t\t\t{comp_signal_name}_value = {comp_signal_name}.read(0)"
+            already_scanned_signals.append(comp_signal_name)
+        comp_bit = 0 # Default assignment
+        try:
+            comp_bit = comp_io.split('[')[1][:-1]   # We want everything to the right of [] in comp[1] and to drop the tailing ]
+        except:
+            # If there is an index out of bounds error, it means theres no [x] and therefore its a 1-bit signal.
+            # comp_bit = 0
+            pass
+        py_code += f"\n\t\t\t{pynq_io}_new_value = get_bit({comp_bit}, {comp_signal_name}_value)"
+        py_code += f"\n\t\t\tupdate_button({pynq_io}_new_value, {pynq_io}_button)"
+
+    py_code += "\n\tthread = threading.Thread(target=work)"
+    py_code += "\n\tthread.start()"
+
+    py_code += "\n\n\thbox_layout = widgets.Layout(display='flex', justify_content='center', align_items='center', flex_flow='row')"
+    
+    py_code += "\n\n\thbox_led = widgets.HBox([leds_label, led0_button, led1_button, led2_button, led3_button])"
+    py_code += "\n\thbox_led.layout = hbox_layout"
+    
+    py_code += "\n\thbox_led4 = widgets.HBox([led4_label, led4_r_button, led4_g_button, led4_b_button])"
+    py_code += "\n\thbox_led4.layout = hbox_layout"
+
+    py_code += "\n\thbox_led5 = widgets.HBox([led5_label, led5_r_button, led5_g_button, led5_b_button])"
+    py_code += "\n\thbox_led5.layout = hbox_layout"
+        
+    py_code += "\n\n\tvbox = widgets.VBox([hbox_led, hbox_led4, hbox_led5])"
+    py_code += "\n\n\treturn vbox"
+
+    return py_code
+
 def generate_gui_controller(compName, parsed_all_ports, location):
 
     py_code = ""
@@ -699,7 +875,7 @@ def generate_gui_controller(compName, parsed_all_ports, location):
     py_code += f"\nimage_index = 1  # Tracks next image to show so that it can be cycled"
 
     py_code += f"\n\n# Find images in the current directory"
-    py_code += f"\ndef find_images()"
+    py_code += f"\ndef find_images():"
     py_code += f"\n\tcurr_dir = os.getcwd()"
     py_code += f"\n\tlist_dir = os.listdir(curr_dir)"
     py_code += f"\n\timg_files = [file for file in list_dir if file.endswith('.png') or file.endswith('.svg') or file.endswith('.jpg')]"

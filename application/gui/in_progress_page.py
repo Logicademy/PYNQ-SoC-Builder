@@ -594,11 +594,16 @@ class In_Progress_Page(ctk.CTkFrame):
 
         generate_jnb = self.app.checkbox_values[2]
         use_testplan = self.app.checkbox_values[3]
+        use_io_config = self.app.checkbox_values[4]
+        
+        io_map = None
+        if use_io_config:
+            io_map = self.app.io_configuration
         generic = not use_testplan
 
         if generate_jnb:
             pm_obj = pm.Pynq_Manager(self.app.hdlgen_path)
-            pm_obj.generate_jnb(generic=generic)
+            pm_obj.generate_jnb(generic=generic, io_map=io_map)
         
         if assert_complete:
             self.operation_completed()
