@@ -974,7 +974,7 @@ def generate_gui_controller(compName, parsed_all_ports, location):
                 input_setup += f"\n\t{port[0]}_btn.observe(lambda change: update_button_state(change, {port[0]}_lbl, {port[0]}_btn), names='value')"
                 # hbox = HBox([label1, toggle_button1, label2, toggle_button2])
                 input_setup += f"\n\t{port[0]}_hbox = HBox([{port[0]}_lbl, {port[0]}_btn])"
-                input_setup += "\n\thbox_layout = widgets.Layout(display='flex', justify_content='center', flex_flow='row')"
+                input_setup += "\n\thbox_layout = widgets.Layout(display='flex', justify_content='flex-end', flex_flow='row')"
                 input_setup += f"\n\t{port[0]}_hbox.layout = hbox_layout"
             else:  
                 input_setup +=  f"\n\t{port[0]}_tbox = widgets.Text("
@@ -996,13 +996,13 @@ def generate_gui_controller(compName, parsed_all_ports, location):
                 output_setup +=  "\n\t)"
 
                 output_setup += f"\n\t{port[0]}_lbl = widgets.Label(value='{port[0]}')"
-                output_setup += "\n\thbox_layout = widgets.Layout(display='flex', justify_content='center', flex_flow='row')"
+                output_setup += "\n\thbox_layout = widgets.Layout(display='flex', justify_content='flex-start', flex_flow='row')"
                 # hbox = HBox([label1, toggle_button1, label2, toggle_button2])
-                output_setup += f"\n\t{port[0]}_hbox = HBox([{port[0]}_lbl, {port[0]}_btn])"
+                output_setup += f"\n\t{port[0]}_hbox = HBox([{port[0]}_btn, {port[0]}_lbl])"
                 output_setup += f"\n\t{port[0]}_hbox.layout = hbox_layout"
 
             elif port[2] <= 8:
-                output_setup += "\n\thbox_layout = widgets.Layout(display='flex', justify_content='center', flex_flow='row')"
+                output_setup += "\n\thbox_layout = widgets.Layout(display='flex', justify_content='flex-start', flex_flow='row')"
                 output_setup += f"\n\t{port[0]}_lbl = widgets.Label(value='{port[0]}')"
                 for i in range(0, port[2]):
                     output_setup +=  f"\n\t{port[0]}_{i}_btn = widgets.ToggleButton("
@@ -1013,10 +1013,10 @@ def generate_gui_controller(compName, parsed_all_ports, location):
                     output_setup +=  "\n\t\tbutton_style='danger'"
                     output_setup +=  "\n\t)"
                 
-                output_setup += f"\n\t{port[0]}_hbox = HBox([{port[0]}_lbl"
+                output_setup += f"\n\t{port[0]}_hbox = HBox(["
                 for i in range(0, port[2]):
-                    output_setup += f", {port[0]}_{port[2]-1-i}_btn"    # Reverse order
-                output_setup += "])"
+                    output_setup += f"{port[0]}_{port[2]-1-i}_btn, "    # Reverse order
+                output_setup += f"{port[0]}_lbl])"
                 output_setup += f"\n\t{port[0]}_hbox.layout = hbox_layout"
                 # Set up 2-8 bit array of lights
                 pass
@@ -1107,8 +1107,10 @@ def generate_gui_controller(compName, parsed_all_ports, location):
     py_code += set_output_checkboxes
 
 
-    py_code += "\n\n\tdisplay_button = Button(description='Set Signals', button_style='info', layout=Layout(width='auto', margin='auto'))"
-    py_code += "\n\tdisplay_button.on_click(on_button_click)"
+    py_code += "\n\n\tset_signal = Button(description='Set Signals', button_style='info', layout=Layout(width='auto', margin='auto'))"
+    py_code += "\n\tset_signal.on_click(on_button_click)"
+    py_code += "\n\tdisplay_button = HBox([set_signal], layout=Layout(justify_content='flex-end'))"
+
 
     py_code += "\n\n\t# Define Grid Layout"
     grid_depth = max(num_input, num_output)
