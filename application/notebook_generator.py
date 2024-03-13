@@ -963,7 +963,7 @@ def generate_gui_controller(compName, parsed_all_ports, location):
 
     for port in parsed_all_ports:
         if port[1] == "in":
-            if port[2] == -1:
+            if port[2] == 1:
                 # Create Button
                 input_setup +=  f"\n\t{port[0]}_btn = widgets.ToggleButton("
                 input_setup +=  "\n\t\tvalue=False,"
@@ -978,6 +978,10 @@ def generate_gui_controller(compName, parsed_all_ports, location):
                 input_setup += f"\n\t{port[0]}_btn.observe(lambda change: update_button_state(change, {port[0]}_lbl, {port[0]}_btn), names='value')"
                 # hbox = HBox([label1, toggle_button1, label2, toggle_button2])
                 input_setup += f"\n\t{port[0]}_hbox = HBox([{port[0]}_lbl, {port[0]}_btn])"
+                input_setup += "\n\thbox_layout = widgets.Layout(display='flex', justify_content='center', flex_flow='row')"
+                input_setup += f"\n\t{port[0]}_hbox.layout = hbox_layout"
+
+
             else:  
                 input_setup +=  f"\n\t{port[0]}_tbox = widgets.Text("
                 input_setup +=  "\n\t\tvalue='0x0',"
@@ -1034,7 +1038,7 @@ def generate_gui_controller(compName, parsed_all_ports, location):
 
     for port in parsed_all_ports:
         if port[1] == "in":
-            if port[2] == -1:
+            if port[2] == 1:
                 # Set value int 1 or 0 if true or false respectively.
                 read_input_checkbox += f"\n\t\t{port[0]}_value = 1 if {port[0]}_btn.value else 0"
                 # No need to run any truncated msgs checks as the value can only be 1/0. 
