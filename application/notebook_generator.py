@@ -987,15 +987,19 @@ def generate_gui_controller(compName, parsed_all_ports, location):
                 input_setup +=  "\n\t)"
             num_input += 1
         elif port[1] == "out":
-            if port[2] == -1:   # This will be used to make red/green light on output later
+            if port[2] == 1:   # This will be used to make red/green light on output later
                 # Create Button
                 output_setup +=  f"\n\t{port[0]}_btn = widgets.ToggleButton("
                 output_setup +=  "\n\t\tvalue=False,"
                 output_setup +=  f"\n\t\tdescription='0',"
                 output_setup +=  "\n\t\tdisabled=True,"
-                output_setup +=  "\n\t\tlayout=Layout(width='auto', margin='auto'),"
                 output_setup +=  "\n\t\tbutton_style='danger'"
                 output_setup +=  "\n\t)"
+
+                output_setup += f"\n\t{port[0]}_lbl = widgets.Label(value='{port[0]}')"
+                output_setup += "\n\thbox_layout = widgets.Layout(display='flex', justify_content='center', flex_flow='row')"
+                output_setup += f"\n\t{port[0]}_tbox = HBox([{port[0]}_lbl, {port[0]}_btn])"
+                output_setup += f"\n\t{port[0]}_tbox.layout = hbox_layout"
                 # Create Label
                 output_setup += f"\n\t{port[0]}_lbl = widgets.Label(value='{port[0]}')"
                 # hbox = HBox([label1, toggle_button1, label2, toggle_button2])
@@ -1019,6 +1023,7 @@ def generate_gui_controller(compName, parsed_all_ports, location):
     
     py_code += "\n\tdef on_button_click(arg):"
     
+    # All these checkboxes I meant to say textbox
     read_input_checkbox = ""
     truncated_msgs = ""
     write_inputs = ""
@@ -1045,8 +1050,8 @@ def generate_gui_controller(compName, parsed_all_ports, location):
                 truncated_msgs += f"\n\t\t\tprint(f\"{port[0]} value provided is > {port[2]} bits, input has been truncated to: "
                 truncated_msgs += "{hex("+port[0]+"_value)}\")"
                 # Check if the value is None, then we want to print a message and not assert nothing.
-                truncated_msgs += f"\n\t\tif not {port[0]}_value:"
-                truncated_msgs += f"\n\t\t\tprint(f\"{port[0]} value provided is invalid, no signals have been asserted."
+                truncated_msgs += f"\n\t\tif {port[0]}_value == None:"
+                truncated_msgs += f"\n\t\t\tprint(f\'{port[0]} value provided is invalid, no signals have been asserted.')"
                 truncated_msgs += "\n\t\t\treturn"
                 # Write inputs
                 write_inputs += f"\n\t\t{port[0]}.write(0, {port[0]}_value)" 
@@ -1055,7 +1060,7 @@ def generate_gui_controller(compName, parsed_all_ports, location):
             
         elif port[1] == "out":
             read_output_ports += f"\n\t\t{port[0]}_value = {port[0]}.read(0)"
-            if port[2] == -1:
+            if port[2] == 1:
                 # Set value int 1 or 0 if true or false respectively.
                 set_output_checkboxes += f"\n\t\t{port[0]}_btn.button_style = 'success' if {port[0]}_value==1 else 'danger'"
                 set_output_checkboxes += f"\n\t\t{port[0]}_btn.description = '1' if {port[0]}_value==1 else '0'"
