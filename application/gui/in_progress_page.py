@@ -105,7 +105,7 @@ class In_Progress_Page(ctk.CTkFrame):
 
     def add_to_log_box(self, text, set_text=False):
         if set_text:
-            self.log_data += text
+            self.log_data = text
         else:
             self.log_data += text
 
@@ -292,7 +292,7 @@ class In_Progress_Page(ctk.CTkFrame):
 
                 if self.app.vivado_force_quit_event.is_set():
                         break
-
+                waiting_counter = 0
                 with open(vivado_log_path, 'r') as file:
                     while True:
                         line = file.readline()
@@ -341,7 +341,12 @@ class In_Progress_Page(ctk.CTkFrame):
                                 self.add_to_log_box("\nSee nextline for log path:")
                                 self.add_to_log_box(file.readline())
                             elif "Waiting for impl_1 to finish..." in line:
-                                self.add_to_log_box("\nWaiting for impl_1 to finish...see impl log tab for more details.")
+                                dots = "."*(waiting_counter//2%5)
+                                if waiting_counter == 0:
+                                    self.log_data = self.log_data + "\nWaiting for synthesis & implementation to complete, see syn/impl log tabs for more details"
+                                self.add_to_log_box(self.log_data + dots, True)
+                                time.sleep(0.5)
+                                waiting_counter += 1
                                 time.sleep(1)
                             elif "write_bitstream completed successfully" in line:
                                 self.add_to_log_box("\nBitstream written successfully.")
