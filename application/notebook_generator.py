@@ -18,6 +18,7 @@ def create_jnb(path_to_hdlgen_file, output_filename=None, generic=False):
     py_file_contents += "\nfrom pynq import Overlay"
     py_file_contents += "\nimport pandas as pd"
     py_file_contents += "\nimport time"
+    py_file_contents += "\nimport os"
 
     # Open HDLGen xml and get root node.
     hdlgen = xml.dom.minidom.parse(path_to_hdlgen_file)
@@ -695,6 +696,15 @@ def generate_gui_controller(compName, parsed_all_ports, location):
     svg_data = svg_data.replace("\"", "'")
     svg_data = svg_data.replace('\n', r'\n')
     py_code += f"\nsvg_content = \"{svg_data}\""
+    py_code += f"\nimage_index = 1  # Tracks next image to show so that it can be cycled"
+
+    py_code += f"\n\n# Find images in the current directory"
+    py_code += f"\ndef find_images"
+    py_code += f"\n\tcurr_dir = os.getcwd()"
+    py_code += f"\n\tlist_dir = os.listdir(curr_dir)"
+    py_code += f"\n\timg_files = [file for file in files_in_dir if file.endswith('.png') or file.endswith('.svg') or file.endswith('.jpg')]"
+    py_code += f"\n\treturn img_files"
+
 
     py_code += "\n\n\ndef generate_gui(svg_content):"
     # py_code += f"\n\tfile_path = '{compName}.svg'"
@@ -715,6 +725,7 @@ def generate_gui_controller(compName, parsed_all_ports, location):
     num_input = 0
     num_output = 0
 
+    py_code += "\n\t# Update Button State Function"
     py_code += "\n\tdef update_button_state(change, label, button):"
     py_code += "\n\t\tif change['new']:"
     py_code += "\n\t\t\tbutton.value = True"
@@ -724,6 +735,54 @@ def generate_gui_controller(compName, parsed_all_ports, location):
     py_code += "\n\t\t\tbutton.value = False"
     py_code += "\n\t\t\tbutton.description = '0'"
     py_code += "\n\t\t\tbutton.button_style = 'danger'   # Red color"
+
+    py_code += "\n\n\t# Change Image Button Handler"
+    py_code += "\n\tdef update_image(arg, grid)"
+    py_code += "\n\t\tglobal image_index # Use global var image_index"
+    py_code += "\n\t\tglobal svg_content # Use global var svg_content"
+    py_code += "\n\n\t\t# First remove the current image"
+    py_code += "\n\t\tgrid[:-1,1].close()"
+    py_code += "\n\t\t# If the image_index remainder is 0, we want to set default SVG"
+    py_code += "\n\t\tif image_index % (len(images_found)+1) == 0:"
+    py_code += "\n\t\t\t# Set SVG"
+    py_code += "\n\t\t\tsvg_content = svg_content.split('<?xml', 1)[-1]"
+    py_code += "\n\t\t\tsvg_with_tags = f'<svg>{svg_content}</svg>'"
+    py_code += "\n\t\t\t# Create Widget Object for SVG"
+    py_code += "\n\t\t\toutput_svg = Output()"
+    py_code += "\n\t\t\twith output_svg:"
+    py_code += "\n\t\t\t\tdisplay(SVG(data=svg_with_tags))"
+    py_code += "\n\t\t\t# Set new widget"
+    py_code += "\n\t\t\tgrid[:-1,1] = output_svg"
+    py_code += "\n\t\telse:"
+    py_code += "\n\t\t\t# We are dealing with a new image"
+    py_code += "\n\t\t\t# Normalise index to be between 0 and number of images found - 1"
+    py_code += "\n\t\t\tindex = (image_index-1) % len(images_found)"
+    py_code += "\n\t\t\timage_filename = images_found[index]"
+    py_code += "\n\t\t\t# Deal with SVG file"
+    py_code += "\n\t\t\tif image_filename[-3:] == 'svg':"
+    py_code += "\n\t\t\t\t#Read the SVG content from the file""
+    py_code += "\n\t\t\t\twith open(image_filename, 'r') as file:"
+    py_code += "\n\t\t\t\t\tsvg_content_temp = file.read()"
+    py_code += "\n\t\t\t\tsvg_content_temp = svg_content_temp.split('<?xml', 1)[-1]"
+    py_code += "\n\t\t\t\tsvg_content_temp_with_tags = f'<svg>{svg_content_temp}</svg>'"
+    py_code += "\n\t\t\t\tuser_svg = Output()"
+    py_code += "\n\t\t\t\twith user_svg:"
+    py_code += "\n\t\t\t\t\tdisplay(SVG(data=svg_content_temp_with_tags))"
+    py_code += "\n\t\t\t\tgrid[:-1,1] = user_svg"
+    py_code += "\n\t\t\t# Dealing with JPG or PNG"
+    py_code += "\n\t\t\telse:"
+    py_code += "\n\t\t\t\tfile = open(image_filename, "rb")"
+    py_code += "\n\t\t\t\timage = file.read()"
+    py_code += "\n\t\t\t\timage_widget = widgets.Image("
+    py_code += "\n\t\t\t\t\tvalue=image,"
+    py_code += "\n\t\t\t\t\tformat=image_filename[-3:],"
+    py_code += "\n\t\t\t\t\twidth=300,"
+    py_code += "\n\t\t\t\t\theight=400"
+    py_code += "\n\t\t\t\t)"
+    py_code += "\n\t\t\t\tgrid[:-1,1] = image_widget"
+    py_code += "\n\t\timage_index += 1"
+    py_code += "\n"
+
 
     for port in parsed_all_ports:
         if port[1] == "in":
@@ -852,7 +911,16 @@ def generate_gui_controller(compName, parsed_all_ports, location):
     
 
     py_code += "\n\n\t# Set the Grid Widgets\n\t# Set Image (Centre, Full Height)"
-    py_code += "\n\tgrid[:,1] = output_svg"
+    # py_code += "\n\tgrid[:,1] = output_svg"
+
+    py_code += "\n\tif len(images_found) > 0:"
+    py_code += "\n\t\tgrid[:-1,1] = output_svg # If there is images found, we want to make room for the toggle button."
+    py_code += "\n\t\ttoggle_image_button = Button(description='Change Image', button_style='info', layout=Layout(width='auto', margin='auto'))"
+    py_code += "\n\t\ttoggle_image_button.on_click(lambda b: update_image(b, grid))"
+    py_code += "\n\t\tgrid[-1,1] = toggle_image_button"
+    py_code += "\n\telse:"
+    py_code += "\n\t\tgrid[:,1] = output_svg"
+
 
     input_grid_depth_index = 0
     input_widgets_placement = ""
