@@ -826,7 +826,7 @@ def generate_io_visuals(io_map):
         # 3) Update button
         comp_signal_name = comp_io.split('[')[0]
         if comp_signal_name not in already_scanned_signals:
-            py_code += f"\n\t\t\tglobal {comp_signal_name}" # Resolves an inconsistent bug in Jupyter Notebook where {comp_signal_name} cannot be found
+            py_code += f"\n\t\t\tglobal {comp_signal_name}" # Possibly adds reduces chance an inconsistent bug in Jupyter Notebook where {comp_signal_name} cannot be found
             py_code += f"\n\t\t\t{comp_signal_name}_value = {comp_signal_name}.read(0)"
             already_scanned_signals.append(comp_signal_name)
         comp_bit = 0 # Default assignment
@@ -1044,6 +1044,10 @@ def generate_gui_controller(compName, parsed_all_ports, location):
                 truncated_msgs += "\n\t\tif truncated:"
                 truncated_msgs += f"\n\t\t\tprint(f\"{port[0]} value provided is > {port[2]} bits, input has been truncated to: "
                 truncated_msgs += "{hex("+port[0]+"_value)}\")"
+                # Check if the value is None, then we want to print a message and not assert nothing.
+                truncated_msgs += f"\n\t\tif not {port[0]}_value:"
+                truncated_msgs += f"\n\t\t\tprint(f\"{port[0]} value provided is invalid, no signals have been asserted."
+                truncated_msgs += "\n\t\t\treturn"
                 # Write inputs
                 write_inputs += f"\n\t\t{port[0]}.write(0, {port[0]}_value)" 
                 # Set placeholder values of textboxes to last pushed value
