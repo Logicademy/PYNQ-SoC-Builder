@@ -114,8 +114,11 @@ class Xml_Manager:
         # Load connections
         connections = ioConfig.getElementsByTagName("connection")
         # Delete all existing connections
-        for connection in connections:
-            ioConfig.removeChild(connection)
+        try:
+            for connection in connections:
+                ioConfig.removeChild(connection)
+        except:
+            print("No elements to delete")
 
         for pynq_io, comp_io in io_config.items():
             if comp_io == None or comp_io == "None":
@@ -155,11 +158,16 @@ class Xml_Manager:
         root = buildconfig.documentElement
         # Find ioConfig node
         settings = root.getElementsByTagName("settings")
+        print(settings)
         # Scan connections, return updated IO Map
         for entry in settings:
-            name = entry.getElementsByTagName("name")[0].firstChild.data
-            value = entry.getElementsByTagName("value")[0].firstChild.data
-
+            
+            try:
+                name = entry.getElementsByTagName("name")[0].firstChild.data
+                value = entry.getElementsByTagName("value")[0].firstChild.data
+            except:
+                print("No entries")
+                continue
             # Add to IO Map
             try:
                 before = proj_config[name] # Do this to raise a key error if the IO doesn't exist in IO Map
@@ -178,19 +186,22 @@ class Xml_Manager:
         # Find settings
         settings = root.getElementsByTagName("settings")
         # Delete all existing connections
-        for entry in settings:
-            settings.removeChild(entry)
+        try:
+            for entry in settings:
+                settings.removeChild(entry)
+        except:
+            print("No elements to delete")
 
-        for setting, value in proj_config.items():
+        for setting, val in proj_config.items():
 
             entry = buildconfig.createElement("entry")
 
             name = buildconfig.createElement("name")
-            setting_text = buildconfig.createTextNode(setting)
+            setting_text = buildconfig.createTextNode(str(setting))
             name.appendChild(setting_text)
 
             value = buildconfig.createElement("value")
-            value_text = buildconfig.createTextNode(value)
+            value_text = buildconfig.createTextNode(str(val))
             value.appendChild(value_text)
 
             entry.appendChild(name)

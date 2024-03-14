@@ -1,6 +1,7 @@
 import customtkinter as ctk
 from tktooltip import ToolTip
 import os
+import application.xml_manager as xmlman
 
 class Main_Menu(ctk.CTkFrame):
     def __init__(self, app):
@@ -52,6 +53,39 @@ class Main_Menu(ctk.CTkFrame):
             file_path = ctk.filedialog.askopenfilename(filetypes=[("HDLGen Files", "*.hdlgen")])
             entry_path.delete(0, ctk.END)
             entry_path.insert(0, file_path)
+
+            # If the file exists, read the config from it.
+            if os.path.exists(file_path.replace("\\", "/")):
+                xmlmanager = xmlman.Xml_Manager(file_path)
+                proj_config = xmlmanager.read_proj_config()
+
+            if proj_config:
+                # Set the variables
+                try:
+                    open_gui_var.set("on" if proj_config['open_viv_gui'] else "off")
+                except:
+                    print("No Open GUI param in XML")
+                
+                try:
+                    keep_gui_open_var.set("on" if proj_config['keep_viv_opn'] else "off")
+                except:
+                    print("No Keep Viv Open param in XML")
+                
+                try:
+                    gen_jnb_var.set("on" if proj_config['gen_jnb'] else "off")
+                except:
+                    print("No Gen JNB param in XML")
+                
+                try:
+                    use_testplan_var.set("on" if proj_config['use_tstpln'] else "off")
+                except:
+                    print("No Use Testplan param in XML")
+                
+                try:
+                    use_io_var.set("on" if proj_config['use_board_io'] else "off")
+                except:
+                    print("No Use Board IO param in XML")
+
         entry_path = ctk.CTkEntry(row_1_frame, width=360, placeholder_text="To get started, browse for a .hdlgen project file")
         browse_button = ctk.CTkButton(row_1_frame, text="Browse", command=browse_files, width=100)
         entry_path.grid(row=1, column=0, padx=5, pady=5)
@@ -96,6 +130,7 @@ class Main_Menu(ctk.CTkFrame):
                 configure_io_button.configure(state="normal")
             else:
                 configure_io_button.configure(state="disabled")
+
 
             # Convert to true/false
             self.app.checkbox_values = [open_gui_var.get() == "on", keep_gui_open_var.get() == "on", gen_jnb_var.get() == "on", use_testplan_var.get() == "on", use_io_var.get() == "on"]
@@ -156,11 +191,11 @@ class Main_Menu(ctk.CTkFrame):
         configure_io_button = ctk.CTkButton(io_subframe, text="Configure I/O", command=on_io_config_button, width=140)
         configure_io_button.grid(row=1, column=0, pady=5, padx=5, sticky = 'nswe')
 
-        ToolTip(open_gui_check_box, msg="Open Vivado GUI when executing automation steps", delay=1)
-        ToolTip(keep_gui_open_check_box, msg="Keep Vivado GUI open once automation steps have completed", delay=1)
-        ToolTip(gen_jnb_check_box, msg="Generate Jupyter Notebook file for project", delay=1)
-        ToolTip(use_testplan_check_box, msg="Generate JNB to execute each individual test case", delay=1)
-        ToolTip(use_io_check_box, msg="Enable to allow connection to PYNQ-Z2 I/O such as LEDs")
+        ToolTip(open_gui_check_box, msg="Open Vivado GUI when executing automation steps", delay=0.5)
+        ToolTip(keep_gui_open_check_box, msg="Keep Vivado GUI open once automation steps have completed", delay=0.5)
+        ToolTip(gen_jnb_check_box, msg="Generate Jupyter Notebook file for project", delay=0.5)
+        ToolTip(use_testplan_check_box, msg="Generate JNB to execute each individual test case", delay=0.5)
+        ToolTip(use_io_check_box, msg="Enable to allow connection to PYNQ-Z2 I/O such as LEDs", delay=0.5)
 
         checkbox_event() # Calling to set default values
 
@@ -174,6 +209,22 @@ class Main_Menu(ctk.CTkFrame):
                 self.app.top_level_message = "Error: Could not find HDLGen file at path specified"
                 self.app.open_alert()
                 return
+            
+            # Save the config
+            proj_config = {
+                "open_viv_gui": True if open_gui_var.get() == "on" else False,
+                "keep_viv_opn": True if keep_gui_open_var.get() == "on" else False,
+                "gen_jnb": True if gen_jnb_var.get() == "on" else False,
+                "use_tstpln": True if use_testplan_var.get() == "on" else False,
+                "use_board_io": True if use_io_var.get() == "on" else False
+            }
+
+            # Available Path entry_path.get().replace("\\", "/")
+            try:
+                xmlmanager = xmlman.Xml_Manager(self.app.hdlgen_path)
+                xmlmanager.write_proj_config(proj_config)
+            except Exception as e:
+                print(f"Couldn't save config: {e}")
             
             
             # Run threaded program:
