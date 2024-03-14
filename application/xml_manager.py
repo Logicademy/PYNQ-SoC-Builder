@@ -160,21 +160,29 @@ class Xml_Manager:
         settings = root.getElementsByTagName("settings")
         print(settings)
         # Scan connections, return updated IO Map
-        for entry in settings:
-            
-            try:
-                name = entry.getElementsByTagName("name")[0].firstChild.data
-                value = entry.getElementsByTagName("value")[0].firstChild.data
-            except:
-                print("No entries")
-                continue
-            # Add to IO Map
-            try:
-                before = proj_config[name] # Do this to raise a key error if the IO doesn't exist in IO Map
-                proj_config[name] = value
-            except KeyError:
-                print(f"The IO ({name}) could not be found in IO map provided. Ignoring setting value: {value}")
-        
+        try:
+            for entry in settings[0].getElementsByTagName('entry'):
+                
+                try:
+                    name = entry.getElementsByTagName("name")[0].firstChild.data
+                    value = entry.getElementsByTagName("value")[0].firstChild.data
+                    if value == 'True':
+                        value = True
+                    elif value == 'False':
+                        value = False
+                except:
+                    print("No entries")
+                    continue
+                # Add to IO Map
+                try:
+                    before = proj_config[name] # Do this to raise a key error if the IO doesn't exist in IO Map
+                    proj_config[name] = value
+                except KeyError:
+                    print(f"The IO ({name}) could not be found in IO map provided. Ignoring setting value: {value}")
+        except Exception as e: 
+            print(f"Error reading settings, using defaults: {e}")
+
+
         print(f"Loaded the following io config from file: \n{proj_config}")
         return proj_config
     
@@ -187,10 +195,10 @@ class Xml_Manager:
         settings = root.getElementsByTagName("settings")
         # Delete all existing connections
         try:
-            for entry in settings:
-                settings.removeChild(entry)
-        except:
-            print("No elements to delete")
+            for entry in settings[0].getElementsByTagName("entry"):
+                settings[0].removeChild(entry)
+        except Exception as e:
+            print(f"No elements to delete {e}")
 
         for setting, val in proj_config.items():
 

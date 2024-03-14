@@ -54,37 +54,66 @@ class Main_Menu(ctk.CTkFrame):
             entry_path.delete(0, ctk.END)
             entry_path.insert(0, file_path)
 
+            proj_config = None
             # If the file exists, read the config from it.
             if os.path.exists(file_path.replace("\\", "/")):
                 xmlmanager = xmlman.Xml_Manager(file_path)
                 proj_config = xmlmanager.read_proj_config()
 
+            print("Have I gotted called")
             if proj_config:
+                print("Have I gotted set")
+
                 # Set the variables
                 try:
-                    open_gui_var.set("on" if proj_config['open_viv_gui'] else "off")
+                    print("on" if proj_config['open_viv_gui'] else "off")
+                    self.open_gui_var.set("on" if proj_config['open_viv_gui'] else "off")
+                    if proj_config['open_viv_gui']:
+                        print("Yes")
+                        open_gui_check_box.select()
+                    else:
+                        print("No")
+                        open_gui_check_box.deselect()
                 except:
                     print("No Open GUI param in XML")
                 
                 try:
-                    keep_gui_open_var.set("on" if proj_config['keep_viv_opn'] else "off")
+                    self.keep_gui_open_var.set("on" if proj_config['keep_viv_opn'] else "off")
+                    if proj_config['keep_viv_opn']:
+                        keep_gui_open_check_box.select()
+                    else:
+                        keep_gui_open_check_box.deselect()
                 except:
                     print("No Keep Viv Open param in XML")
                 
                 try:
-                    gen_jnb_var.set("on" if proj_config['gen_jnb'] else "off")
+                    self.gen_jnb_var.set("on" if proj_config['gen_jnb'] else "off")
+                    if proj_config['gen_jnb']:
+                        gen_jnb_check_box.select()
+                    else:
+                        gen_jnb_check_box.deselect()
                 except:
                     print("No Gen JNB param in XML")
                 
                 try:
-                    use_testplan_var.set("on" if proj_config['use_tstpln'] else "off")
+                    self.use_testplan_var.set("on" if proj_config['use_tstpln'] else "off")
+                    if proj_config['use_tstpln']:
+                        use_testplan_check_box.select()
+                    else:
+                        use_testplan_check_box.deselect()
                 except:
                     print("No Use Testplan param in XML")
                 
                 try:
-                    use_io_var.set("on" if proj_config['use_board_io'] else "off")
+                    self.use_io_var.set("on" if proj_config['use_board_io'] else "off")
+                    if proj_config['use_board_io']:
+                        use_io_check_box.select()
+                    else:
+                        use_io_check_box.deselect()
                 except:
                     print("No Use Board IO param in XML")
+                
+                checkbox_event()
 
         entry_path = ctk.CTkEntry(row_1_frame, width=360, placeholder_text="To get started, browse for a .hdlgen project file")
         browse_button = ctk.CTkButton(row_1_frame, text="Browse", command=browse_files, width=100)
@@ -113,27 +142,26 @@ class Main_Menu(ctk.CTkFrame):
         # Row 3
         ## Checkbox buttons and labels
         def checkbox_event():
-            # print("Checkbox toggled\topen GUI: ", open_gui_var.get())
-            # print("\t\t\topen GUI: ", keep_gui_open_var.get())
-            if open_gui_var.get() == "on":
+            # print("Checkbox toggled\topen GUI: ", self.open_gui_var.get())
+            # print("\t\t\topen GUI: ", self.keep_gui_open_var.get())
+            if self.open_gui_var.get() == "on":
                 keep_gui_open_check_box.configure(state="normal")
             else:
                 keep_gui_open_check_box.configure(state="disabled")
 
-            if gen_jnb_var.get() == "on":
+            if self.gen_jnb_var.get() == "on":
                 use_testplan_check_box.configure(state="normal")
             else:
                 use_testplan_check_box.configure(state="disabled")
-            # self.app.checkbox_values = [open_gui_var.get(), keep_gui_open_var.get()]
+            # self.app.checkbox_values = [self.open_gui_var.get(), self.keep_gui_open_var.get()]
             
-            if use_io_var.get() == "on":
+            if self.use_io_var.get() == "on":
                 configure_io_button.configure(state="normal")
             else:
                 configure_io_button.configure(state="disabled")
 
-
             # Convert to true/false
-            self.app.checkbox_values = [open_gui_var.get() == "on", keep_gui_open_var.get() == "on", gen_jnb_var.get() == "on", use_testplan_var.get() == "on", use_io_var.get() == "on"]
+            self.app.checkbox_values = [self.open_gui_var.get() == "on", self.keep_gui_open_var.get() == "on", self.gen_jnb_var.get() == "on", self.use_testplan_var.get() == "on", self.use_io_var.get() == "on"]
 
 
         # vivado config subframe
@@ -149,32 +177,32 @@ class Main_Menu(ctk.CTkFrame):
 
 
         # Vivado config subframe
-        open_gui_var = ctk.StringVar(value="on")
+        self.open_gui_var = ctk.StringVar(value="on")
         open_gui_check_box = ctk.CTkCheckBox(viv_subframe, text="Open Vivado GUI", command=checkbox_event,
-                                    variable=open_gui_var, onvalue="on", offvalue="off", width=140)
+                                    variable=self.open_gui_var, onvalue="on", offvalue="off", width=140)
         open_gui_check_box.grid(row=0, column=0, pady=5, padx=5, sticky = 'nswe')
 
-        keep_gui_open_var = ctk.StringVar(value="off")
+        self.keep_gui_open_var = ctk.StringVar(value="off")
         keep_gui_open_check_box = ctk.CTkCheckBox(viv_subframe, text="Keep Vivado Open", command=checkbox_event,
-                                    variable=keep_gui_open_var, onvalue="on", offvalue="off", width=140)
+                                    variable=self.keep_gui_open_var, onvalue="on", offvalue="off", width=140)
         keep_gui_open_check_box.grid(row=1, column=0, pady=5, padx=5, sticky = 'nswe')
 
 
         # jnb subframe
-        gen_jnb_var = ctk.StringVar(value="on")
+        self.gen_jnb_var = ctk.StringVar(value="on")
         gen_jnb_check_box = ctk.CTkCheckBox(jnb_subframe, text="Generate JNB", command=checkbox_event,
-                                    variable=gen_jnb_var, onvalue="on", offvalue="off", width=140, )
+                                    variable=self.gen_jnb_var, onvalue="on", offvalue="off", width=140, )
         gen_jnb_check_box.grid(row=0, column=0, pady=5, padx=5, sticky = 'nswe')
 
-        use_testplan_var = ctk.StringVar(value="on")
+        self.use_testplan_var = ctk.StringVar(value="on")
         use_testplan_check_box = ctk.CTkCheckBox(jnb_subframe, text="Use Testplan", command=checkbox_event,
-                                    variable=use_testplan_var, onvalue="on", offvalue="off", width=140)
+                                    variable=self.use_testplan_var, onvalue="on", offvalue="off", width=140)
         use_testplan_check_box.grid(row=1, column=0, pady=5, padx=5, sticky = 'nswe')
 
         # io subframe
-        use_io_var = ctk.StringVar(value="on")
+        self.use_io_var = ctk.StringVar(value="on")
         use_io_check_box = ctk.CTkCheckBox(io_subframe, text="Use Board I/O", command=checkbox_event,
-                                    variable=use_io_var, onvalue="on", offvalue="off", width=140)
+                                    variable=self.use_io_var, onvalue="on", offvalue="off", width=140)
         use_io_check_box.grid(row=0, column=0, pady=5, padx=5, sticky = 'nswe')
 
         def on_io_config_button():
@@ -212,11 +240,11 @@ class Main_Menu(ctk.CTkFrame):
             
             # Save the config
             proj_config = {
-                "open_viv_gui": True if open_gui_var.get() == "on" else False,
-                "keep_viv_opn": True if keep_gui_open_var.get() == "on" else False,
-                "gen_jnb": True if gen_jnb_var.get() == "on" else False,
-                "use_tstpln": True if use_testplan_var.get() == "on" else False,
-                "use_board_io": True if use_io_var.get() == "on" else False
+                "open_viv_gui": True if self.open_gui_var.get() == "on" else False,
+                "keep_viv_opn": True if self.keep_gui_open_var.get() == "on" else False,
+                "gen_jnb": True if self.gen_jnb_var.get() == "on" else False,
+                "use_tstpln": True if self.use_testplan_var.get() == "on" else False,
+                "use_board_io": True if self.use_io_var.get() == "on" else False
             }
 
             # Available Path entry_path.get().replace("\\", "/")

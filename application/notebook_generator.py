@@ -4,10 +4,15 @@ import csv
 from io import StringIO
 import html
 import os
+import application.xml_manager as xmlman
 
 # Function to generate JNB, takes HDLGen file path and notebook name as parameters
 def create_jnb(path_to_hdlgen_file, output_filename=None, generic=False, io_map=None):
     
+    if io_map == True:
+        # This means we need to read from file
+        io_map = xmlman.Xml_Manager(path_to_hdlgen_file).read_io_config()
+
     py_file_contents = ""   # This file is used to store the accompanying Python code for GUI controller, test APIs etc.
 
     # PY File Imports
@@ -270,10 +275,11 @@ def create_jnb(path_to_hdlgen_file, output_filename=None, generic=False, io_map=
     # This step checks if the IO is configured or just completely empty.
     # If completely empty, lets just skip.
     gen_io_gui = False
-    for key, value in io_map.items():
-        if value != "None" and value != None:
-            gen_io_gui = True
-            break
+    if io_map:
+        for key, value in io_map.items():
+            if value != "None" and value != None:
+                gen_io_gui = True
+                break
     
     if io_map and gen_io_gui:
         markdown_cell_contents = f"## IO Visualised\n\n"
