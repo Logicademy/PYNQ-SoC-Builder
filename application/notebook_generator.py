@@ -9,13 +9,16 @@ import application.xml_manager as xmlman
 # Function to generate JNB, takes HDLGen file path and notebook name as parameters
 def create_jnb(path_to_hdlgen_file, output_filename=None, generic=False, io_map=None):
     
+    # io_map == True is indicator to read from XML file
+    # io_map == None means do not configure for IO
+    # io_map == io_map means an io_map dictionary was passed and it should be used.
     if io_map == True:
         # This means we need to read from file
         io_map = xmlman.Xml_Manager(path_to_hdlgen_file).read_io_config()
 
     py_file_contents = ""   # This file is used to store the accompanying Python code for GUI controller, test APIs etc.
 
-    # PY File Imports
+    # Py File Imports
     py_file_contents += "import ipywidgets as widgets"
     py_file_contents += "\nfrom IPython.display import SVG, display"
     py_file_contents += "\nfrom ipywidgets import GridspecLayout, Output, HBox"
@@ -665,9 +668,9 @@ def create_jnb(path_to_hdlgen_file, output_filename=None, generic=False, io_map=
         # code_cell = nbf.v4.new_code_cell(code_cell_contents)
         # notebook.cells.append(code_cell)
 
-    else: 
-        code_cell = nbf.v4.new_code_cell(code_cell_contents)
-        notebook.cells.append(code_cell)
+    # else: # I think this is doubling %run {compName}.py cell
+    #     code_cell = nbf.v4.new_code_cell(code_cell_contents)
+    #     notebook.cells.append(code_cell)
 
     output_file = f'{output_filename}\{name}.ipynb'
     # if output_filename is not None:
@@ -1139,7 +1142,6 @@ def generate_gui_controller(compName, parsed_all_ports, location):
     
 
     py_code += "\n\n\t# Set the Grid Widgets\n\t# Set Image (Centre, Full Height)"
-    # py_code += "\n\tgrid[:,1] = output_svg"
 
     py_code += "\n\tif len(images_found) > 0:"
     py_code += "\n\t\tgrid[:-1,1] = output_svg # If there is images found, we want to make room for the toggle button."

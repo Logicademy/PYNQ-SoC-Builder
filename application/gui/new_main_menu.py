@@ -21,15 +21,16 @@ class Menu(ctk.CTkScrollableFrame):
     def __init__(self, parent):
         super().__init__(parent)
 
+        # set the height of the internal scrollbar to zero
+        # # then it will be expanded vertically to the configured height of "frame"
+        # self._scrollbar.configure(height=0)
+
         window_height = parent.app.get_window_height()
 
         self.configure(width=250, height=window_height/2)
         print(window_height/2)
 
     
-
-
-
         dummy_label = ctk.CTkLabel(self, text="dummy")
         default_font = dummy_label.cget("font")
 
@@ -137,8 +138,8 @@ class ConfigTabs(ctk.CTkTabview):
         self.configure(anchor='nw')
 
         # Add widgets to each tab?
-        self.label = ctk.CTkLabel(master=self.tab("Project Config"), text="Project Config Area")
-        self.label.pack()
+        # self.label = ctk.CTkLabel(master=self.tab("Project Config"), text="Project Config Area")
+        # self.label.pack()
 
         self.label = ctk.CTkLabel(master=self.tab("I/O Config"), text="I/O Config Area")
         self.label.pack()
@@ -147,15 +148,56 @@ class ConfigTabs(ctk.CTkTabview):
         self.label.pack()
 
 
-        self.switch_var0 = ctk.StringVar(value="on")
-        self.switch0 = ctk.CTkSwitch(master=self.tab("Project Config"), text="CTkSwitch", 
-                                        variable=self.switch_var0, onvalue="on", offvalue="off")
+        # self.label = ctk.CTkLabel(master=self.tab("Project Config"), text="Vivado Settings")
+        # self.label.pack()
+        self.configure(width=window_width-290, height=(window_height/2))
 
-        self.switch_var1 = ctk.StringVar(value="on")
-        self.switch1 = ctk.CTkSwitch(master=self.tab("Project Config"), text="CTkSwitch", 
-                                        variable=self.switch_var1, onvalue="on", offvalue="off")
+        self.project_config_scrollable = ctk.CTkScrollableFrame(self.tab("Project Config"), width=window_width-310, height=(window_height/2)-80)
+        # self.project_config_scrollable.pack_propagate(0)
+        self.project_config_scrollable.pack()
+
+        
+
+        self.switch_var0 = ctk.StringVar(value="on")
+        self.switch0 = ctk.CTkSwitch(self.project_config_scrollable, text="Open Vivado GUI", 
+                                        variable=self.switch_var0, onvalue="on", offvalue="off")
         self.switch0.pack()
+        self.switch1 = ctk.CTkSwitch(self.project_config_scrollable, text="Keep Vivado Open", 
+                                        variable=self.switch_var0, onvalue="on", offvalue="off")
         self.switch1.pack()
+
+        self.switch1 = ctk.CTkSwitch(self.project_config_scrollable, text="Regenerate Block Design", 
+                                        variable=self.switch_var0, onvalue="on", offvalue="off")
+        self.switch1.pack()
+
+        self.label = ctk.CTkLabel(self.project_config_scrollable, text="Jupyter Notebook Settings")
+        self.label.pack()
+        self.switch1 = ctk.CTkSwitch(self.project_config_scrollable, text="Generate JNB with Build", 
+                                        variable=self.switch_var0, onvalue="on", offvalue="off")
+        self.switch1.pack()
+        self.switch1 = ctk.CTkSwitch(self.project_config_scrollable, text="Use testplan", 
+                                        variable=self.switch_var0, onvalue="on", offvalue="off")
+        self.switch1.pack()
+        self.label = ctk.CTkLabel(self.project_config_scrollable, text="PYNQ Settings")
+        self.label.pack()
+        self.switch1 = ctk.CTkSwitch(self.project_config_scrollable, text="Use Board IO", 
+                                        variable=self.switch_var0, onvalue="on", offvalue="off")
+        self.switch1.pack()
+        self.switch1 = ctk.CTkSwitch(self.project_config_scrollable, text="Use Board IO", 
+                                        variable=self.switch_var0, onvalue="on", offvalue="off")
+        self.switch1.pack()
+        self.switch1 = ctk.CTkSwitch(self.project_config_scrollable, text="Use Board IO", 
+                                        variable=self.switch_var0, onvalue="on", offvalue="off")
+        self.switch1.pack()
+        self.switch1 = ctk.CTkSwitch(self.project_config_scrollable, text="Use Board IO", 
+                                        variable=self.switch_var0, onvalue="on", offvalue="off")
+        self.switch1.pack()
+        self.switch1 = ctk.CTkSwitch(self.project_config_scrollable, text="Use Board IO", 
+                                        variable=self.switch_var0, onvalue="on", offvalue="off")
+        self.switch1.pack()
+
+        
+        
 
 
 
@@ -215,6 +257,7 @@ class ConfigMenu(ctk.CTkFrame):
     def resize(self, event):
         # Handle how frame gets bigger and smaller.
         self.tab_view.configure(width=event.width-290, height=event.height/2)
+        self.tab_view.project_config_scrollable.configure(width=event.width-310, height=event.height/2-80)
 
 class LogMenu(ctk.CTkFrame):
     def __init__(self, parent):
