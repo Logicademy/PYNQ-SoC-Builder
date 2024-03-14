@@ -49,6 +49,10 @@ class Menu(ctk.CTkScrollableFrame):
         red_fg_clr = "#CB4335"
         red_hv_clr = "#943126"
 
+        # Yellow foreground and hover colours
+        yellow_fg_clr = "#b7950b"
+        yellow_hv_clr = "#7d6608"
+
         self.label = ctk.CTkLabel(self, text="PYNQ SoC Builder", font=title_font, width=250)
         self.label.grid(row=0, column=0, pady=10)
 
@@ -89,6 +93,17 @@ class Menu(ctk.CTkScrollableFrame):
         )
         self.build_button.grid(row=5, column=0, pady=10)
 
+        self.help_button = ctk.CTkButton(
+            self,
+            text="Help", 
+            width=225, 
+            height=40, 
+            font=button_font,
+            fg_color=yellow_fg_clr,
+            hover_color=yellow_hv_clr        
+        )
+        self.help_button.grid(row=6, column=0, pady=10)
+
     def resize(self, event):
         print(event)
         print("We are configured")
@@ -98,7 +113,10 @@ class ConfigTabs(ctk.CTkTabview):
     def __init__(self, parent):
         super().__init__(parent)
 
-        self.configure(width=1200-290, height=(800/2))
+        window_height = parent.parent.app.get_window_height()
+        window_width = parent.parent.app.get_window_width()
+
+        self.configure(width=window_width-290, height=(window_height/2))
         
         # Set size of tabs
         custom_font = ('abc', 20)
@@ -106,7 +124,7 @@ class ConfigTabs(ctk.CTkTabview):
         dummy_label = ctk.CTkLabel(self, text="dummy")
         default_font = dummy_label.cget("font")
 
-        tab_font = (default_font, 20, "bold")
+        tab_font = (default_font, 20)
 
         self._segmented_button.configure(font=tab_font)
 
@@ -128,18 +146,35 @@ class ConfigTabs(ctk.CTkTabview):
         self.label = ctk.CTkLabel(master=self.tab("App Preferences"), text="App Preferences Area")
         self.label.pack()
 
+
+        self.switch_var0 = ctk.StringVar(value="on")
+        self.switch0 = ctk.CTkSwitch(master=self.tab("Project Config"), text="CTkSwitch", 
+                                        variable=self.switch_var0, onvalue="on", offvalue="off")
+
+        self.switch_var1 = ctk.StringVar(value="on")
+        self.switch1 = ctk.CTkSwitch(master=self.tab("Project Config"), text="CTkSwitch", 
+                                        variable=self.switch_var1, onvalue="on", offvalue="off")
+        self.switch0.pack()
+        self.switch1.pack()
+
+
+
 class LogTabs(ctk.CTkTabview):
     def __init__(self, parent):
         super().__init__(parent)
 
-        self.configure(width=1180, height=(800/2)-20)
-        
+        window_height = parent.parent.app.get_window_height()
+        window_width = parent.parent.app.get_window_width()
+
+        self.configure(width=window_width-20, height=(window_height/2)-20)
+
         # Set size of tabs
         custom_font = ('abc', 20)
         self._segmented_button.configure(font=custom_font)
 
         # Create tabs
-        self.add("Log")
+        self.add("Project Summary")
+        self.add("Builder Log")
         self.add("Synthesis Log")
         self.add("Implementation Log")
 
@@ -147,7 +182,7 @@ class LogTabs(ctk.CTkTabview):
         self.configure(anchor='nw')
 
         # Add widgets to each tab?
-        self.label = ctk.CTkLabel(master=self.tab("Log"), text="Main Logging Area")
+        self.label = ctk.CTkLabel(master=self.tab("Builder Log"), text="SoC Builder Log Area")
         self.label.pack()
 
         self.label = ctk.CTkLabel(master=self.tab("Synthesis Log"), text="Synthesis Logging Area")
@@ -156,9 +191,11 @@ class LogTabs(ctk.CTkTabview):
         self.label = ctk.CTkLabel(master=self.tab("Implementation Log"), text="Implementation Logging Area")
         self.label.pack()
 
+
 class ConfigMenu(ctk.CTkFrame):
     def __init__(self, parent):
         super().__init__(parent)
+        self.parent = parent
 
         window_height = parent.app.get_window_height()
         window_width = parent.app.get_window_width()
@@ -172,40 +209,18 @@ class ConfigMenu(ctk.CTkFrame):
         title_font = (default_font, 24, "bold")
         button_font = (default_font, 16, 'bold')
 
-        # Green foreground and hover colours 
-        green_fg_clr = "#1D8348"
-        green_hv_clr = "#145a32"
-        
-
-        # Blue foreground and hover colours
-        blue_fg_clr = "#2471A3"
-        blue_hv_clr = "#1A5276"
-
-        # Red foreground and hover colours
-        red_fg_clr = "#CB4335"
-        red_hv_clr = "#943126"
-
-        # self.label = ctk.CTkLabel(self, text="Project Config Area", font=title_font, width=250)
-        # self.label.grid(row=0, column=0, pady=10)
-
-        # self.build_button = ctk.CTkButton(
-        #     self, 
-        #     text="Config the project", 
-        #     width=225, 
-        #     height=40, 
-        #     font=button_font,
-        #     fg_color=green_fg_clr,
-        #     hover_color=green_hv_clr
-        # )
-        # self.build_button.grid(row=1, column=0, pady=10)
-
         self.tab_view = ConfigTabs(self)
         self.tab_view.grid(row=0, column=0, padx=10, pady=5)
 
+    def resize(self, event):
+        # Handle how frame gets bigger and smaller.
+        self.tab_view.configure(width=event.width-290, height=event.height/2)
 
 class LogMenu(ctk.CTkFrame):
     def __init__(self, parent):
         super().__init__(parent)
+
+        self.parent = parent 
 
         window_height = parent.app.get_window_height()
         window_width = parent.app.get_window_width()
@@ -219,36 +234,12 @@ class LogMenu(ctk.CTkFrame):
         title_font = (default_font, 24, "bold")
         button_font = (default_font, 16, 'bold')
 
-        # Green foreground and hover colours 
-        green_fg_clr = "#1D8348"
-        green_hv_clr = "#145a32"
-        
-
-        # Blue foreground and hover colours
-        blue_fg_clr = "#2471A3"
-        blue_hv_clr = "#1A5276"
-
-        # Red foreground and hover colours
-        red_fg_clr = "#CB4335"
-        red_hv_clr = "#943126"
-
-        # self.label = ctk.CTkLabel(self, text="Project Config Area", font=title_font, width=250)
-        # self.label.grid(row=0, column=0, pady=10)
-
-        # self.build_button = ctk.CTkButton(
-        #     self, 
-        #     text="Config the project", 
-        #     width=225, 
-        #     height=40, 
-        #     font=button_font,
-        #     fg_color=green_fg_clr,
-        #     hover_color=green_hv_clr
-        # )
-        # self.build_button.grid(row=1, column=0, pady=10)
-
         self.tab_view = LogTabs(self)
         self.tab_view.grid(row=0, column=0, padx=10, pady=5)
 
+    def resize(self, event):
+        # Handle how frame gets bigger and smaller.
+        self.tab_view.configure(width=event.width-20, height=(event.height/2)-20)
 
 
 class MainPage(ctk.CTkFrame):
@@ -284,7 +275,17 @@ class MainPage(ctk.CTkFrame):
         # menu.pack(anchor='nw')
 
         # Bind the resize event to the frame
+        
+        # Left hand side menu bind 
         self.bind("<Configure>", self.menu.resize)
+
+        # Config Menu Bind
+        self.bind("<Configure>", self.configMenu.resize)
+
+        # Logging Area 
+        self.bind("<Configure>", self.logMenu.resize)
+
+
 
 
     def show(self):
