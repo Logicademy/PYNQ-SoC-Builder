@@ -15,7 +15,6 @@ def restore_backup(original_filename, backup_filename):
     except Exception as e:
         print(f"An error occurred: {e}")
 
-
 #########################################################
 ##### Restore Original File (Verilog/VHDL/anything) #####
 #########################################################
@@ -62,9 +61,6 @@ def inject_vhdl_port_signal(vhdl_file, port_name, port_size):
         lines.insert(target_line+1, port_definition)
         file.writelines(lines)
 
-# Example usage:
-# inject_port_signal("DSPProc.vhd", "rs1 : out std_logic;")
-
 ############################################
 ##### Inject VHDL Assignment Statement #####
 ############################################
@@ -83,28 +79,8 @@ def inject_vhdl_assignment_statement(vhdl_file, target_signal, source_signal):
         lines.insert(target_line+1, f"    {target_signal} <= {source_signal};\n")
         file.writelines(lines)
 
-# Example usage:
-# inject_assignment_statement("DSPProc.vhd", "rs1", "DSP_memWr")
-
 ########################################################################
 ##### Make an internal signal in Verilog model available as a port #####
 ########################################################################
 def make_verilog_internal_signal_an_output():
     pass
-
-
-#####################
-##### Test Code #####
-#####################
-# example_file = "test_vhd/Untitled.vhd"
-# backup_file = "test_vhd/Untitled.vhd.socbuild"
-
-# make_backup(example_file, backup_file)
-# make_internal_vhdl_signal_external(backup_file, "o_NS", "NS", 4)
-# make_internal_vhdl_signal_external(backup_file, "o_CS", "CS", 4)
-# restore_backup(backup_file, "test_vhd/Complete.vhd")
-# inject_vhdl_port_signal(backup_file, "        o_NS : out std_logic_vector(3 downto 0),\n")
-# inject_vhdl_port_signal(backup_file, "        o_CS : out std_logic_vector(3 downto 0),\n")
-# inject_vhdl_assignment_statement(backup_file, "o_NS", "NS")
-# inject_vhdl_assignment_statement(backup_file, "o_CS", "CS")
-# restore_backup(backup_file, "Complete.vhd")
