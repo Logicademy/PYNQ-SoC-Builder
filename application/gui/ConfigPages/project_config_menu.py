@@ -64,99 +64,93 @@ class ConfigTabView(ctk.CTkTabview):
     
         # Vivado Settings
         self.vivado_settings_lbl = ctk.CTkLabel(self.RHS_switch_frame, text="Vivado Settings", font=bold_text_font)
-        self.vivado_settings_lbl.grid(row=0, column=1, padx=5, pady=5)
+        # self.vivado_settings_lbl.grid(row=0, column=1, padx=5, pady=5)    # No need to pack these because the resize() call handles it.
 
         self.open_viv_sw = ctk.CTkSwitch(self.RHS_switch_frame, text="Open Vivado GUI", 
                                         variable=self.switch_var0, onvalue="on", offvalue="off", font=text_font)
-        self.open_viv_sw.grid(row=1, column=1, padx=5, pady=5, sticky="w")
+        # self.open_viv_sw.grid(row=1, column=1, padx=5, pady=5, sticky="w")
         
         self.keep_viv_open_sw = ctk.CTkSwitch(self.RHS_switch_frame, text="Keep Vivado Open", 
                                         variable=self.switch_var0, onvalue="on", offvalue="off", font=text_font)
-        self.keep_viv_open_sw.grid(row=2, column=1, padx=5, pady=5, sticky="w")
+        # self.keep_viv_open_sw.grid(row=2, column=1, padx=5, pady=5, sticky="w")
     
         self.always_regen_bd_sw = ctk.CTkSwitch(self.RHS_switch_frame, text="Always Regenerate Block Design", 
                                         variable=self.switch_var0, onvalue="on", offvalue="off", font=text_font)
-        self.always_regen_bd_sw.grid(row=3, column=1, padx=5, pady=5, sticky="w")
+        # self.always_regen_bd_sw.grid(row=3, column=1, padx=5, pady=5, sticky="w")
 
     
 
 
         # Jupyter Notebook Settings
         self.jupyter_settings_lbl = ctk.CTkLabel(self.RHS_switch_frame, text="Jupyter Notebook Settings", font=bold_text_font)
-        self.jupyter_settings_lbl.grid(row=0, column=2, padx=5, pady=5)
+        # self.jupyter_settings_lbl.grid(row=0, column=2, padx=5, pady=5)
 
         self.gen_when_build_sw = ctk.CTkSwitch(self.RHS_switch_frame, text="Generate when Building", 
                                         variable=self.switch_var0, onvalue="on", offvalue="off", font=text_font)
-        self.gen_when_build_sw.grid(row=1, column=2, padx=5, pady=5, sticky="w")
+        # self.gen_when_build_sw.grid(row=1, column=2, padx=5, pady=5, sticky="w")
         
         self.gen_tst_sw = ctk.CTkSwitch(self.RHS_switch_frame, text="Generate using Testplan", 
                                         variable=self.switch_var0, onvalue="on", offvalue="off", font=text_font)
-        self.gen_tst_sw.grid(row=2, column=2, padx=5, pady=5, sticky="w")
+        # self.gen_tst_sw.grid(row=2, column=2, padx=5, pady=5, sticky="w")
 
         # PYNQ Board Settings
         self.pynq_board_settings_lbl = ctk.CTkLabel(self.RHS_switch_frame, text="PYNQ Board Settings", font=bold_text_font)
-        self.pynq_board_settings_lbl.grid(row=0, column=3, padx=5, pady=5)
+        # self.pynq_board_settings_lbl.grid(row=0, column=3, padx=5, pady=5)
 
-        self.gen_io_sw = ctk.CTkSwitch(self.RHS_switch_frame, text="Generate I/O Connections", 
+        self.gen_io_sw = ctk.CTkSwitch(self.RHS_switch_frame, text="Make Connections to Board I/O", 
                                         variable=self.switch_var0, onvalue="on", offvalue="off", font=text_font)
-        self.gen_io_sw.grid(row=1, column=3, padx=5, pady=5, sticky="w")
+        # self.gen_io_sw.grid(row=1, column=3, padx=5, pady=5, sticky="w")
 
 
         self.RHS_switch_frame.grid()
 
     def resize(self, event):
-        if event.width > 1760:
-            # Pack as normal.
+        # Default
+        self.LHS_explaination_frame.configure(width=(event.width-310)/2)
+        self.LHS_explaination_frame.grid(row=0, column=0, rowspan=100, padx=5, sticky="news")
+
+        if (event.width-310)/2 > 685:
             # Vivado Settings
-            self.vivado_settings_lbl.grid(row=0, column=1, padx=5, pady=5)
+            self.vivado_settings_lbl.grid(row=0, column=1, padx=5, pady=5, sticky="news")
             self.open_viv_sw.grid(row=1, column=1, padx=5, pady=5, sticky="w")
             self.keep_viv_open_sw.grid(row=2, column=1, padx=5, pady=5, sticky="w")
             self.always_regen_bd_sw.grid(row=3, column=1, padx=5, pady=5, sticky="w")
             # Jupyter Notebook Settings
-            self.jupyter_settings_lbl.grid(row=0, column=2, padx=5, pady=5)
+            self.jupyter_settings_lbl.grid(row=0, column=2, padx=5, pady=5, sticky="news")
             self.gen_when_build_sw.grid(row=1, column=2, padx=5, pady=5, sticky="w")
             self.gen_tst_sw.grid(row=2, column=2, padx=5, pady=5, sticky="w")
             # PYNQ Board Settings
-            self.pynq_board_settings_lbl.grid(row=0, column=3, padx=5, pady=5)
-            self.gen_io_sw.grid(row=1, column=3, padx=5, pady=5, sticky="w")        
-        elif event.width > 1480:
-            # Vivado Settings
-            self.vivado_settings_lbl.grid(row=0, column=1, padx=5, pady=5)
-            self.open_viv_sw.grid(row=1, column=1, padx=5, pady=5, sticky="w")
-            self.keep_viv_open_sw.grid(row=2, column=1, padx=5, pady=5, sticky="w")
-            self.always_regen_bd_sw.grid(row=3, column=1, padx=5, pady=5, sticky="w")
-            # Jupyter Notebook Settings
-            self.jupyter_settings_lbl.grid(row=0, column=2, padx=5, pady=5)
-            self.gen_when_build_sw.grid(row=1, column=2, padx=5, pady=5, sticky="w")
-            self.gen_tst_sw.grid(row=2, column=2, padx=5, pady=5, sticky="w")
-            # PYNQ Board Settings
-            self.pynq_board_settings_lbl.grid(row=4, column=1, padx=5, pady=5)
+            self.pynq_board_settings_lbl.grid(row=4, column=1, padx=5, pady=5, sticky="news")
             self.gen_io_sw.grid(row=5, column=1, padx=5, pady=5, sticky="w")     
-        elif event.width > 1160:
+        elif (event.width-310)/2 > 425:
             # Vivado Settings
-            self.vivado_settings_lbl.grid(row=0, column=1, padx=5, pady=5)
+            self.vivado_settings_lbl.grid(row=0, column=1, padx=5, pady=5, sticky="news")
             self.open_viv_sw.grid(row=1, column=1, padx=5, pady=5, sticky="w")
             self.keep_viv_open_sw.grid(row=2, column=1, padx=5, pady=5, sticky="w")
             self.always_regen_bd_sw.grid(row=3, column=1, padx=5, pady=5, sticky="w")
             # Jupyter Notebook Settings
-            self.jupyter_settings_lbl.grid(row=4, column=1, padx=5, pady=5)
+            self.jupyter_settings_lbl.grid(row=4, column=1, padx=5, pady=5, sticky="news")
             self.gen_when_build_sw.grid(row=5, column=1, padx=5, pady=5, sticky="w")
             self.gen_tst_sw.grid(row=6, column=1, padx=5, pady=5, sticky="w")
             # PYNQ Board Settings
-            self.pynq_board_settings_lbl.grid(row=7, column=1, padx=5, pady=5)
+            self.pynq_board_settings_lbl.grid(row=7, column=1, padx=5, pady=5, sticky="news")
             self.gen_io_sw.grid(row=8, column=1, padx=5, pady=5, sticky="w")
-        else:  
+        else:
+            # In this event, we just wanna have everything on top and make it get as wide as it needs.
+            self.LHS_explaination_frame.configure(width=(event.width-330))
+            self.LHS_explaination_frame.grid(row=110, column=0, padx=5, pady=5, sticky="news")
+
             # Vivado Settings
-            self.vivado_settings_lbl.grid(row=101, column=0, padx=5, pady=5)
+            self.vivado_settings_lbl.grid(row=101, column=0, padx=5, pady=5, sticky="news")
             self.open_viv_sw.grid(row=102, column=0, padx=5, pady=5, sticky="w")
             self.keep_viv_open_sw.grid(row=103, column=0, padx=5, pady=5, sticky="w")
             self.always_regen_bd_sw.grid(row=104, column=0, padx=5, pady=5, sticky="w")
             # Jupyter Notebook Settings
-            self.jupyter_settings_lbl.grid(row=105, column=0, padx=5, pady=5)
+            self.jupyter_settings_lbl.grid(row=105, column=0, padx=5, pady=5, sticky="news")
             self.gen_when_build_sw.grid(row=106, column=0, padx=5, pady=5, sticky="w")
             self.gen_tst_sw.grid(row=107, column=0, padx=5, pady=5, sticky="w")
             # PYNQ Board Settings
-            self.pynq_board_settings_lbl.grid(row=108, column=0, padx=5, pady=5)
+            self.pynq_board_settings_lbl.grid(row=108, column=0, padx=5, pady=5, sticky="news")
             self.gen_io_sw.grid(row=109, column=0, padx=5, pady=5, sticky="w")
 
 class ConfigMenu(ctk.CTkFrame):

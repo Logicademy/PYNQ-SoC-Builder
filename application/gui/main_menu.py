@@ -3,16 +3,18 @@ import os
 import time
 import application.gui.ConfigPages.project_config_menu as pcm
 
-ctk.set_appearance_mode("System")
+ctk.set_appearance_mode("System")       # 'Light' 'Dark' or 'System
 ctk.set_default_color_theme("blue")
 
 class Menu(ctk.CTkScrollableFrame):
     def __init__(self, parent):
         super().__init__(parent)
 
+        self.parent = parent
+        
         # set the height of the internal scrollbar to zero
         # # then it will be expanded vertically to the configured height of "frame"
-        # self._scrollbar.configure(height=0)
+        self._scrollbar.configure(height=0)
 
         window_height = parent.app.get_window_height()
 
@@ -90,7 +92,8 @@ class Menu(ctk.CTkScrollableFrame):
             height=40, 
             font=button_font,
             fg_color=red_fg_clr,
-            hover_color=red_hv_clr        
+            hover_color=red_hv_clr,
+            command=self.parent.app.close_application
         )
         self.build_button.grid(row=6, column=0, pady=10)
 
