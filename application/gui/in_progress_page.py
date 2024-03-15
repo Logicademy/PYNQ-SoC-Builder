@@ -7,6 +7,7 @@ import threading
 import time
 import application.checks as checks
 import xml.dom.minidom
+import application.hdl_modifier as hdlm
 
 class In_Progress_Page(ctk.CTkFrame):
     def __init__(self, app):
@@ -535,6 +536,12 @@ class In_Progress_Page(ctk.CTkFrame):
             self.operation_completed()
 
     def run_vivado(self, assert_complete=True):
+        
+        # hdlm.make_backup("C:\\repo\\HDLGen-ChatGPT-Latest\\User_Projects\\Untitled\\VHDL\\model\\Untitled.vhd", "C:\\repo\\HDLGen-ChatGPT-Latest\\User_Projects\\Untitled\\VHDL\\model\\Untitled.vhd.socbuilder")
+        # hdlm.make_internal_vhdl_signal_external("C:\\repo\\HDLGen-ChatGPT-Latest\\User_Projects\\Untitled\\VHDL\\model\\Untitled.vhd", "o_NS", "NS", 4)
+        # hdlm.make_internal_vhdl_signal_external("C:\\repo\\HDLGen-ChatGPT-Latest\\User_Projects\\Untitled\\VHDL\\model\\Untitled.vhd", "o_CS", "CS", 4)
+
+
         if self.app.vivado_force_quit_event.is_set():
             self.add_to_log_box("\n\nQuit Event: run_vivado function cancelled.")
             print("Quitting run_vivado due to quit event.")
@@ -557,6 +564,7 @@ class In_Progress_Page(ctk.CTkFrame):
 
         time.sleep(0.1)
 
+        # hdlm.restore_backup("C:\\repo\\HDLGen-ChatGPT-Latest\\User_Projects\\Untitled\\VHDL\\model\\Untitled.vhd", "C:\\repo\\HDLGen-ChatGPT-Latest\\User_Projects\\Untitled\\VHDL\\model\\Untitled.vhd.socbuilder")
 
         # new_thread = multiprocessing.Process(target=pm_obj.run_vivado)
         # new_thread.start()
