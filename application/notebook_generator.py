@@ -267,6 +267,20 @@ def create_jnb(path_to_hdlgen_file, output_filename=None, generic=False, io_map=
     for sig in split_signals:
         py_file_contents += f"\n{sig[0]} = {compName}.{sig[0]}"
 
+    # Create large classes from Port Map
+    py_file_contents += "\n\n# Class wrappers for large (>32bit) signals\n" + create_large_classes_from_port_map(parsed_all_ports)
+
+    py_file_contents += "\n\n# Split Number into Blocks Function"
+    py_file_contents += "\ndef split_into_blocks(number, num_blocks):"
+    py_file_contents += "\n\tblock_size = 32"
+    py_file_contents += "\n\tmask = (1 << block_size) - 1  # Create a mask with 32 bits set to 1"
+    py_file_contents += "\n\tblocks = []"
+    py_file_contents += "\n\tfor i in range(0, 32*num_blocks, block_size):"
+    py_file_contents += "\n\t\tblock = (number & mask)"
+    py_file_contents += "\n\t\tblocks.append(block)"
+    py_file_contents += "\n\t\tnumber >>= block_size"
+    py_file_contents += "\n\treturn blocks"
+
 
     if clock_enabled:
         py_file_contents += "\n\n# Set-Up Clock Function\ndef run_clock_pulse():"
@@ -488,22 +502,9 @@ def create_jnb(path_to_hdlgen_file, output_filename=None, generic=False, io_map=
         code_cell_contents += "\n\telse:"
         code_cell_contents += "\n\t\tprint('Invalid Test Number Provided')"
 
-        code_cell_contents += "\n\n# Split Number into Blocks"
-        code_cell_contents += "\ndef split_into_blocks(number, num_blocks):"
-        code_cell_contents += "\n\tblock_size = 32"
-        code_cell_contents += "\n\tmask = (1 << block_size) - 1  # Create a mask with 32 bits set to 1"
-        code_cell_contents += "\n\tblocks = []"
-        code_cell_contents += "\n\tfor i in range(0, 32*num_blocks, block_size):"
-        code_cell_contents += "\n\t\tblock = (number & mask)"
-        code_cell_contents += "\n\t\tblocks.append(block)"
-        code_cell_contents += "\n\t\tnumber >>= block_size"
-        code_cell_contents += "\n\treturn blocks"
-
-
         #### END OF PYTHON TEST CASE SET UP CODE BLOCK - SENDING TO PYTHON FILE ####
         py_file_contents += "\n\n# Test Case Set Up Code\n\n" + code_cell_contents
 
-        py_file_contents += "\n" + create_large_classes_from_port_map(parsed_all_ports)
         # code_cell = nbf.v4.new_code_cell(code_cell_contents)
         # notebook.cells.append(code_cell)
 
