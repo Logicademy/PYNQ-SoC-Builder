@@ -23,6 +23,7 @@ class ConfigTabView(ctk.CTkTabview):
         self._segmented_button.configure(font=tab_font)
 
         # Create tabs
+        self.add("Build Status")
         self.add("Project Config")
         self.add("I/O Config")
         self.add("App Preferences")
@@ -103,6 +104,9 @@ class ConfigTabView(ctk.CTkTabview):
 
 
         self.RHS_switch_frame.grid()
+
+        # Set tab
+        self.set("Project Config")
 
     def resize(self, event):
         # Default
