@@ -2,6 +2,7 @@ import customtkinter as ctk
 import os
 import time
 import application.gui.ConfigPages.project_config_menu as pcm
+import application.gui.LogPages.log_menu as logm
 
 ctk.set_appearance_mode("System")       # 'Light' 'Dark' or 'System
 ctk.set_default_color_theme("blue")
@@ -11,7 +12,7 @@ class Menu(ctk.CTkScrollableFrame):
         super().__init__(parent)
 
         self.parent = parent
-        
+
         # set the height of the internal scrollbar to zero
         # # then it will be expanded vertically to the configured height of "frame"
         self._scrollbar.configure(height=0)
@@ -98,40 +99,10 @@ class Menu(ctk.CTkScrollableFrame):
         self.build_button.grid(row=6, column=0, pady=10)
 
     def resize(self, event):
-        print(event)
+        print("Menu Menu is called")
         self.configure(height=(event.height/2))
 
-class LogTabs(ctk.CTkTabview):
-    def __init__(self, parent):
-        super().__init__(parent)
 
-        window_height = parent.parent.app.get_window_height()
-        window_width = parent.parent.app.get_window_width()
-
-        self.configure(width=window_width-20, height=(window_height/2)-20)
-
-        # Set size of tabs
-        custom_font = ('abc', 20)
-        self._segmented_button.configure(font=custom_font)
-
-        # Create tabs
-        self.add("Project Summary")
-        self.add("Builder Log")
-        self.add("Synthesis Log")
-        self.add("Implementation Log")
-
-        # Justify to the LEFT
-        self.configure(anchor='nw')
-
-        # Add widgets to each tab?
-        self.label = ctk.CTkLabel(master=self.tab("Builder Log"), text="SoC Builder Log Area")
-        self.label.pack()
-
-        self.label = ctk.CTkLabel(master=self.tab("Synthesis Log"), text="Synthesis Logging Area")
-        self.label.pack()
-
-        self.label = ctk.CTkLabel(master=self.tab("Implementation Log"), text="Implementation Logging Area")
-        self.label.pack()
 
 
 class ConfigMenu(ctk.CTkFrame):
@@ -155,6 +126,7 @@ class ConfigMenu(ctk.CTkFrame):
         self.tab_view.grid(row=0, column=0, padx=10, pady=5)
 
     def resize(self, event): 
+        print("Config Menu is called")
         # Handle how frame gets bigger and smaller.
         self.tab_view.configure(width=event.width-290, height=event.height/2)
         self.tab_view.resize(event)
@@ -178,12 +150,14 @@ class LogMenu(ctk.CTkFrame):
         title_font = (default_font, 24, "bold")
         button_font = (default_font, 16, 'bold')
 
-        self.tab_view = LogTabs(self)
+        self.tab_view = logm.LogTabView(self)
         self.tab_view.grid(row=0, column=0, padx=10, pady=5)
 
     def resize(self, event):
+        print("Log Menu is called")
         # Handle how frame gets bigger and smaller.
         self.tab_view.configure(width=event.width-20, height=(event.height/2)-20)
+        self.tab_view.resize(event)
 
 
 class MainPage(ctk.CTkFrame):
