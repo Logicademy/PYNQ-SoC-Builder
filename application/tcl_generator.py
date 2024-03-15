@@ -271,7 +271,7 @@ verbose_prints = False # Not implemented yet.
 #   a. Set created wrapper as top
 # 12. Run Synthesis, Implementation and Generate Bitstream
 
-def generate_tcl(path_to_hdlgen_project, regenerate_bd=True, start_gui=True, keep_vivado_open=False, skip_board_config=False, io_map=None, gui_application=None):
+def generate_tcl(path_to_hdlgen_project, regenerate_bd=True, start_gui=True, keep_vivado_open=False, skip_board_config=False, io_map=None, gui_application=None, internal_signals=None):
     # io_map = True   # Force true for testing purposes
     if io_map == True:
         # This is the instruction to load from file.
@@ -345,6 +345,11 @@ def generate_tcl(path_to_hdlgen_project, regenerate_bd=True, start_gui=True, kee
     # Job here is to convert into:
     # [signal_name, gpio_mode, gpio_width]
     all_ports_parsed = parse_all_ports(all_ports)
+
+    # # TODO: Internal Signals to be added
+    # if internal_signals:
+    #     for port in internal_signals:
+    #         all_ports_parsed.append(port)
 
     if gui_application:
         gui_application.add_to_log_box(f"\nFound Signals:")
