@@ -1,6 +1,6 @@
 import customtkinter as ctk
-import application.new_gui.main_menu as main_menu
-import application.new_gui.popups as popups
+import application.gui.main_menu as main_menu
+import application.gui.popups as popups
 import threading
 
 class Application:
