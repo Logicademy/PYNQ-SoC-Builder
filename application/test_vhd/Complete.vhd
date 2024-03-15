@@ -40,8 +40,8 @@ use work.MainPackage.all;
 -- entity declaration
 entity Untitled is 
     Port(
-        o_CS : out std_logic_vector(3 downto 0),
-        o_NS : out std_logic_vector(3 downto 0),
+        o_CS : out std_logic_vector(3 downto 0);
+        o_NS : out std_logic_vector(3 downto 0);
         clk : in std_logic;
         rst : in std_logic;
         loadDat : in std_logic_vector(3 downto 0);

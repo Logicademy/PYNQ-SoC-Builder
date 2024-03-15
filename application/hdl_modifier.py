@@ -31,13 +31,24 @@ def make_backup(original_filename, backup_filename):
 #####################################################################
 ##### Make an internal signal in VHDL model available as a port #####
 #####################################################################
-def make_internal_vhdl_signal_external():
-    pass
+def make_internal_vhdl_signal_external(vhdl_file, port_name, internal_signal_name, internal_signal_size):
+
+    # First, we add to port map.
+    inject_vhdl_port_signal(vhdl_file, port_name, internal_signal_size)
+
+    # Then we add the assignation
+    inject_vhdl_assignment_statement(vhdl_file, port_name, internal_signal_name)
 
 #####################################
 ##### Add Port to VHDL Port Map #####
 #####################################
-def inject_vhdl_port_signal(vhdl_file, new_port_signal):
+def inject_vhdl_port_signal(vhdl_file, port_name, port_size):
+    port_definition = ""
+    if port_size == 1:
+        port_definition += f"        {port_name} : out std_logic;\n"
+    else:
+        port_definition += f"        {port_name} : out std_logic_vector({port_size-1} downto 0);\n"
+
     target_line = -1
     lines = None
     with open(vhdl_file, 'r') as file:
@@ -48,7 +59,7 @@ def inject_vhdl_port_signal(vhdl_file, new_port_signal):
                 target_line = lines.index(line)
 
     with open(vhdl_file, 'w') as file:
-        lines.insert(target_line+1, new_port_signal)
+        lines.insert(target_line+1, port_definition)
         file.writelines(lines)
 
 # Example usage:
@@ -65,7 +76,6 @@ def inject_vhdl_assignment_statement(vhdl_file, target_signal, source_signal):
     
         for line in lines:
             if "begin" in line:
-                print("We found line")
                 target_line = lines.index(line)
                 break
 
@@ -86,11 +96,15 @@ def make_verilog_internal_signal_an_output():
 #####################
 ##### Test Code #####
 #####################
-example_file = "Untitled.vhd"
-backup_file = "Untitled.vhd.socbuild"
+example_file = "test_vhd/Untitled.vhd"
+backup_file = "test_vhd/Untitled.vhd.socbuild"
+
 make_backup(example_file, backup_file)
-inject_vhdl_port_signal(backup_file, "        o_NS : out std_logic_vector(3 downto 0),\n")
-inject_vhdl_port_signal(backup_file, "        o_CS : out std_logic_vector(3 downto 0),\n")
-inject_vhdl_assignment_statement(backup_file, "o_NS", "NS")
-inject_vhdl_assignment_statement(backup_file, "o_CS", "CS")
-restore_backup(backup_file, "Complete.vhd")
+make_internal_vhdl_signal_external(backup_file, "o_NS", "NS", 4)
+make_internal_vhdl_signal_external(backup_file, "o_CS", "CS", 4)
+restore_backup(backup_file, "test_vhd/Complete.vhd")
+# inject_vhdl_port_signal(backup_file, "        o_NS : out std_logic_vector(3 downto 0),\n")
+# inject_vhdl_port_signal(backup_file, "        o_CS : out std_logic_vector(3 downto 0),\n")
+# inject_vhdl_assignment_statement(backup_file, "o_NS", "NS")
+# inject_vhdl_assignment_statement(backup_file, "o_CS", "CS")
+# restore_backup(backup_file, "Complete.vhd")
