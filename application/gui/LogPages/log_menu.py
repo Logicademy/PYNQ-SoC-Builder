@@ -37,12 +37,15 @@ class LogTabView(ctk.CTkTabview):
         self.implLog = LogBoxTab(self.tab("Implementation Log"))
         self.implLog.pack()
 
-
     def resize(self, event):
         self.summarytab.resize(event)
         self.builderLog.resize(event)
         self.synthesisLog.resize(event)
         self.implLog.resize(event)
+
+        self.builderLog.add_to_log_box(str(event)+"\n")
+        self.synthesisLog.add_to_log_box(str(event)+"\n")
+        self.implLog.add_to_log_box(str(event)+"\n")
 
 class SummaryTab(ctk.CTkFrame):
 
@@ -64,6 +67,8 @@ class LogBoxTab(ctk.CTkFrame):
 
         self.log_text_box = ctk.CTkTextbox(self, state='disabled')
         self.log_text_box.pack()
+
+        self.log_data = ""
 
 
     def add_to_log_box(self, text, set_text=False):
