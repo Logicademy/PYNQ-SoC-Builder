@@ -9,7 +9,7 @@ class ConfigTabView(ctk.CTkTabview):
         window_height = parent.parent.app.get_window_height()
         window_width = parent.parent.app.get_window_width()
 
-        self.configure(width=window_width-290, height=(window_height/2))
+        # self.configure(width=window_width-290, height=(window_height/2))
         
         # Set size of tabs
         dummy_label = ctk.CTkLabel(self, text="dummy")
@@ -115,6 +115,7 @@ class ConfigTabView(ctk.CTkTabview):
 
     def resize(self, event):
         # Default
+        
         self.LHS_explaination_frame.configure(width=(event.width-310)/2)
         self.LHS_explaination_frame.grid(row=0, column=0, rowspan=100, padx=5, sticky="news")
 

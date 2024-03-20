@@ -125,9 +125,9 @@ class ConfigMenu(ctk.CTkFrame):
     def resize(self, event): 
         print("Config Menu is called")
         # Handle how frame gets bigger and smaller.
-        self.tab_view.configure(width=event.width-290, height=event.height/2)
+        self.tab_view.configure(width=event.width-310, height=event.height/2)
         self.tab_view.resize(event)
-        self.tab_view.project_config_scrollable.configure(width=event.width-310, height=event.height/2-80)
+        self.tab_view.project_config_scrollable.configure(width=event.width-330, height=event.height/2-80)
 
 class LogMenu(ctk.CTkFrame):
     def __init__(self, parent):
