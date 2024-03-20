@@ -2,7 +2,7 @@ import customtkinter as ctk
 
 class IO_Config_Page(ctk.CTkFrame):
     def __init__(self, app):
-        ctk.CTkFrame.__init__(self, app.root)
+        ctk.CTkFrame.__init__(self, app)
         self.app = app       
 
         row_0_frame = ctk.CTkFrame(self, width=500, height=30, corner_radius=0)
@@ -49,7 +49,7 @@ class IO_Config_Page(ctk.CTkFrame):
             pass
 
         # Row 1
-        led_button = ctk.CTkButton(row_1_frame, text="LEDs", command=self.app.open_io_led_window, width=140)
+        led_button = ctk.CTkButton(row_1_frame, text="LEDs",  width=140) #command=self.app.open_io_led_window,
         sw_btn_button = ctk.CTkButton(row_1_frame, text="Switches+Buttons", command=config_button_selected, width=140)
         clk_crypto_button = ctk.CTkButton(row_1_frame, text="Clock+Crypto", command=config_button_selected, width=140)
         led_button.grid(row=0, column=0, padx=10, pady=5, sticky="nsew")

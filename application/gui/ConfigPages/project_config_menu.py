@@ -1,4 +1,6 @@
 import customtkinter as ctk
+import application.gui.io_config_page as io_config_page
+
 
 class ConfigTabView(ctk.CTkTabview):
     def __init__(self, parent):
@@ -35,8 +37,10 @@ class ConfigTabView(ctk.CTkTabview):
         # self.label = ctk.CTkLabel(master=self.tab("Project Config"), text="Project Config Area")
         # self.label.pack()
 
-        self.label = ctk.CTkLabel(master=self.tab("I/O Config"), text="I/O Config Area")
-        self.label.pack()
+        # self.label = ctk.CTkLabel(master=self.tab("I/O Config"), text="I/O Config Area")
+        # self.label.pack()
+        self.ioconfigpage = IOConfigTab(self.tab("I/O Config"))
+        self.ioconfigpage.pack(expand=True, fill='both', anchor='center')
 
         self.buildstatuspage = BuildStatusTab(self.tab("Build Status"))
         self.buildstatuspage.pack()
@@ -117,6 +121,7 @@ class ConfigTabView(ctk.CTkTabview):
     def resize(self, event):
         # Default
         self.buildstatuspage.resize(event)
+        self.ioconfigpage.resize(event)
         # self.LHS_explaination_frame.configure(width=(event.width-310)/2)
         self.LHS_explaination_frame.configure(width=(event.width/2)-280)
         self.LHS_explaination_frame.grid(row=0, column=0, rowspan=100, padx=5, sticky="news")
@@ -190,7 +195,6 @@ class BuildStatusTab(ctk.CTkScrollableFrame):
         self.gen_tcl_time_lbl.grid(row=0, column=1, padx=5, pady=5)
         self.gen_tcl_statusbar.grid(row=0, column=2, padx=5, pady=5)
         self.gen_tcl_name_lbl.grid(row=0, column=3, padx=5, pady=5)
-
         ### Run Vivado
         self.run_viv_frame = ctk.CTkFrame(self)
         self.run_viv_est_lbl = ctk.CTkLabel(self.run_viv_frame, text="Est. ~10 minutes", font=est_font, width=160)
@@ -201,7 +205,6 @@ class BuildStatusTab(ctk.CTkScrollableFrame):
         self.run_viv_time_lbl.grid(row=0, padx=5, pady=5, column=1)
         self.run_viv_statusbar.grid(row=0, padx=5, pady=5, column=2)
         self.run_viv_name_lbl.grid(row=0, padx=5, pady=5, column=3)
-
         # Sub Viv
         self.run_viv0_frame = ctk.CTkFrame(self)
         self.run_viv0_est_lbl = ctk.CTkLabel(self.run_viv0_frame, text="", font=est_font, width=200)
@@ -272,7 +275,6 @@ class BuildStatusTab(ctk.CTkScrollableFrame):
         self.cpy_dir_time_lbl.grid(row=0, column=1, padx=5, pady=5)
         self.cpy_dir_statusbar.grid(row=0, column=2, padx=5, pady=5)
         self.cpy_dir_name_lbl.grid(row=0, column=3, padx=5, pady=5)
-
         # Place all frames now
         self.gen_tcl_frame.grid(row=0, column=0, sticky='w')
         self.run_viv_frame.grid(row=1, column=0, sticky='w')
@@ -284,11 +286,118 @@ class BuildStatusTab(ctk.CTkScrollableFrame):
         self.gen_jnb_frame.grid(row=7, column=0, sticky='w')
         self.cpy_dir_frame.grid(row=8, column=0, sticky='w')
 
+    def resize(self, event):
+        # Resize event handler.
+        self.configure(width=event.width-330, height=event.height/2-80)
+        # self.configure(width=event.width-20, height=(event.height/2)-20)
+
+class IOConfigTab(ctk.CTkFrame):
+    def __init__(self, parent):
+        super().__init__(parent)
+        self.parent = parent
+
+
+
+        ## Row 0
+        # Title Label
+        self.title_font = ("Segoe UI", 20, "bold") # Title font
+        self.title_label = ctk.CTkLabel(self, text="Configure Board I/O Connections", font=self.title_font, padx=10)
+        self.title_label.grid(row=0, column=0, columnspan=3)
+
+
+        def config_button_selected():
+            pass
+
+        self.columnconfigure(0, weight=1)
+        self.columnconfigure(1, weight=1)
+        self.columnconfigure(2, weight=1)
+
+        # self.rowconfigure(0, weight=1)
+        # self.rowconfigure(1, weight=1)
+        # self.rowconfigure(2, weight=1)
+        # self.rowconfigure(3, weight=1)
+
+
+        # Row 1
+        self.led_button = ctk.CTkButton(self, text="LEDs",  width=140) #command=self.app.open_io_led_window,
+        self.sw_btn_button = ctk.CTkButton(self, text="Switches+Buttons", command=config_button_selected, width=140)
+        self.clk_crypto_button = ctk.CTkButton(self, text="Clock+Crypto", command=config_button_selected, width=140)
+        self.led_button.grid(row=1, column=0, padx=10, pady=5)
+        self.sw_btn_button.grid(row=1, column=1, padx=10, pady=5)
+        self.clk_crypto_button.grid(row=1, column=2, padx=10, pady=5)
+        # led_button.grid(row=1, column=0, padx=10, pady=5, sticky="nsew")
+        # sw_btn_button.grid(row=1, column=1, padx=10, pady=5, sticky="nsew")
+        # clk_crypto_button.grid(row=1, column=2, padx=10, pady=5, sticky="nsew")
+
+        ## Row 2
+        self.arduino_button = ctk.CTkButton(self, text="Arduino", command=config_button_selected, width=140)
+        self.raspberry_pi_button = ctk.CTkButton(self, text="Raspberry Pi", command=config_button_selected, width=140)
+        self.pmod_button = ctk.CTkButton(self, text="Pmod", command=config_button_selected, width=140)
+        self.arduino_button.grid(row=2, column=0, padx=10, pady=5)
+        self.raspberry_pi_button.grid(row=2, column=1, padx=10, pady=5)
+        self.pmod_button.grid(row=2, column=2, padx=10, pady=5)
+        # arduino_button.grid(row=2, column=0, padx=10, pady=5, sticky="nsew")
+        # raspberry_pi_button.grid(row=2, column=1, padx=10, pady=5, sticky="nsew")
+        # pmod_button.grid(row=2, column=2, padx=10, pady=5, sticky="nsew")
+
+        # Row 3
+        self.hdmi_button = ctk.CTkButton(self, text="HDMI", command=config_button_selected, width=140)
+        self.audio_button = ctk.CTkButton(self, text="Audio", command=config_button_selected, width=140)
+        self.analog_input_button = ctk.CTkButton(self, text="Single Ended Analog", command=config_button_selected, width=140)
+        self.hdmi_button.grid(row=3, column=0, padx=10, pady=5)
+        self.audio_button.grid(row=3, column=1, padx=10, pady=5)
+        self.analog_input_button.grid(row=3, column=2, padx=10, pady=5)
+        # hdmi_button.grid(row=3, column=0, padx=10, pady=5, sticky="nsew")
+        # audio_button.grid(row=3, column=1, padx=10, pady=5, sticky="nsew")
+        # analog_input_button.grid(row=3, column=2, padx=10, pady=5, sticky="nsew")
+
+        # Disable all buttons that aren't available for now
+        # led_button.configure(state="disabled")        # LED mode works.
+        self.sw_btn_button.configure(state="disabled")
+        self.clk_crypto_button.configure(state="disabled")
+        self.arduino_button.configure(state="disabled")
+        self.raspberry_pi_button.configure(state="disabled")
+        self.pmod_button.configure(state="disabled")
+        self.hdmi_button.configure(state="disabled")
+        self.audio_button.configure(state="disabled")
+        self.analog_input_button.configure(state="disabled")
 
     def resize(self, event):
         # Resize event handler.
         self.configure(width=event.width-330, height=event.height/2-80)
         # self.configure(width=event.width-20, height=(event.height/2)-20)
+        print("I was called")
+        button_width = 140
+        if event.width < 1000:
+            button_width = 150
+        elif event.width < 1200:
+            button_width = 200
+        elif event.width < 1400:
+            button_width = 250
+        else:
+            button_width = 300
+
+
+        button_height = 28
+        if event.height < 600:
+            button_height = 36
+        elif event.height < 700:
+            button_height = 48
+        else:
+            button_height = 56
+
+
+        print(f"Height: {button_height}, Width: {button_width}")
+        self.led_button.configure(width=button_width, height=button_height)
+        self.sw_btn_button.configure(width=button_width, height=button_height)
+        self.clk_crypto_button.configure(width=button_width, height=button_height)
+        self.arduino_button.configure(width=button_width, height=button_height)
+        self.raspberry_pi_button.configure(width=button_width, height=button_height)
+        self.pmod_button.configure(width=button_width, height=button_height)
+        self.hdmi_button.configure(width=button_width, height=button_height)
+        self.audio_button.configure(width=button_width, height=button_height)
+        self.analog_input_button.configure(width=button_width, height=button_height)
+
 
 class ConfigMenu(ctk.CTkFrame):
     def __init__(self, parent):
