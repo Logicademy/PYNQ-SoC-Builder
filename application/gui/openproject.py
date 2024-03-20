@@ -50,7 +50,7 @@ class OpenProjectPage(ctk.CTkFrame):
             self.file_not_found_lbl.grid_forget()
             self.file_not_hdlgen_lbl.grid_forget()
             self.app.hdlgen_path = file_path            # Assign shared variable
-            self.app.show_page(self.app.page2)               # Proceed to main menu
+            self.app.show_page(self.app.page1)               # Proceed to main menu
         elif os.path.exists(file_path):
             self.file_not_hdlgen_lbl.grid(row=3, column=0, padx=5, pady=5, columnspan=2)
         else:
@@ -63,8 +63,8 @@ class OpenProjectPage(ctk.CTkFrame):
         # self.configure(width=1200, height=800)
         self.pack(expand=True)
         
-        # self.app.root.minsize(400, 200)
-        # self.app.root.geometry("400x200")
+        self.app.root.minsize(400, 200)
+        self.app.root.geometry("400x200")
         # self.app.root.configure(bg_color="gray")
 
     def hide(self):

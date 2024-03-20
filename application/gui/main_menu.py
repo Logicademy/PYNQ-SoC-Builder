@@ -209,6 +209,8 @@ class MainPage(ctk.CTkFrame):
     def show(self):
         self.pack(fill="both", expand=True)
         self.pack_propagate(False)  # Prevent frame from resizing to fit its contents 
+        self.app.root.geometry("1200x800")
+        self.app.root.minsize(800, 500)
     
     def hide(self):
         self.pack_forget()

@@ -1,6 +1,7 @@
 import customtkinter as ctk
 import application.gui.main_menu as main_menu
 import application.gui.popups as popups
+import application.gui.openproject as openproj
 import threading
 
 class Application:
@@ -27,9 +28,9 @@ class Application:
         self.top_level_window = None    # Var for top level window objects
 
         self.page1 = main_menu.MainPage(self)
-        # self.page2 = etc(self)
+        self.page2 = openproj.OpenProjectPage(self)
 
-        self.show_page(self.page1)
+        self.show_page(self.page2)
 
     #####################################
     ##### Return Application Height #####
@@ -55,7 +56,7 @@ class Application:
     def show_page(self, page):
         # Hide all existing pages
         self.page1.hide()
-        # self.page2.hide()
+        self.page2.hide()
         # self.page3.hide()
         page.show() # Show requested page.
 
