@@ -28,7 +28,7 @@ class ConfigTabView(ctk.CTkTabview):
         self.add("Build Status")
         self.add("Project Config")
         self.add("I/O Config")
-        self.add("App Preferences")
+        # self.add("App Preferences")
 
         # Justify to the LEFT
         self.configure(anchor='nw')
@@ -46,8 +46,8 @@ class ConfigTabView(ctk.CTkTabview):
         self.buildstatuspage.pack()
 
 
-        self.label = ctk.CTkLabel(master=self.tab("App Preferences"), text="App Preferences Area")
-        self.label.pack()
+        # self.label = ctk.CTkLabel(master=self.tab("App Preferences"), text="App Preferences Area")
+        # self.label.pack()
 
         ######## RESIZING NOTES
         # 960 is minimum for 2 column (text and Vivado Settings)
