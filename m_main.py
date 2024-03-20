@@ -31,7 +31,7 @@ class Application:
         self.page1 = main_menu.MainPage(self)
         self.page2 = openproj.OpenProjectPage(self)
 
-        self.show_page(self.page2)
+        self.show_page(self.page1)
 
     #####################################
     ##### Return Application Height #####

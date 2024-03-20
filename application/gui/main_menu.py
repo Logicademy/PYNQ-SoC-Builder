@@ -102,9 +102,6 @@ class Menu(ctk.CTkScrollableFrame):
         print("Menu Menu is called")
         self.configure(height=(event.height/2))
 
-
-
-
 class ConfigMenu(ctk.CTkFrame):
     def __init__(self, parent):
         super().__init__(parent)
@@ -158,7 +155,6 @@ class LogMenu(ctk.CTkFrame):
         # Handle how frame gets bigger and smaller.
         self.tab_view.configure(width=event.width-20, height=(event.height/2)-20)
         self.tab_view.resize(event)
-
 
 class MainPage(ctk.CTkFrame):
     def __init__(self, app):

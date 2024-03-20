@@ -16,6 +16,7 @@ class LogTabView(ctk.CTkTabview):
 
         # Create tabs
         self.add("Project Summary")
+        self.add("Testplan")
         self.add("Builder Log")
         self.add("Synthesis Log")
         self.add("Implementation Log")
@@ -24,6 +25,11 @@ class LogTabView(ctk.CTkTabview):
         self.configure(anchor='nw')
 
         self.summarytab = SummaryTab(self.tab("Project Summary"))
+        self.summarytab.pack()
+
+        # Testplan Box (Its a simply log box with the data set.)
+        self.testplan = LogBoxTab(self.tab("Testplan"))
+        self.testplan.pack()
 
         # Builder Log Box
         self.builderLog = LogBoxTab(self.tab("Builder Log"))
@@ -39,6 +45,7 @@ class LogTabView(ctk.CTkTabview):
 
     def resize(self, event):
         self.summarytab.resize(event)
+        self.testplan.resize(event)
         self.builderLog.resize(event)
         self.synthesisLog.resize(event)
         self.implLog.resize(event)
@@ -47,16 +54,66 @@ class LogTabView(ctk.CTkTabview):
         self.synthesisLog.add_to_log_box(str(event)+"\n")
         self.implLog.add_to_log_box(str(event)+"\n")
 
-class SummaryTab(ctk.CTkFrame):
+class SummaryTab(ctk.CTkScrollableFrame):
 
     def __init__(self, parent):
         super().__init__(parent)
         self.parent = parent
 
-        self.log_data = ""  # Logbox text data
+        # Set size of tabs
+        dummy_label = ctk.CTkLabel(self, text="dummy")
+        default_font = dummy_label.cget("font")
+
+        tab_font = (default_font, 20)
+        text_font = (default_font, 18)
+        bold_text_font = (default_font, 18, 'bold')
+
+        # This thing is a frame, we just need to now add a grid of all the information I suppose.
+        # Scrollables will be needed for items which are very big.
+        self.name_lbl = ctk.CTkLabel(self, text="Name", font=bold_text_font, justify='left', anchor='w', width=200)
+        self.name_lbl.grid(row=0, column=0, padx=5, pady=5)
+        self.name_val_lbl = ctk.CTkLabel(self, text="Sample Project Name", font=text_font, justify='left', anchor='w', width=400)
+        self.name_val_lbl.grid(row=0, column=1, padx=5, pady=5)
+
+        self.name_lbl = ctk.CTkLabel(self, text="Location", font=bold_text_font, justify='left', anchor='w', width=200)
+        self.name_lbl.grid(row=1, column=0, padx=5, pady=5)
+        self.name_lbl = ctk.CTkLabel(self, text="C:/repo/hdlgen/", font=text_font, justify='left', anchor='w', width=400)
+        self.name_lbl.grid(row=1, column=1, padx=5, pady=5)
+
+        self.name_lbl = ctk.CTkLabel(self, text="Environment", font=bold_text_font, justify='left', anchor='w', width=200)
+        self.name_lbl.grid(row=2, column=0, padx=5, pady=5)
+        self.name_lbl = ctk.CTkLabel(self, text="C:/repo/hdlgen/riscv", font=text_font, justify='left', anchor='w', width=400)
+        self.name_lbl.grid(row=2, column=1, padx=5, pady=5)
+
+        self.name_lbl = ctk.CTkLabel(self, text="Vivado Path", font=bold_text_font, justify='left', anchor='w', width=200)
+        self.name_lbl.grid(row=3, column=0, padx=5, pady=5)
+        self.name_lbl = ctk.CTkLabel(self, text="C:/Xilinx/Vivado/2023.2/bin/vivado.batiudwvakudvwkauvkjdwhavhdvwahgewakywavdukyveakuwyvdkuaewyvduyvwaekuydvkwuavydkuywvakyudhvwahvd,jwahdjawhv,hdvwa,hdjawhjhadw,jdwa,jh,wahd,awj", font=text_font, justify='left', anchor='w', width=400, wraplength=400)
+        self.name_lbl.grid(row=3, column=1, padx=5, pady=5)
+
+        self.name_lbl = ctk.CTkLabel(self, text="Target Language", font=bold_text_font, justify='left', anchor='w', width=200)
+        self.name_lbl.grid(row=4, column=0, padx=5, pady=5)
+        self.name_lbl = ctk.CTkLabel(self, text="VHDL", font=text_font, justify='left', anchor='w', width=400)
+        self.name_lbl.grid(row=4, column=1, padx=5, pady=5)
+
+        self.name_lbl = ctk.CTkLabel(self, text="Author", font=bold_text_font, justify='left', anchor='w', width=200)
+        self.name_lbl.grid(row=5, column=0, padx=5, pady=5)
+        self.name_lbl = ctk.CTkLabel(self, text="Luke Canny", font=text_font, justify='left', anchor='w', width=400)
+        self.name_lbl.grid(row=5, column=1, padx=5, pady=5)
+
+        self.name_lbl = ctk.CTkLabel(self, text="Company", font=bold_text_font, justify='left', anchor='w', width=200)
+        self.name_lbl.grid(row=6, column=0, padx=5, pady=5)
+        self.name_lbl = ctk.CTkLabel(self, text="University of Galway", font=text_font, justify='left', anchor='w', width=400)
+        self.name_lbl.grid(row=6, column=1, padx=5, pady=5)
+
+        self.name_lbl = ctk.CTkLabel(self, text="Email", font=bold_text_font, justify='left', anchor='w', width=200)
+        self.name_lbl.grid(row=7, column=0, padx=5, pady=5)
+        self.name_lbl = ctk.CTkLabel(self, text="l.canny3@universityofgalway.ie", font=text_font, justify='left', anchor='w', width=400)
+        self.name_lbl.grid(row=7, column=1, padx=5, pady=5)
+
 
     def resize(self, event):
         # its possible we need to resize this.
+        self.configure(width=event.width-40, height=(event.height/2)-80)
         pass
     
 class LogBoxTab(ctk.CTkFrame):
