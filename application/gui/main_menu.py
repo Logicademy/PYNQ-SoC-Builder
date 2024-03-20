@@ -22,7 +22,6 @@ class Menu(ctk.CTkScrollableFrame):
         self.configure(width=250, height=window_height/2)
         print(window_height/2)
 
-    
         dummy_label = ctk.CTkLabel(self, text="dummy")
         default_font = dummy_label.cget("font")
 
