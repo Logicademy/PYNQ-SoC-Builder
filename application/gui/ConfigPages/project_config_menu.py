@@ -115,8 +115,9 @@ class ConfigTabView(ctk.CTkTabview):
 
     def resize(self, event):
         # Default
-        
-        self.LHS_explaination_frame.configure(width=(event.width-310)/2)
+
+        # self.LHS_explaination_frame.configure(width=(event.width-310)/2)
+        self.LHS_explaination_frame.configure(width=(event.width/2)-280)
         self.LHS_explaination_frame.grid(row=0, column=0, rowspan=100, padx=5, sticky="news")
 
         if (event.width-310)/2 > 685:
