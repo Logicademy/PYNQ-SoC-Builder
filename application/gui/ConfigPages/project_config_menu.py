@@ -302,7 +302,7 @@ class IOConfigTab(ctk.CTkFrame):
         # Title Label
         self.title_font = ("Segoe UI", 20, "bold") # Title font
         self.title_label = ctk.CTkLabel(self, text="Configure Board I/O Connections", font=self.title_font, padx=10)
-        self.title_label.grid(row=0, column=0, columnspan=3)
+        self.title_label.grid(row=0, column=0, columnspan=3, pady=10)
 
 
         def config_button_selected():
