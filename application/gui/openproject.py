@@ -62,7 +62,6 @@ class OpenProjectPage(ctk.CTkFrame):
     def show(self):
         # self.configure(width=1200, height=800)
         self.pack(expand=True)
-        
         self.app.root.minsize(400, 200)
         self.app.root.geometry("400x200")
         # self.app.root.configure(bg_color="gray")

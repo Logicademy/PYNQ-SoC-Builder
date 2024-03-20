@@ -61,22 +61,26 @@ class ConfigTabView(ctk.CTkTabview):
         self.LHS_explaination_frame = ctk.CTkFrame(self.RHS_switch_frame, width=500)
         self.LHS_explaination_frame.grid(row=0, column=0, rowspan=100, padx=5, sticky="news")
 
-        self.switch_var0 = ctk.StringVar(value="on")
+        
     
         # Vivado Settings
+        self.vivado_settings_var = ctk.StringVar(value="on")
         self.vivado_settings_lbl = ctk.CTkLabel(self.RHS_switch_frame, text="Vivado Settings", font=bold_text_font)
         # self.vivado_settings_lbl.grid(row=0, column=1, padx=5, pady=5)    # No need to pack these because the resize() call handles it.
 
+        self.open_viv_var = ctk.StringVar(value="on")
         self.open_viv_sw = ctk.CTkSwitch(self.RHS_switch_frame, text="Open Vivado GUI", 
-                                        variable=self.switch_var0, onvalue="on", offvalue="off", font=text_font)
+                                        variable=self.open_viv_var, onvalue="on", offvalue="off", font=text_font)
         # self.open_viv_sw.grid(row=1, column=1, padx=5, pady=5, sticky="w")
         
+        self.keep_viv_open_var = ctk.StringVar(value="on")
         self.keep_viv_open_sw = ctk.CTkSwitch(self.RHS_switch_frame, text="Keep Vivado Open", 
-                                        variable=self.switch_var0, onvalue="on", offvalue="off", font=text_font)
+                                        variable=self.keep_viv_open_var, onvalue="on", offvalue="off", font=text_font)
         # self.keep_viv_open_sw.grid(row=2, column=1, padx=5, pady=5, sticky="w")
     
+        self.always_regen_bd_var = ctk.StringVar(value="on")
         self.always_regen_bd_sw = ctk.CTkSwitch(self.RHS_switch_frame, text="Always Regenerate Block Design", 
-                                        variable=self.switch_var0, onvalue="on", offvalue="off", font=text_font)
+                                        variable=self.always_regen_bd_var, onvalue="on", offvalue="off", font=text_font)
         # self.always_regen_bd_sw.grid(row=3, column=1, padx=5, pady=5, sticky="w")
 
     
@@ -86,22 +90,23 @@ class ConfigTabView(ctk.CTkTabview):
         self.jupyter_settings_lbl = ctk.CTkLabel(self.RHS_switch_frame, text="Jupyter Notebook Settings", font=bold_text_font)
         # self.jupyter_settings_lbl.grid(row=0, column=2, padx=5, pady=5)
 
+        self.gen_when_build_var = ctk.StringVar(value="on")
         self.gen_when_build_sw = ctk.CTkSwitch(self.RHS_switch_frame, text="Generate when Building", 
-                                        variable=self.switch_var0, onvalue="on", offvalue="off", font=text_font)
+                                        variable=self.gen_when_build_var, onvalue="on", offvalue="off", font=text_font)
         # self.gen_when_build_sw.grid(row=1, column=2, padx=5, pady=5, sticky="w")
-        
+        self.gen_tst_var = ctk.StringVar(value="on")
         self.gen_tst_sw = ctk.CTkSwitch(self.RHS_switch_frame, text="Generate using Testplan", 
-                                        variable=self.switch_var0, onvalue="on", offvalue="off", font=text_font)
+                                        variable=self.gen_tst_var, onvalue="on", offvalue="off", font=text_font)
         # self.gen_tst_sw.grid(row=2, column=2, padx=5, pady=5, sticky="w")
 
         # PYNQ Board Settings
         self.pynq_board_settings_lbl = ctk.CTkLabel(self.RHS_switch_frame, text="PYNQ Board Settings", font=bold_text_font)
         # self.pynq_board_settings_lbl.grid(row=0, column=3, padx=5, pady=5)
 
+        self.gen_io_var = ctk.StringVar(value="on")
         self.gen_io_sw = ctk.CTkSwitch(self.RHS_switch_frame, text="Make Connections to Board I/O", 
-                                        variable=self.switch_var0, onvalue="on", offvalue="off", font=text_font)
+                                        variable=self.gen_io_var, onvalue="on", offvalue="off", font=text_font)
         # self.gen_io_sw.grid(row=1, column=3, padx=5, pady=5, sticky="w")
-
 
         self.RHS_switch_frame.grid()
 
@@ -165,4 +170,3 @@ class ConfigMenu(ctk.CTkFrame):
         window_width = parent.app.get_window_width()
 
         self.configure(width=window_width-10, height=window_height/2)
-

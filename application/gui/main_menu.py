@@ -94,7 +94,7 @@ class Menu(ctk.CTkScrollableFrame):
             font=button_font,
             fg_color=red_fg_clr,
             hover_color=red_hv_clr,
-            command=self.parent.app.close_application
+            command=self.parent.close_project
         )
         self.build_button.grid(row=6, column=0, pady=10)
 
@@ -203,7 +203,10 @@ class MainPage(ctk.CTkFrame):
         # Logging Area 
         self.bind("<Configure>", self.logMenu.resize)
 
-
+    def close_project(self):
+        self.app.hdlgen_path = None     # Reset HDLGen Proj variable
+        self.app.show_page(self.app.page2)   # Show main menu again
+        # This will require more checks in future
 
 
     def show(self):
