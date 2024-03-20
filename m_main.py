@@ -26,6 +26,7 @@ class Application:
         self.dialog_response = None     # Stores response from Dialog Pop-Up
         self.top_level_message = None   # Set top_level_message to be presented by dialog/alert
         self.top_level_window = None    # Var for top level window objects
+        self.hdlgen_path = None         # Current Project
 
         self.page1 = main_menu.MainPage(self)
         self.page2 = openproj.OpenProjectPage(self)
