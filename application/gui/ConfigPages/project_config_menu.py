@@ -317,6 +317,7 @@ class PortConfigTab(ctk.CTkScrollableFrame):
         default_font = dummy_label.cget("font")
 
         title_font = (default_font, 20, 'bold')
+        no_int_font = (default_font, 16, 'bold')
         subtitle_font = (default_font, 16)
         master_switch_font = (default_font, 16, 'bold')
         switch_font = (default_font, 16)
@@ -326,7 +327,7 @@ class PortConfigTab(ctk.CTkScrollableFrame):
         self.int_signals_lbl = ctk.CTkLabel(self.LHS_frame, text="Make Internal Signal a Port?", font=title_font)
         self.int_signals_explaination_lbl = ctk.CTkLabel(self.LHS_frame, text="Enabling an internal signal here will connect it to a port on the component, making it accessible by board I/O and in Jupyter Notebook", font=subtitle_font)
 
-        self.no_int_signals_lbl = ctk.CTkLabel(self.LHS_frame, width=200, text="No compatible internal signals found", font=title_font)
+        self.no_int_signals_lbl = ctk.CTkLabel(self.LHS_frame, width=200, text="No compatible internal signals found", font=no_int_font)
 
         # Need to parse the internal signals
         self.switches = []
@@ -420,6 +421,9 @@ class PortConfigTab(ctk.CTkScrollableFrame):
         self.int_signals_explaination_lbl.grid(row=1, column=0, padx=5, pady=5, columnspan=number_of_columns)
         self.int_signals_lbl.configure(width=frame_width/2-10, wraplength=frame_width/2-10)
         self.int_signals_explaination_lbl.configure(width=frame_width/2-10, wraplength=frame_width/2-10)
+
+        # Configure the no internal signals found message
+        self.no_int_signals_lbl.configure(width=frame_width/2-10, wraplength=frame_width/2-10)
         
 
         for index in range(0, len(self.switches)):
