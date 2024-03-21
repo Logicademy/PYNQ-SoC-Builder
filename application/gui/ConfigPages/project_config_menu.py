@@ -1,11 +1,14 @@
 import customtkinter as ctk
 import application.hdlgenproject as hdlprj
+import application.xml_manager as xmlm
 
 class ConfigTabView(ctk.CTkTabview):
     def __init__(self, parent):
         super().__init__(parent)
 
         self.parent = parent
+        self.hdlgen_path = self.parent.parent.app.hdlgen_path
+
 
         window_height = parent.parent.app.get_window_height()
         window_width = parent.parent.app.get_window_width()
@@ -116,6 +119,16 @@ class ConfigTabView(ctk.CTkTabview):
 
         # Set tab
         self.set("Project Config")
+
+        self.load_project_config()
+
+    def load_project_config(self):
+        print(self.hdlgen_path)
+        self.hdlgen_path = "C:\\hdlgen\\March\\DSPProc_Threshold_Luke\\DSPProc\\HDLGenPrj\\DSPProc.hdlgen"
+        xmlmanager = xmlm.Xml_Manager(self.hdlgen_path)
+        project_configuration = xmlmanager.read_proj_config()
+
+        self.ioconfigpage.load_from_project(project_configuration)
 
     def resize(self, event):
         # Default
@@ -388,6 +401,23 @@ class PortConfigTab(ctk.CTkScrollableFrame):
         self.led_optionboxes = [self.led0_dropdown, self.led1_dropdown, self.led2_dropdown, self.led3_dropdown]
 
         self.update_dropdown_values()
+
+    def load_from_project(self):
+
+        self.hdlgen_path = "C:\\hdlgen\\March\\DSPProc_Threshold_Luke\\DSPProc\\HDLGenPrj\\DSPProc.hdlgen"
+        # self.proj = hdlprj.HdlgenProject()
+        xmlfile = xmlm.Xml_Manager(self.hdlgen_path)
+        xml_manager_config = xmlfile.read_proj_config()
+        try:
+            use_board_io = xml_manager_config['use_board_io']
+            print(use_board_io)
+            if use_board_io == True:
+                self.on_off_switch.select()
+            elif use_board_io == False:
+                self.on_off_switch.deselect()
+        except Exception as e:
+            print(e)
+            print("Couldn't load config from project xml - IO Menu")
 
     def switch_handler(self, internal_signal, index):
         if self.switches[index].get() == 1:
