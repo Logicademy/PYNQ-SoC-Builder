@@ -40,7 +40,6 @@ class LogTabView(ctk.CTkTabview):
         else:
             self.testplan.add_to_log_box("No test plan provided.", True)
 
-
         # Builder Log Box
         self.builderLog = LogBoxTab(self.tab("Builder Log"))
         self.builderLog.pack()

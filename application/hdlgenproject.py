@@ -90,7 +90,7 @@ class HdlgenProject:
             all_internal.append(
                 [signame.firstChild.data, type.firstChild.data, desc.firstChild.data]
             )
-        self.parsed_internal_sigs = all_internal
+        self.parsed_internal_sigs = self.parse_all_internal_sigs(all_internal)
         # self.parsed_internal_sigs = self.parse_all_internal_sigs(all_internal)
 
         #############################
@@ -131,9 +131,11 @@ class HdlgenProject:
                 gpio_width = int(words[0]) + 1      # eg. words[0] = 31
             elif (gpio_type[:5] == "array"):
                 print("ERROR: Array mode type is not yet supported :(")
+                continue
             else:
                 print("ERROR: Unknown GPIO Type")
                 print(gpio_type)
+                continue
             new_array.append([gpio_name, gpio_mode, gpio_width])
         return new_array
     
@@ -151,7 +153,7 @@ class HdlgenProject:
         new_array = []
         for io in all_ports:
             gpio_name = io[0]   # GPIO Name
-            gpio_type = io[2]   # GPIO Type (single bit/bus/array)
+            gpio_type = io[1]   # GPIO Type (single bit/bus/array)
 
             if (gpio_type == "single bit"):
                 gpio_width = 1
@@ -162,8 +164,10 @@ class HdlgenProject:
                 gpio_width = int(words[0]) + 1      # eg. words[0] = 31
             elif (gpio_type[:5] == "array"):
                 print("ERROR: Array mode type is not yet supported :(")
+                continue
             else:
-                print("ERROR: Unknown GPIO Type")
-                print(gpio_type)
+                print("ERROR: Unknown GPIO Type, ignoring")
+                continue
+                # print(gpio_type)
             new_array.append([gpio_name, gpio_width])
         return new_array

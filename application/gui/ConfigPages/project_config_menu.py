@@ -1,5 +1,5 @@
 import customtkinter as ctk
-
+import application.hdlgenproject as hdlprj
 
 class ConfigTabView(ctk.CTkTabview):
     def __init__(self, parent):
@@ -323,17 +323,30 @@ class PortConfigTab(ctk.CTkScrollableFrame):
 
         # Internal Signals Frame
         self.LHS_frame = ctk.CTkFrame(self)
-        self.int_signals_lbl = ctk.CTkLabel(self.LHS_frame, text="Connect Internal Signal a Port?", font=title_font)
+        self.int_signals_lbl = ctk.CTkLabel(self.LHS_frame, text="Make Internal Signal a Port?", font=title_font)
         self.int_signals_explaination_lbl = ctk.CTkLabel(self.LHS_frame, text="Enabling an internal signal here will connect it to a port on the component, making it accessible by board I/O and in Jupyter Notebook", font=subtitle_font)
 
-        self.sw0 = ctk.CTkSwitch(self.LHS_frame, text="intTC", font=switch_font, width=140)
-        self.sw1 = ctk.CTkSwitch(self.LHS_frame, text="NS", font=switch_font, width=140)
-        self.sw2 = ctk.CTkSwitch(self.LHS_frame, text="CS", font=switch_font, width=140)
-        self.sw3 = ctk.CTkSwitch(self.LHS_frame, text="nextOP", font=switch_font, width=140)
-        self.sw4 = ctk.CTkSwitch(self.LHS_frame, text="decoded", font=switch_font, width=140)
-        self.sw5 = ctk.CTkSwitch(self.LHS_frame, text="intSelMux", font=switch_font, width=140)
+        # Need to parse the internal signals
+        self.switches = []
 
-        self.switches = [self.sw0, self.sw1, self.sw2, self.sw3, self.sw4, self.sw5]
+        proj = hdlprj.HdlgenProject()
+
+        for internal_signal in proj.parsed_internal_sigs:
+            # name/width
+            self.switches.append(ctk.CTkSwitch(self.LHS_frame, text=f"{internal_signal[0]}({internal_signal[1]})", font=switch_font, width=260))
+
+
+
+        # self.sw0 = ctk.CTkSwitch(self.LHS_frame, text="intTC", font=switch_font, width=140)
+        # self.sw1 = ctk.CTkSwitch(self.LHS_frame, text="NS", font=switch_font, width=140)
+        # self.sw2 = ctk.CTkSwitch(self.LHS_frame, text="CS", font=switch_font, width=140)
+        # self.sw3 = ctk.CTkSwitch(self.LHS_frame, text="nextOP", font=switch_font, width=140)
+        # self.sw4 = ctk.CTkSwitch(self.LHS_frame, text="decoded", font=switch_font, width=140)
+        # self.sw5 = ctk.CTkSwitch(self.LHS_frame, text="intSelMux", font=switch_font, width=140)
+
+
+
+        # self.switches = [self.sw0, self.sw1, self.sw2, self.sw3, self.sw4, self.sw5]
 
         # LED Connections
         self.RHS_frame = ctk.CTkFrame(self)
@@ -346,22 +359,22 @@ class PortConfigTab(ctk.CTkScrollableFrame):
 
         self.led0_lbl = ctk.CTkLabel(self.RHS_frame, text="LED0", width=50, font=switch_font)
         self.led0_dropdown = ctk.CTkOptionMenu(self.RHS_frame, values=["signal1", "signal2", "signal3", "signal4", "signal5"], font=switch_font)
-        self.led0_entry = ctk.CTkEntry(self.RHS_frame, placeholder_text="(0-63)", width=50, font=switch_font)
+        self.led0_entry = ctk.CTkEntry(self.RHS_frame, placeholder_text="(0-63)", width=55, font=switch_font)
         self.led0_entry_placeholder = ctk.CTkLabel(self.RHS_frame, font=switch_font)
 
         self.led1_lbl = ctk.CTkLabel(self.RHS_frame, text="LED1", width=50, font=switch_font)
         self.led1_dropdown = ctk.CTkOptionMenu(self.RHS_frame, values=["signal1", "signal2", "signal3", "signal4", "signal5"], font=switch_font)
-        self.led1_entry = ctk.CTkEntry(self.RHS_frame, placeholder_text="(0-63)", width=50, font=switch_font)
+        self.led1_entry = ctk.CTkEntry(self.RHS_frame, placeholder_text="(0-63)", width=55, font=switch_font)
         self.led1_entry_placeholder = ctk.CTkLabel(self.RHS_frame, text="")
 
         self.led2_lbl = ctk.CTkLabel(self.RHS_frame, text="LED2", width=50, font=switch_font)
         self.led2_dropdown = ctk.CTkOptionMenu(self.RHS_frame, values=["signal1", "signal2", "signal3", "signal4", "signal5"], font=switch_font)
-        self.led2_entry = ctk.CTkEntry(self.RHS_frame, placeholder_text="(0-63)", width=50, font=switch_font)
+        self.led2_entry = ctk.CTkEntry(self.RHS_frame, placeholder_text="(0-63)", width=55, font=switch_font)
         self.led2_entry_placeholder = ctk.CTkLabel(self.RHS_frame, text="")
 
         self.led3_lbl = ctk.CTkLabel(self.RHS_frame, text="LED3", width=50, font=switch_font)
         self.led3_dropdown = ctk.CTkOptionMenu(self.RHS_frame, values=["signal1", "signal2", "signal3", "signal4", "signal5"], font=switch_font)
-        self.led3_entry = ctk.CTkEntry(self.RHS_frame, placeholder_text="(0-63)", width=50, font=switch_font)
+        self.led3_entry = ctk.CTkEntry(self.RHS_frame, placeholder_text="(0-63)", width=55, font=switch_font)
         self.led3_entry_placeholder = ctk.CTkLabel(self.RHS_frame,text="")
 
 
@@ -379,14 +392,14 @@ class PortConfigTab(ctk.CTkScrollableFrame):
         # 4 at 1800
 
         number_of_columns = 2   # Default / Failsafe
-        if event.width < 1000:
+        # if event.width < 1000:
+        #     number_of_columns = 1
+        if event.width < 1350:
             number_of_columns = 1
-        elif event.width < 1350:
-            number_of_columns = 2
         elif event.width < 1800:
-            number_of_columns = 3
+            number_of_columns = 2
         else:
-            number_of_columns = 4
+            number_of_columns = 3
 
 
 
