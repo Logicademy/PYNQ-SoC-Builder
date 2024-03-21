@@ -81,7 +81,8 @@ class Menu(ctk.CTkScrollableFrame):
             height=40, 
             font=button_font,
             fg_color=yellow_fg_clr,
-            hover_color=yellow_hv_clr        
+            hover_color=yellow_hv_clr, 
+            command=self.open_help   
         )
         self.help_button.grid(row=5, column=0, pady=10)
 
@@ -100,6 +101,10 @@ class Menu(ctk.CTkScrollableFrame):
     def resize(self, event):
         print("Menu Menu is called")
         self.configure(height=(event.height/2))
+
+    def open_help(self):
+        self.parent.app.path_to_markdown = "README.md"
+        self.parent.app.open_markdown()
 
 class ConfigMenu(ctk.CTkFrame):
     def __init__(self, parent):

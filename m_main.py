@@ -24,9 +24,10 @@ class Application:
         self.build_running = False      # Flag - True build is running, False build not running
         self.build_force_quit_event = threading.Event()     # Event to trigger Build threads to quit
         self.dialog_response = None     # Stores response from Dialog Pop-Up
-        self.top_level_message = None   # Set top_level_message to be presented by dialog/alert
-        self.top_level_window = None    # Var for top level window objects
+        self.toplevel_message = None   # Set top_level_message to be presented by dialog/alert
+        self.toplevel_window = None    # Var for top level window objects
         self.hdlgen_path = None         # Current Project
+        self.path_to_markdown = None    # Path to markdown file.
 
         self.page1 = main_menu.MainPage(self)
         self.page2 = openproj.OpenProjectPage(self)
@@ -67,6 +68,15 @@ class Application:
     def open_alert(self):
         if self.toplevel_window is None or not self.toplevel_window.winfo_exists():
             self.toplevel_window = popups.Alert_Window(self) # Create window if None or destroyed
+        else:
+            self.toplevel_window.focus() # if window exists focus it.
+    
+    ##############################
+    ##### Open Dialog Pop-Up #####
+    ##############################
+    def open_markdown(self):
+        if self.toplevel_window is None or not self.toplevel_window.winfo_exists():
+            self.toplevel_window = popups.MarkdownWindow(self) # Create window if None or destroyed
         else:
             self.toplevel_window.focus() # if window exists focus it.
     
