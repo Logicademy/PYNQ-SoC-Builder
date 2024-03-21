@@ -1,17 +1,19 @@
 import customtkinter as ctk
-
-
+import xml.dom.minidom
+import application.hdlgenproject as hdlproj
+#######################################
+#####      Log Frame Tab View     #####
+##### (Frame with Tabbed Top Bar) #####
+#######################################
 class LogTabView(ctk.CTkTabview):
     def __init__(self, parent):
         super().__init__(parent)
 
-        window_height = parent.parent.app.get_window_height()
-        window_width = parent.parent.app.get_window_width()
+        # Set font of tabs
+        dummy_label = ctk.CTkLabel(self, text="dummy") # First get default font
+        default_font = dummy_label.cget("font")
 
-        self.configure(width=window_width-20, height=(window_height/2)-20)
-
-        # Set size of tabs
-        custom_font = ('abc', 20)   # Default Font gets chosen if one isn't found. abc isn't a font therefore default is chosen.
+        custom_font = (default_font, 20)               # Change size of default font
         self._segmented_button.configure(font=custom_font)
 
         # Create tabs
@@ -31,6 +33,14 @@ class LogTabView(ctk.CTkTabview):
         self.testplan = LogBoxTab(self.tab("Testplan"))
         self.testplan.pack()
 
+        # Load testplan
+        proj = hdlproj.HdlgenProject()
+        if proj.TBNoteData:
+            self.testplan.add_to_log_box(proj.TBNoteData, True)
+        else:
+            self.testplan.add_to_log_box("No test plan provided.", True)
+
+
         # Builder Log Box
         self.builderLog = LogBoxTab(self.tab("Builder Log"))
         self.builderLog.pack()
@@ -44,72 +54,74 @@ class LogTabView(ctk.CTkTabview):
         self.implLog.pack()
 
     def resize(self, event):
+        # Call the resize event handler of all tabs
         self.summarytab.resize(event)
         self.testplan.resize(event)
-
         self.builderLog.resize(event)
         self.synthesisLog.resize(event)
         self.implLog.resize(event)
 
+        # As sample data, add event data to the log boxes.
         self.builderLog.add_to_log_box(str(event)+"\n")
         self.synthesisLog.add_to_log_box(str(event)+"\n")
         self.implLog.add_to_log_box(str(event)+"\n")
 
+##########################################
+##### Summary Tab (Scrollable Frame) #####
+##########################################
 class SummaryTab(ctk.CTkScrollableFrame):
-
     def __init__(self, parent):
         super().__init__(parent)
         self.parent = parent
 
-        # Set size of tabs
+        # Get fonts
         dummy_label = ctk.CTkLabel(self, text="dummy")
         default_font = dummy_label.cget("font")
 
-        tab_font = (default_font, 20)
         text_font = (default_font, 18)
         bold_text_font = (default_font, 18, 'bold')
         sig_dictionary_font = (default_font, 16)
 
-        # This thing is a frame, we just need to now add a grid of all the information I suppose.
+        # This class is a scrollable frame, we just need to now add a grid of all the information I suppose.
         # Scrollables will be needed for items which are very big.
         self.name_lbl = ctk.CTkLabel(self, text="Name", font=bold_text_font, justify='left', anchor='w', width=150)
         self.name_lbl.grid(row=0, column=0, padx=5, pady=5)
-        self.name_val_lbl = ctk.CTkLabel(self, text="Sample Project Name", font=text_font, justify='left', anchor='w', width=400, wraplength=400)
+        self.name_val_lbl = ctk.CTkLabel(self, text="", font=text_font, justify='left', anchor='w', width=400, wraplength=400)
         self.name_val_lbl.grid(row=0, column=1, padx=5, pady=5)
 
         self.location_lbl = ctk.CTkLabel(self, text="Location", font=bold_text_font, justify='left', anchor='w', width=150)
         self.location_lbl.grid(row=1, column=0, padx=5, pady=5)
-        self.location_var_lbl = ctk.CTkLabel(self, text="C:/repo/hdlgen/", font=text_font, justify='left', anchor='w', width=400, wraplength=400)
+        self.location_var_lbl = ctk.CTkLabel(self, text="", font=text_font, justify='left', anchor='w', width=400, wraplength=400)
         self.location_var_lbl.grid(row=1, column=1, padx=5, pady=5)
 
         self.environment_lbl = ctk.CTkLabel(self, text="Environment", font=bold_text_font, justify='left', anchor='w', width=150)
         self.environment_lbl.grid(row=2, column=0, padx=5, pady=5)
-        self.environment_var_lbl = ctk.CTkLabel(self, text="C:/repo/hdlgen/riscv", font=text_font, justify='left', anchor='w', width=400, wraplength=400)
+        self.environment_var_lbl = ctk.CTkLabel(self, text="", font=text_font, justify='left', anchor='w', width=400, wraplength=400)
         self.environment_var_lbl.grid(row=2, column=1, padx=5, pady=5)
 
         self.vivado_lbl = ctk.CTkLabel(self, text="Vivado Path", font=bold_text_font, justify='left', anchor='w', width=150)
         self.vivado_lbl.grid(row=3, column=0, padx=5, pady=5)
-        self.vivado_var_lbl = ctk.CTkLabel(self, text="C:/Xilinx/Vivado/2023.2/bin/vivado.bat", font=text_font, justify='left', anchor='w', width=400, wraplength=400)
+        self.vivado_var_lbl = ctk.CTkLabel(self, text="", font=text_font, justify='left', anchor='w', width=400, wraplength=400)
         self.vivado_var_lbl.grid(row=3, column=1, padx=5, pady=5)
 
-        self.lang_lbl = ctk.CTkLabel(self, text="Target Language", font=bold_text_font, justify='left', anchor='w', width=150)
+        self.lang_lbl = ctk.CTkLabel(self, text="Language", font=bold_text_font, justify='left', anchor='w', width=150)
         self.lang_lbl.grid(row=4, column=0, padx=5, pady=5)
-        self.lang_var_lbl = ctk.CTkLabel(self, text="VHDL", font=text_font, justify='left', anchor='w', width=400, wraplength=400)
+        self.lang_var_lbl = ctk.CTkLabel(self, text="", font=text_font, justify='left', anchor='w', width=400, wraplength=400)
         self.lang_var_lbl.grid(row=4, column=1, padx=5, pady=5)
 
         self.auth_lbl = ctk.CTkLabel(self, text="Author", font=bold_text_font, justify='left', anchor='w', width=150)
         self.auth_lbl.grid(row=5, column=0, padx=5, pady=5)
-        self.auth_var_lbl = ctk.CTkLabel(self, text="Luke Canny", font=text_font, justify='left', anchor='w', width=400, wraplength=400)
+        self.auth_var_lbl = ctk.CTkLabel(self, text="", font=text_font, justify='left', anchor='w', width=400, wraplength=400)
         self.auth_var_lbl.grid(row=5, column=1, padx=5, pady=5)
 
         self.comp_lbl = ctk.CTkLabel(self, text="Company", font=bold_text_font, justify='left', anchor='w', width=150)
         self.comp_lbl.grid(row=6, column=0, padx=5, pady=5)
-        self.comp_var_lbl = ctk.CTkLabel(self, text="University of Galway", font=text_font, justify='left', anchor='w', width=400, wraplength=400)
+        self.comp_var_lbl = ctk.CTkLabel(self, text="", font=text_font, justify='left', anchor='w', width=400, wraplength=400)
         self.comp_var_lbl.grid(row=6, column=1, padx=5, pady=5)
 
         self.email_lbl = ctk.CTkLabel(self, text="Email", font=bold_text_font, justify='left', anchor='w', width=150)
         self.email_lbl.grid(row=7, column=0, padx=5, pady=5)
-        self.email_var_lbl = ctk.CTkLabel(self, text="l.canny3@universityofgalway.ie", font=text_font, justify='left', anchor='w', width=400, wraplength=400)
+        self.email_var_lbl = ctk.CTkLabel(self, text="", font=text_font, justify='left', anchor='w', width=400, wraplength=400)
         self.email_var_lbl.grid(row=7, column=1, padx=5, pady=5)
 
         self.rhs_signal_frame = ctk.CTkFrame(self, width=550, height=1150)
@@ -128,6 +140,33 @@ class SummaryTab(ctk.CTkScrollableFrame):
 
         self.rhs_signal_frame.grid(row=0, column=2, padx=5, pady=5, rowspan=100)
 
+        self.load_summary()
+
+    #############################################################
+    ##### Load the Summary Variables from the HDLGen Object #####
+    #############################################################
+    def load_summary(self):
+        # Load the HDLGen file
+        proj = hdlproj.HdlgenProject()
+
+        # Assign the variables
+        self.name_val_lbl.configure(text=proj.name)
+        self.location_var_lbl.configure(text=proj.location)
+        self.environment_var_lbl.configure(text=proj.environment)
+        self.vivado_var_lbl.configure(text=proj.vivado_dir)
+        self.lang_var_lbl.configure(text=proj.project_language)
+        self.auth_var_lbl.configure(text=proj.author)
+        self.comp_var_lbl.configure(text=proj.company)
+        self.email_var_lbl.configure(text=proj.email)
+
+        # Parsed ports and internal signal strings need to be formatted here.
+
+        # Assign to textboxes
+        self.signal_dict_tbox.insert("0.0", proj.parsed_ports)
+        self.signal_dict_tbox.configure(state="disabled")
+        self.int_sig_dict_tbox.insert("0.0", proj.parsed_internal_sigs)
+        self.int_sig_dict_tbox.configure(state="disabled")
+
     def resize(self, event):
         # print("is 'this' getting called")
         # its possible we need to resize this.
@@ -142,7 +181,6 @@ class SummaryTab(ctk.CTkScrollableFrame):
         self.auth_lbl.grid(row=5, column=0, padx=5, pady=5)
         self.comp_lbl.grid(row=6, column=0, padx=5, pady=5)
         self.email_lbl.grid(row=7, column=0, padx=5, pady=5)
-
 
         self.name_val_lbl.grid(row=0, column=1, padx=5, pady=5)
         self.location_var_lbl.grid(row=1, column=1, padx=5, pady=5)
@@ -282,7 +320,6 @@ class LogBoxTab(ctk.CTkFrame):
         self.log_text_box.configure(width=event.width-40, height=(event.height/2)-80)
         # when we resize, maybe we can set the dimensions of the textbox.
         # its possible we need to resize this
-        pass
 
 # class ConfigTabView(ctk.CTkTabview):
 #     def __init__(self, parent):
