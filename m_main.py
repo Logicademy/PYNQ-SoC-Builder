@@ -71,12 +71,13 @@ class Application:
         else:
             self.toplevel_window.focus() # if window exists focus it.
     
-    ##############################
-    ##### Open Dialog Pop-Up #####
-    ##############################
+    ################################
+    ##### Open Markdown Pop-Up #####
+    ################################
     def open_markdown(self):
         if self.toplevel_window is None or not self.toplevel_window.winfo_exists():
             self.toplevel_window = popups.MarkdownWindow(self) # Create window if None or destroyed
+            self.toplevel_window.focus() # Focus the window aswell.
         else:
             self.toplevel_window.focus() # if window exists focus it.
     

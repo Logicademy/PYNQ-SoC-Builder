@@ -79,7 +79,8 @@ class MarkdownWindow(ctk.CTkToplevel):
         self.app = app
         # self.attributes('-topmost', 'true')
         self.title("PYNQ SoC Builder")
-        self.grab_set() # This makes the pop-up the primary window and doesn't allow interaction with main menu
+        # We don't need to grab_set help menu
+        # self.grab_set() # This makes the pop-up the primary window and doesn't allow interaction with main menu
         self.geometry("800x600")
 
         self.markdown_text = ""
