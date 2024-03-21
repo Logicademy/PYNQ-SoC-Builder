@@ -6,10 +6,11 @@ class HdlgenProject:
         # If a HDLGen file isn't provided, assume we are in testing mode.
         if not path_to_hdlgen:
             self.hdlgen = "C:\\hdlgen\\March\\DSPProc_Threshold_Luke\\DSPProc\\HDLGenPrj\\DSPProc.hdlgen"
-        hdlgen_path = self.hdlgen.replace("\\", "/")
+        self.hdlgen_path = self.hdlgen.replace("\\", "/")
+
 
         # Load root
-        hdlgen = xml.dom.minidom.parse(hdlgen_path)
+        hdlgen = xml.dom.minidom.parse(self.hdlgen_path)
         root = hdlgen.documentElement
 
         ##############################################
