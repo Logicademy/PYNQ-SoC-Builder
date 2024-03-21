@@ -7,7 +7,10 @@ import application.gui.LogPages.log_menu as logm
 ctk.set_appearance_mode("System")       # 'Light' 'Dark' or 'System
 ctk.set_default_color_theme("blue")
 
-class Menu(ctk.CTkScrollableFrame):
+#######################################################################
+##### Sidebar Menu (Build, Gen, Launch FPGA, Help, Close Project) #####
+#######################################################################
+class SidebarMenu(ctk.CTkScrollableFrame):
     def __init__(self, parent):
         super().__init__(parent)
 
@@ -99,13 +102,18 @@ class Menu(ctk.CTkScrollableFrame):
         self.build_button.grid(row=6, column=0, pady=10)
 
     def resize(self, event):
-        # print("Menu Menu is called")
+        # print("SidebarMenu Menu is called")
         self.configure(height=(event.height/2))
 
     def open_help(self):
         self.parent.app.path_to_markdown = "README.md"
         self.parent.app.open_markdown()
 
+
+
+##########################################
+##### Config Menu Frame (Top Config) #####
+##########################################
 class ConfigMenu(ctk.CTkFrame):
     def __init__(self, parent):
         super().__init__(parent)
@@ -133,6 +141,9 @@ class ConfigMenu(ctk.CTkFrame):
         self.tab_view.resize(event)
         self.tab_view.project_config_scrollable.configure(width=event.width-330, height=event.height/2-80)
 
+###################################
+##### Log Menu Frame (Bottom) #####
+###################################
 class LogMenu(ctk.CTkFrame):
     def __init__(self, parent):
         super().__init__(parent)
@@ -160,6 +171,9 @@ class LogMenu(ctk.CTkFrame):
         self.tab_view.configure(width=event.width-20, height=(event.height/2)-20)
         self.tab_view.resize(event)
 
+###############################################
+##### Main Page (The Entire Window Frame) #####
+###############################################
 class MainPage(ctk.CTkFrame):
     def __init__(self, app):
         ctk.CTkFrame.__init__(self, app.root)
@@ -170,50 +184,36 @@ class MainPage(ctk.CTkFrame):
             width=self.app.get_window_width()
         )
 
-        # def resize(event):
-        #     print(event)
-        #     self.configure(width=event.width, height=event.height)
-
-
-
         self.columnconfigure(1, weight=1)
-
-        self.menu = Menu(self)
-        self.menu.grid(row=0, column=0, sticky='news')
-
+        
+        # Initalise Sidebar Menu and Grid place
+        self.sidebarMenu = SidebarMenu(self)
+        self.sidebarMenu.grid(row=0, column=0, sticky='news')
+        # Initalise Config Menu and Grid place
         self.configMenu = ConfigMenu(self)
         self.configMenu.grid(row=0, column=1, sticky='news')
-
+        # Initalise Log Menu and Grid place
         self.logMenu = LogMenu(self)
         self.logMenu.grid(row=1, column=0, sticky='news', columnspan=2)
-        # print(self.app.get_window_dimensions()[0])
-        # self.configure(width=self.app.get_window_dimensions()[0], height=self.app.get_window_dimensions()[1])
-
-        # menu = Menu(self)           # Instanciate Menu Frame and pack it NW
-        # menu.pack(anchor='nw')
 
         # Bind the resize event to the frame
-        
-        # Left hand side menu bind 
-        self.bind("<Configure>", self.menu.resize)
-
+        # Left side menu bind 
+        self.bind("<Configure>", self.sidebarMenu.resize)
         # Config Menu Bind
         self.bind("<Configure>", self.configMenu.resize)
-
         # Logging Area 
         self.bind("<Configure>", self.logMenu.resize)
 
     def close_project(self):
-        self.app.hdlgen_path = None     # Reset HDLGen Proj variable
-        self.app.show_page(self.app.page2)   # Show main menu again
+        self.app.hdlgen_path = None             # Reset HDLGen Proj variable
+        self.app.show_page(self.app.page2)      # Show main menu again
         # This will require more checks in future
-
 
     def show(self):
         self.pack(fill="both", expand=True)
-        self.pack_propagate(False)  # Prevent frame from resizing to fit its contents 
+        self.pack_propagate(False)
         self.app.root.geometry("1200x800")
         self.app.root.minsize(800, 500)
-    
+
     def hide(self):
         self.pack_forget()

@@ -1,5 +1,4 @@
 import customtkinter as ctk
-import application.gui.io_config_page as io_config_page
 
 
 class ConfigTabView(ctk.CTkTabview):
