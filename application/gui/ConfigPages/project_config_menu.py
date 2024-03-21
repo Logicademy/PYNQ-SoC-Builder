@@ -366,24 +366,28 @@ class PortConfigTab(ctk.CTkScrollableFrame):
         self.on_off_subtext = ctk.CTkLabel(self.RHS_frame, text="If enabled, connect component to LEDs\nIf disabled, no LEDs are connected", font=subtitle_font)
 
         self.led0_lbl = ctk.CTkLabel(self.RHS_frame, text="LED0", width=50, font=switch_font)
-        self.led0_dropdown = ctk.CTkOptionMenu(self.RHS_frame, values=["signal1", "signal2", "signal3", "signal4", "signal5"], font=switch_font)
-        self.led0_entry = ctk.CTkEntry(self.RHS_frame, placeholder_text="(0-63)", width=55, font=switch_font)
+        self.led0_dropdown = ctk.CTkOptionMenu(self.RHS_frame, values=["signal1", "signal2", "signal3", "signal4", "signal5"], font=switch_font, variable=ctk.StringVar(), width=200, command=lambda signal, io="led0": self.io_optionbox_handler(signal, io))
+        self.led0_entry = ctk.CTkEntry(self.RHS_frame, width=60, font=switch_font)
         self.led0_entry_placeholder = ctk.CTkLabel(self.RHS_frame, font=switch_font)
 
         self.led1_lbl = ctk.CTkLabel(self.RHS_frame, text="LED1", width=50, font=switch_font)
-        self.led1_dropdown = ctk.CTkOptionMenu(self.RHS_frame, values=["signal1", "signal2", "signal3", "signal4", "signal5"], font=switch_font)
-        self.led1_entry = ctk.CTkEntry(self.RHS_frame, placeholder_text="(0-63)", width=55, font=switch_font)
+        self.led1_dropdown = ctk.CTkOptionMenu(self.RHS_frame, values=["signal1", "signal2", "signal3", "signal4", "signal5"], font=switch_font, variable=ctk.StringVar(), width=200, command=lambda signal, io="led1": self.io_optionbox_handler(signal, io))
+        self.led1_entry = ctk.CTkEntry(self.RHS_frame, width=60, font=switch_font)
         self.led1_entry_placeholder = ctk.CTkLabel(self.RHS_frame, text="")
 
         self.led2_lbl = ctk.CTkLabel(self.RHS_frame, text="LED2", width=50, font=switch_font)
-        self.led2_dropdown = ctk.CTkOptionMenu(self.RHS_frame, values=["signal1", "signal2", "signal3", "signal4", "signal5"], font=switch_font)
-        self.led2_entry = ctk.CTkEntry(self.RHS_frame, placeholder_text="(0-63)", width=55, font=switch_font)
+        self.led2_dropdown = ctk.CTkOptionMenu(self.RHS_frame, values=["signal1", "signal2", "signal3", "signal4", "signal5"], font=switch_font, variable=ctk.StringVar(), width=200, command=lambda signal, io="led2": self.io_optionbox_handler(signal, io))
+        self.led2_entry = ctk.CTkEntry(self.RHS_frame, width=60, font=switch_font)
         self.led2_entry_placeholder = ctk.CTkLabel(self.RHS_frame, text="")
 
         self.led3_lbl = ctk.CTkLabel(self.RHS_frame, text="LED3", width=50, font=switch_font)
-        self.led3_dropdown = ctk.CTkOptionMenu(self.RHS_frame, values=["signal1", "signal2", "signal3", "signal4", "signal5"], font=switch_font)
-        self.led3_entry = ctk.CTkEntry(self.RHS_frame, placeholder_text="(0-63)", width=55, font=switch_font)
+        self.led3_dropdown = ctk.CTkOptionMenu(self.RHS_frame, values=["signal1", "signal2", "signal3", "signal4", "signal5"], font=switch_font, variable=ctk.StringVar(), width=200, command=lambda signal, io="led3": self.io_optionbox_handler(signal, io))
+        self.led3_entry = ctk.CTkEntry(self.RHS_frame, width=60, font=switch_font)
         self.led3_entry_placeholder = ctk.CTkLabel(self.RHS_frame,text="")
+
+        self.led_optionboxes = [self.led0_dropdown, self.led1_dropdown, self.led2_dropdown, self.led3_dropdown]
+
+        self.update_dropdown_values()
 
     def switch_handler(self, internal_signal, index):
         if self.switches[index].get() == 1:
@@ -391,7 +395,9 @@ class PortConfigTab(ctk.CTkScrollableFrame):
         else:
             self.switches_values[index] = None
 
-        print(self.switches_values)
+        # print(self.switches_values)
+
+        self.update_dropdown_values()
 
     def update_dropdown_values(self):
 
@@ -399,29 +405,53 @@ class PortConfigTab(ctk.CTkScrollableFrame):
         # 2) Get all the currently selected options and set it as values for each dropdown
         # 3) If an option doesn't exist. We can reset it.
 
-        dropdown_options_dict = {}
-
+        dropdown_options = []
+        self.dropdown_dict = {}
         for port in self.proj.parsed_ports:
-            dropdown_options_dict[port[0]] = port[2]
-
-
-
-
-
-        active_switch_values = []
-        for switch in self.switches:
-            if switch.get() == 1:
-                # Switch is checked on
-                active_switch_values.append(switch.cget('text'))
-
-        for active_val in active_switch_values:
-            for sig in self.proj.parsed_internal_sigs:
-                if sig[0] == active_val:
-                    dropdown_options_dict[sig[0]]
-
-
-
+            dropdown_options.append(port[0])
+            # dropdown_ports.append(port[0], port[2])
+            self.dropdown_dict[port[0]] = port[2]
+        for sig in self.switches_values:
+            if sig == None:
+                continue
+            dropdown_options.append(f"int_{sig[0]}")    # We want it to be int_ for internal
+            # dropdown_ports.append(port[0], port[2])
+            self.dropdown_dict[f"int_{sig[0]}"] = sig[1]
         
+        # dropdown_options now contains all the names of the signals.
+        # dropdown_dict contains all the names + the size
+        for optionbox in self.led_optionboxes:
+            optionbox.configure(values=dropdown_options)
+            if optionbox.cget('variable').get() not in dropdown_options:
+                optionbox.cget('variable').set("")
+
+    def io_optionbox_handler(self, signal, io):
+        print(signal)
+        if self.dropdown_dict[signal] > 1:
+            print("Add box")
+            if io == "led0":
+                self.led0_entry.grid(row=4, column=2, padx=5, pady=5, sticky='w')
+                self.led0_entry.configure(placeholder_text=f"(0-{self.dropdown_dict[signal]-1})")
+            elif io == "led1":
+                self.led1_entry.grid(row=5, column=2, padx=5, pady=5, sticky='w')
+                self.led1_entry.configure(placeholder_text=f"(0-{self.dropdown_dict[signal]-1})")
+            elif io == "led2":
+                self.led1_entry.grid(row=6, column=2, padx=5, pady=5, sticky='w')
+                self.led1_entry.configure(placeholder_text=f"(0-{self.dropdown_dict[signal]-1})")
+            elif io == "led3":
+                self.led1_entry.grid(row=7, column=2, padx=5, pady=5, sticky='w')
+                self.led1_entry.configure(placeholder_text=f"(0-{self.dropdown_dict[signal]-1})")
+        else:
+            print("Forgot box")
+            if io == "led0":
+                self.led0_entry.grid_forget()
+            elif io == "led1":
+                self.led1_entry.grid_forget()
+            elif io == "led2":
+                self.led1_entry.grid_forget()
+            elif io == "led3":
+                self.led1_entry.grid_forget()
+
 
     def resize(self, event):
         # print("Am I getting called")
