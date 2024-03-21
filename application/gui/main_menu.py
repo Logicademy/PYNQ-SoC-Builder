@@ -99,7 +99,7 @@ class Menu(ctk.CTkScrollableFrame):
         self.build_button.grid(row=6, column=0, pady=10)
 
     def resize(self, event):
-        print("Menu Menu is called")
+        # print("Menu Menu is called")
         self.configure(height=(event.height/2))
 
     def open_help(self):
@@ -127,7 +127,7 @@ class ConfigMenu(ctk.CTkFrame):
         self.tab_view.grid(row=0, column=0, padx=10, pady=5)
 
     def resize(self, event): 
-        print("Config Menu is called")
+        # print("Config Menu is called")
         # Handle how frame gets bigger and smaller.
         self.tab_view.configure(width=event.width-310, height=event.height/2)
         self.tab_view.resize(event)
@@ -155,7 +155,7 @@ class LogMenu(ctk.CTkFrame):
         self.tab_view.grid(row=0, column=0, padx=10, pady=5)
 
     def resize(self, event):
-        print("Log Menu is called")
+        # print("Log Menu is called")
         # Handle how frame gets bigger and smaller.
         self.tab_view.configure(width=event.width-20, height=(event.height/2)-20)
         self.tab_view.resize(event)
