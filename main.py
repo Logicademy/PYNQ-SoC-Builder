@@ -27,12 +27,13 @@ class Application:
         self.toplevel_message = None   # Set top_level_message to be presented by dialog/alert
         self.toplevel_window = None    # Var for top level window objects
         self.hdlgen_path = None         # Current Project
+        self.hdlgen_prj = None          # Current Project Object
         self.path_to_markdown = None    # Path to markdown file.
 
         self.page1 = main_menu.MainPage(self)
         self.page2 = openproj.OpenProjectPage(self)
 
-        self.show_page(self.page1)
+        self.show_page(self.page2)
 
     #####################################
     ##### Return Application Height #####

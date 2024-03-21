@@ -402,7 +402,7 @@ class PortConfigTab(ctk.CTkScrollableFrame):
 
         self.update_dropdown_values()
 
-    def load_from_project(self):
+    def load_from_project(self, blank):
 
         self.hdlgen_path = "C:\\hdlgen\\March\\DSPProc_Threshold_Luke\\DSPProc\\HDLGenPrj\\DSPProc.hdlgen"
         # self.proj = hdlprj.HdlgenProject()

@@ -1,13 +1,16 @@
 import xml.dom.minidom
+import application.xml_manager as xmlm
 
 class HdlgenProject:
 
     def __init__(self, path_to_hdlgen=None):
         # If a HDLGen file isn't provided, assume we are in testing mode.
+        self.hdlgen = path_to_hdlgen
         if not path_to_hdlgen:
             self.hdlgen = "C:\\hdlgen\\March\\DSPProc_Threshold_Luke\\DSPProc\\HDLGenPrj\\DSPProc.hdlgen"
         self.hdlgen_path = self.hdlgen.replace("\\", "/")
 
+        self.pynqbuildxml = xmlm.Xml_Manager(self.hdlgen_path)  # This is accessible object we can always call on.
 
         # Load root
         hdlgen = xml.dom.minidom.parse(self.hdlgen_path)
@@ -105,6 +108,42 @@ class HdlgenProject:
             self.TBNoteData = TBNote.firstChild.data
         except Exception:
             self.TBNoteData = None
+
+
+        self.build_logger = None
+        self.synth_logger = None
+        self.impl_logger = None
+
+    ############################################################
+    ########## Logger set and add_to_log_box function ##########
+    ############################################################
+    def set_build_logger(self, build_logger):
+        self.build_logger = build_logger
+
+    def set_synth_logger(self, synth_logger):
+        self.synth_logger = synth_logger
+    
+    def set_impl_logger(self, impl_logger):
+        self.impl_logger = impl_logger
+
+
+    def add_to_build_log(self, msg, set=False):
+        if self.build_logger:
+            self.build_logger.add_to_log_box(msg, set)
+        else:
+            print("No build logger set")
+
+    def add_to_syn_log(self, msg, set=False):
+        if self.synth_logger:
+            self.synth_logger.add_to_log_box(msg, set)
+        else:
+            print("No synthesis logger set")
+
+    def add_to_impl_log(self, msg, set=False):
+        if self.impl_logger:
+            self.impl_logger.add_to_log_box(msg, set)
+        else:
+            print("No implementation logger set")
 
     ########################################################################
     ########## Parse all ports format from XML into useful format ##########

@@ -3,6 +3,7 @@ import os
 import time
 import application.gui.ConfigPages.project_config_menu as pcm
 import application.gui.LogPages.log_menu as logm
+import application.hdlgenproject as hdlgenprj
 
 ctk.set_appearance_mode("System")       # 'Light' 'Dark' or 'System
 ctk.set_default_color_theme("blue")
@@ -171,6 +172,11 @@ class LogMenu(ctk.CTkFrame):
         self.tab_view.configure(width=event.width-20, height=(event.height/2)-20)
         self.tab_view.resize(event)
 
+    def load_project(self):
+        self.hdlgen_prj = self.parent.hdlgen_prj
+        self.tab_view.load_project()
+        pass
+
 ###############################################
 ##### Main Page (The Entire Window Frame) #####
 ###############################################
@@ -214,6 +220,23 @@ class MainPage(ctk.CTkFrame):
         self.pack_propagate(False)
         self.app.root.geometry("1200x800")
         self.app.root.minsize(800, 500)
+        self.load_project()
+
+    def load_project(self):
+        # This is called when a project has been loaded.
+        self.hdlgen_path = self.app.hdlgen_path # Make the HDLGen path available locally - Might also make this hdlgenproject.py
+        self.app.hdlgen_prj = hdlgenprj.HdlgenProject(self.hdlgen_path)
+        self.hdlgen_prj = self.app.hdlgen_prj
+    
+        # The following other classes need to be informed and passed the object:
+        # 1) Log Tabs
+        # 2) Config Tabs
+        # 3) Sidebar Menu
+
+        self.logMenu.load_project()
+        # self.configMenu.load_project()
+        # self.sidebarMenu.load_project()
+
 
     def hide(self):
         self.pack_forget()
