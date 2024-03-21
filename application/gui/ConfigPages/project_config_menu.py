@@ -39,7 +39,7 @@ class ConfigTabView(ctk.CTkTabview):
 
         # self.label = ctk.CTkLabel(master=self.tab("I/O Config"), text="I/O Config Area")
         # self.label.pack()
-        self.ioconfigpage = IOConfigTab(self.tab("I/O Config"))
+        self.ioconfigpage = PortConfigTab(self.tab("I/O Config"))  # IOConfigTab
         self.ioconfigpage.pack(expand=True, fill='both', anchor='center')
 
         self.buildstatuspage = BuildStatusTab(self.tab("Build Status"))
@@ -127,6 +127,8 @@ class ConfigTabView(ctk.CTkTabview):
         self.LHS_explaination_frame.grid(row=0, column=0, rowspan=100, padx=5, sticky="news")
 
         if (event.width-310)/2 > 685:
+            ### 2 Columns
+
             # Vivado Settings
             self.vivado_settings_lbl.grid(row=0, column=1, padx=5, pady=5, sticky="news")
             self.open_viv_sw.grid(row=1, column=1, padx=5, pady=5, sticky="w")
@@ -137,10 +139,13 @@ class ConfigTabView(ctk.CTkTabview):
             self.gen_when_build_sw.grid(row=1, column=2, padx=5, pady=5, sticky="w")
             self.gen_tst_sw.grid(row=2, column=2, padx=5, pady=5, sticky="w")
             # PYNQ Board Settings
-            self.pynq_board_settings_lbl.grid(row=4, column=1, padx=5, pady=5, sticky="news")
-            self.gen_io_sw.grid(row=5, column=1, padx=5, pady=5, sticky="w")     
+            # self.pynq_board_settings_lbl.grid(row=4, column=1, padx=5, pady=5, sticky="news")
+            # self.gen_io_sw.grid(row=5, column=1, padx=5, pady=5, sticky="w")     
         elif (event.width-310)/2 > 425:
+            # This is one column too?
             # Vivado Settings
+
+
             self.vivado_settings_lbl.grid(row=0, column=1, padx=5, pady=5, sticky="news")
             self.open_viv_sw.grid(row=1, column=1, padx=5, pady=5, sticky="w")
             self.keep_viv_open_sw.grid(row=2, column=1, padx=5, pady=5, sticky="w")
@@ -150,9 +155,11 @@ class ConfigTabView(ctk.CTkTabview):
             self.gen_when_build_sw.grid(row=5, column=1, padx=5, pady=5, sticky="w")
             self.gen_tst_sw.grid(row=6, column=1, padx=5, pady=5, sticky="w")
             # PYNQ Board Settings
-            self.pynq_board_settings_lbl.grid(row=7, column=1, padx=5, pady=5, sticky="news")
-            self.gen_io_sw.grid(row=8, column=1, padx=5, pady=5, sticky="w")
+            # self.pynq_board_settings_lbl.grid(row=7, column=1, padx=5, pady=5, sticky="news")
+            # self.gen_io_sw.grid(row=8, column=1, padx=5, pady=5, sticky="w")
         else:
+            # Single Coloumn
+
             # In this event, we just wanna have everything on top and make it get as wide as it needs.
             self.LHS_explaination_frame.configure(width=(event.width-330))
             self.LHS_explaination_frame.grid(row=110, column=0, padx=5, pady=5, sticky="news")
@@ -167,8 +174,8 @@ class ConfigTabView(ctk.CTkTabview):
             self.gen_when_build_sw.grid(row=106, column=0, padx=5, pady=5, sticky="w")
             self.gen_tst_sw.grid(row=107, column=0, padx=5, pady=5, sticky="w")
             # PYNQ Board Settings
-            self.pynq_board_settings_lbl.grid(row=108, column=0, padx=5, pady=5, sticky="news")
-            self.gen_io_sw.grid(row=109, column=0, padx=5, pady=5, sticky="w")
+            # self.pynq_board_settings_lbl.grid(row=108, column=0, padx=5, pady=5, sticky="news")
+            # self.gen_io_sw.grid(row=109, column=0, padx=5, pady=5, sticky="w")
 
 class BuildStatusTab(ctk.CTkScrollableFrame):
     def __init__(self, parent):
@@ -185,6 +192,13 @@ class BuildStatusTab(ctk.CTkScrollableFrame):
         name_font = (default_font, 20, 'bold')
         sub_name_font = (default_font, 16)
         
+        ### Overall Status:
+        self.title_status_frame = ctk.CTkFrame(self)
+        self.title_text = ctk.CTkLabel(self.title_status_frame, text="Current State:", font=name_font, width=160)
+        self.title_text_val = ctk.CTkLabel(self.title_status_frame, text="Builder is Idle", font=(default_font, 20), width=160)
+        self.title_text.grid(row=0, column=0, padx=5, pady=5)
+        self.title_text_val.grid(row=0, column=1, padx=5, pady=5, sticky='e')
+
         ### Generate Tcl
         self.gen_tcl_frame = ctk.CTkFrame(self)
         self.gen_tcl_est_lbl = ctk.CTkLabel(self.gen_tcl_frame, text="Est. <5 seconds", font=est_font, width=160)
@@ -275,21 +289,160 @@ class BuildStatusTab(ctk.CTkScrollableFrame):
         self.cpy_dir_time_lbl.grid(row=0, column=1, padx=5, pady=5)
         self.cpy_dir_statusbar.grid(row=0, column=2, padx=5, pady=5)
         self.cpy_dir_name_lbl.grid(row=0, column=3, padx=5, pady=5)
+        
         # Place all frames now
-        self.gen_tcl_frame.grid(row=0, column=0, sticky='w')
-        self.run_viv_frame.grid(row=1, column=0, sticky='w')
-        self.run_viv0_frame.grid(row=2, column=0, sticky='w')
-        self.run_viv1_frame.grid(row=3, column=0, sticky='w')
-        self.run_viv2_frame.grid(row=4, column=0, sticky='w')
-        self.run_viv3_frame.grid(row=5, column=0, sticky='w')
-        self.run_viv4_frame.grid(row=6, column=0, sticky='w')
-        self.gen_jnb_frame.grid(row=7, column=0, sticky='w')
-        self.cpy_dir_frame.grid(row=8, column=0, sticky='w')
+        self.title_status_frame.grid(row=0, column=0, sticky='w')
+        self.gen_tcl_frame.grid(row=1, column=0, sticky='w')
+        self.run_viv_frame.grid(row=2, column=0, sticky='w')
+        self.run_viv0_frame.grid(row=3, column=0, sticky='w')
+        self.run_viv1_frame.grid(row=4, column=0, sticky='w')
+        self.run_viv2_frame.grid(row=5, column=0, sticky='w')
+        self.run_viv3_frame.grid(row=6, column=0, sticky='w')
+        self.run_viv4_frame.grid(row=7, column=0, sticky='w')
+        self.gen_jnb_frame.grid(row=8, column=0, sticky='w')
+        self.cpy_dir_frame.grid(row=9, column=0, sticky='w')
 
     def resize(self, event):
         # Resize event handler.
         self.configure(width=event.width-330, height=event.height/2-80)
         # self.configure(width=event.width-20, height=(event.height/2)-20)
+
+class PortConfigTab(ctk.CTkScrollableFrame):
+    def __init__(self, parent):
+        super().__init__(parent)
+        self.parent = parent
+
+        self._scrollbar.configure(height=0)
+
+        dummy_label = ctk.CTkLabel(self, text="dummy")
+        default_font = dummy_label.cget("font")
+
+        title_font = (default_font, 20, 'bold')
+        subtitle_font = (default_font, 16)
+        master_switch_font = (default_font, 16, 'bold')
+        switch_font = (default_font, 16)
+
+        # Internal Signals Frame
+        self.LHS_frame = ctk.CTkFrame(self)
+        self.int_signals_lbl = ctk.CTkLabel(self.LHS_frame, text="Connect Internal Signal a Port?", font=title_font)
+        self.int_signals_explaination_lbl = ctk.CTkLabel(self.LHS_frame, text="Enabling an internal signal here will connect it to a port on the component, making it accessible by board I/O and in Jupyter Notebook", font=subtitle_font)
+
+        self.sw0 = ctk.CTkSwitch(self.LHS_frame, text="intTC", font=switch_font, width=140)
+        self.sw1 = ctk.CTkSwitch(self.LHS_frame, text="NS", font=switch_font, width=140)
+        self.sw2 = ctk.CTkSwitch(self.LHS_frame, text="CS", font=switch_font, width=140)
+        self.sw3 = ctk.CTkSwitch(self.LHS_frame, text="nextOP", font=switch_font, width=140)
+        self.sw4 = ctk.CTkSwitch(self.LHS_frame, text="decoded", font=switch_font, width=140)
+        self.sw5 = ctk.CTkSwitch(self.LHS_frame, text="intSelMux", font=switch_font, width=140)
+
+        self.switches = [self.sw0, self.sw1, self.sw2, self.sw3, self.sw4, self.sw5]
+
+        # LED Connections
+        self.RHS_frame = ctk.CTkFrame(self)
+
+        self.led_title = ctk.CTkLabel(self.RHS_frame, text="Board LED Configuration", font=title_font)
+        self.led_subtext = ctk.CTkLabel(self.RHS_frame, text="Connect ports of component to LEDs on PYNQ Board", font=subtitle_font)
+
+        self.on_off_switch = ctk.CTkSwitch(self.RHS_frame, text="Enable LEDs?", font=master_switch_font)
+        self.on_off_subtext = ctk.CTkLabel(self.RHS_frame, text="If enabled, connect component to LEDs\nIf disabled, no LEDs are connected", font=subtitle_font)
+
+        self.led0_lbl = ctk.CTkLabel(self.RHS_frame, text="LED0", width=50, font=switch_font)
+        self.led0_dropdown = ctk.CTkOptionMenu(self.RHS_frame, values=["signal1", "signal2", "signal3", "signal4", "signal5"], font=switch_font)
+        self.led0_entry = ctk.CTkEntry(self.RHS_frame, placeholder_text="(0-63)", width=50, font=switch_font)
+        self.led0_entry_placeholder = ctk.CTkLabel(self.RHS_frame, font=switch_font)
+
+        self.led1_lbl = ctk.CTkLabel(self.RHS_frame, text="LED1", width=50, font=switch_font)
+        self.led1_dropdown = ctk.CTkOptionMenu(self.RHS_frame, values=["signal1", "signal2", "signal3", "signal4", "signal5"], font=switch_font)
+        self.led1_entry = ctk.CTkEntry(self.RHS_frame, placeholder_text="(0-63)", width=50, font=switch_font)
+        self.led1_entry_placeholder = ctk.CTkLabel(self.RHS_frame, text="")
+
+        self.led2_lbl = ctk.CTkLabel(self.RHS_frame, text="LED2", width=50, font=switch_font)
+        self.led2_dropdown = ctk.CTkOptionMenu(self.RHS_frame, values=["signal1", "signal2", "signal3", "signal4", "signal5"], font=switch_font)
+        self.led2_entry = ctk.CTkEntry(self.RHS_frame, placeholder_text="(0-63)", width=50, font=switch_font)
+        self.led2_entry_placeholder = ctk.CTkLabel(self.RHS_frame, text="")
+
+        self.led3_lbl = ctk.CTkLabel(self.RHS_frame, text="LED3", width=50, font=switch_font)
+        self.led3_dropdown = ctk.CTkOptionMenu(self.RHS_frame, values=["signal1", "signal2", "signal3", "signal4", "signal5"], font=switch_font)
+        self.led3_entry = ctk.CTkEntry(self.RHS_frame, placeholder_text="(0-63)", width=50, font=switch_font)
+        self.led3_entry_placeholder = ctk.CTkLabel(self.RHS_frame,text="")
+
+
+
+    def resize(self, event):
+        # print("Am I getting called")
+        frame_width = event.width-330
+        frame_height=event.height/2-80
+
+        self.configure(width=frame_width, height=frame_height)
+
+        # 1 at less than 1000
+        # 2 COlumn at 1200
+        # 3 at 1400
+        # 4 at 1800
+
+        number_of_columns = 2   # Default / Failsafe
+        if event.width < 1000:
+            number_of_columns = 1
+        elif event.width < 1350:
+            number_of_columns = 2
+        elif event.width < 1800:
+            number_of_columns = 3
+        else:
+            number_of_columns = 4
+
+
+
+        # Calc number of columns in the LHS frame
+        # if event.width < x: # Single Column
+        # elif event.width < x: Double Column
+        # number_of_columns = 2
+        # # else:
+        # number_of_columns = 3
+
+
+        self.LHS_frame.grid(row=0, column=0, sticky='n')
+        # 1) Place the widget
+        # 2) Set the width and wraplength (and height if need be)
+        self.int_signals_lbl.grid(row=0, column=0, padx=5, pady=5, columnspan=number_of_columns)
+        self.int_signals_explaination_lbl.grid(row=1, column=0, padx=5, pady=5, columnspan=number_of_columns)
+        self.int_signals_lbl.configure(width=frame_width/2-10, wraplength=frame_width/2-10)
+        self.int_signals_explaination_lbl.configure(width=frame_width/2-10, wraplength=frame_width/2-10)
+        
+
+        for index in range(0, len(self.switches)):
+            row = 2 + (index // number_of_columns)          # eg if num_col = 2: (2 is offset for title + explaination cards) Floor divide - 0 = 0, 1 = 0, 2 = 1, 3 = 1, 4 = 2.
+            column = index % number_of_columns              # Remainder - 0 = 0, 1 = 1, 2 = 0, 3 = 1, 4 = 0
+            self.switches[index].grid(row=row, column=column, padx=5, pady=5)
+
+        self.RHS_frame.grid(row=0, column=1, sticky='n')
+
+        self.led_title.grid(row=0, column=0, padx=5, pady=5, columnspan=3)
+        self.led_subtext.grid(row=1, column=0, padx=5, pady=5, columnspan=3)
+        self.led_title.configure(width=frame_width/2-10, wraplength=frame_width/2-10)
+        self.led_subtext.configure(width=frame_width/2-10, wraplength=frame_width/2-10)
+
+        self.on_off_switch.grid(row=2, column=0, padx=5, pady=5, columnspan=3)
+        self.on_off_subtext.grid(row=3, column=0, padx=5, pady=5, columnspan=3)
+        self.on_off_subtext.configure(width=frame_width/2-10, wraplength=frame_width/2-10)
+
+        self.led0_lbl.grid(row=4, column=0, padx=5, pady=5, sticky='e')
+        self.led0_dropdown.grid(row=4, column=1, padx=5, pady=5)
+        self.led0_entry.grid(row=4, column=2, padx=5, pady=5, sticky='w')
+        # self.led0_entry_placeholder.grid(row=2, column=3, padx=5, pady=5)
+
+        self.led1_lbl.grid(row=5, column=0, padx=5, pady=5, sticky='e')
+        self.led1_dropdown.grid(row=5, column=1, padx=5, pady=5)
+        self.led1_entry.grid(row=5, column=2, padx=5, pady=5, sticky='w')
+        # self.led1_entry_placeholder.grid(row=3, column=3, padx=5, pady=5)
+
+        self.led2_lbl.grid(row=6, column=0, padx=5, pady=5, sticky='e')
+        self.led2_dropdown.grid(row=6, column=1, padx=5, pady=5)
+        self.led2_entry.grid(row=6, column=2, padx=5, pady=5, sticky='w')
+        # self.led2_entry_placeholder.grid(row=4, column=3, padx=5, pady=5)
+
+        self.led3_lbl.grid(row=7, column=0, padx=5, pady=5, sticky='e')
+        self.led3_dropdown.grid(row=7, column=1, padx=5, pady=5)
+        self.led3_entry.grid(row=7, column=2, padx=5, pady=5, sticky='w')
+        # self.led3_entry_placeholder.grid(row=5, column=3, padx=5, pady=5)
 
 class IOConfigTab(ctk.CTkFrame):
     def __init__(self, parent):
