@@ -27,7 +27,7 @@ class LogTabView(ctk.CTkTabview):
         # Justify to the LEFT
         self.configure(anchor='nw')
 
-        self.summarytab = SummaryTab(self.tab("Project Summary"), parent)
+        self.summarytab = SummaryTab(self.tab("Project Summary"), self)
         self.summarytab.pack()
 
         # Testplan Box

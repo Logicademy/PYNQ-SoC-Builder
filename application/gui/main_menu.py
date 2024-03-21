@@ -142,6 +142,12 @@ class ConfigMenu(ctk.CTkFrame):
         self.tab_view.resize(event)
         self.tab_view.project_config_scrollable.configure(width=event.width-330, height=event.height/2-80)
 
+    def load_project(self):
+        self.hdlgen_prj = self.parent.hdlgen_prj
+
+        # set the hdlgen_prj object and then pass onwards to the ConfigTabView
+        self.tab_view.load_project()
+
 ###################################
 ##### Log Menu Frame (Bottom) #####
 ###################################
@@ -175,7 +181,6 @@ class LogMenu(ctk.CTkFrame):
     def load_project(self):
         self.hdlgen_prj = self.parent.hdlgen_prj
         self.tab_view.load_project()
-        pass
 
 ###############################################
 ##### Main Page (The Entire Window Frame) #####
@@ -234,8 +239,11 @@ class MainPage(ctk.CTkFrame):
         # 3) Sidebar Menu
 
         self.logMenu.load_project()
-        # self.configMenu.load_project()
+        self.configMenu.load_project()
         # self.sidebarMenu.load_project()
+
+        # Assuming all has been run to load the project, I can now call the function to write to log box
+        self.hdlgen_prj.add_to_build_log("Add a load project message running through the hdlgenprj object!!\n")
 
 
     def hide(self):

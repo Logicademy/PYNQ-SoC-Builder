@@ -41,10 +41,10 @@ class ConfigTabView(ctk.CTkTabview):
 
         # self.label = ctk.CTkLabel(master=self.tab("I/O Config"), text="I/O Config Area")
         # self.label.pack()
-        self.ioconfigpage = PortConfigTab(self.tab("I/O Config"))  # IOConfigTab
+        self.ioconfigpage = PortConfigTab(self.tab("I/O Config"), self)  # IOConfigTab
         self.ioconfigpage.pack(expand=True, fill='both', anchor='center')
 
-        self.buildstatuspage = BuildStatusTab(self.tab("Build Status"))
+        self.buildstatuspage = BuildStatusTab(self.tab("Build Status"), self)
         self.buildstatuspage.pack()
 
 
@@ -120,16 +120,6 @@ class ConfigTabView(ctk.CTkTabview):
         # Set tab
         self.set("Project Config")
 
-        self.load_project_config()
-
-    def load_project_config(self):
-        print(self.hdlgen_path)
-        self.hdlgen_path = "C:\\hdlgen\\March\\DSPProc_Threshold_Luke\\DSPProc\\HDLGenPrj\\DSPProc.hdlgen"
-        xmlmanager = xmlm.Xml_Manager(self.hdlgen_path)
-        project_configuration = xmlmanager.read_proj_config()
-
-        self.ioconfigpage.load_from_project(project_configuration)
-
     def resize(self, event):
         # Default
         self.buildstatuspage.resize(event)
@@ -189,10 +179,74 @@ class ConfigTabView(ctk.CTkTabview):
             # self.pynq_board_settings_lbl.grid(row=108, column=0, padx=5, pady=5, sticky="news")
             # self.gen_io_sw.grid(row=109, column=0, padx=5, pady=5, sticky="w")
 
+    def load_project(self):
+        self.hdlgen_prj = self.parent.hdlgen_prj
+
+        self.ioconfigpage.load_project()
+        self.buildstatuspage.load_project()
+
+        # The Project Config doesn't have its own class so we will set those variables here
+        prj_config = self.hdlgen_prj.pynqbuildxml.read_proj_config()
+
+        # Open Vivado GUI
+        try:
+            if prj_config['open_viv_gui'] == True:
+                self.open_viv_sw.select()
+            else:
+                self.open_viv_sw.deselect()
+        except Exception as e:
+            print(f"\nCouldn't load open_viv_gui: {e}")
+            self.open_viv_sw.deselect()
+        # Keep Vivado Open
+        try:
+            if prj_config['keep_viv_opn'] == True:
+                self.keep_viv_open_sw.select()
+            else:
+                self.keep_viv_open_sw.deselect()
+        except Exception as e:
+            print(f"\nCouldn't load keep_viv_opn: {e}")
+            self.keep_viv_open_sw.deselect()
+        # Regenerate Block Design
+        try:
+            if prj_config['regen_bd'] == True:
+                self.always_regen_bd_sw.select()
+            else:
+                self.always_regen_bd_sw.deselect()
+        except Exception as e:
+            print(f"\nCouldn't load regen_bd: {e}")
+            self.always_regen_bd_sw.deselect()
+        # Generate JNB when Building
+        try:
+            if prj_config['gen_jnb'] == True:
+                self.gen_when_build_sw.select()
+            else:
+                self.gen_when_build_sw.deselect()
+        except Exception as e:
+            print(f"\nCouldn't load gen_jnb: {e}")
+            self.gen_when_build_sw.deselect()
+        # Use Testplan in JNB
+        try:
+            if prj_config['use_tstplan'] == True:
+                self.gen_tst_sw.select()
+            else:
+                self.gen_tst_sw.deselect()
+        except Exception as e:
+            print(f"\nCouldn't load use_tstplan: {e}")
+            self.gen_tst_sw.deselect()
+
+    def load_project_config(self):
+        print(self.hdlgen_path)
+        self.hdlgen_path = "C:\\hdlgen\\March\\DSPProc_Threshold_Luke\\DSPProc\\HDLGenPrj\\DSPProc.hdlgen"
+        xmlmanager = xmlm.Xml_Manager(self.hdlgen_path)
+        project_configuration = xmlmanager.read_proj_config()
+
+        self.ioconfigpage.load_from_project(project_configuration)
+
 class BuildStatusTab(ctk.CTkScrollableFrame):
-    def __init__(self, parent):
+    def __init__(self, parent, tabview):
         super().__init__(parent)
         self.parent = parent
+        self.tabview = tabview
 
         self._scrollbar.configure(height=0)
 
@@ -319,11 +373,14 @@ class BuildStatusTab(ctk.CTkScrollableFrame):
         self.configure(width=event.width-330, height=event.height/2-80)
         # self.configure(width=event.width-20, height=(event.height/2)-20)
 
+    def load_project(self):
+        self.hdlgen_prj = self.tabview.hdlgen_prj
+
 class PortConfigTab(ctk.CTkScrollableFrame):
-    def __init__(self, parent):
+    def __init__(self, parent, tabview):
         super().__init__(parent)
         self.parent = parent
-
+        self.tabview = tabview
 
         self._scrollbar.configure(height=0)
 
@@ -402,14 +459,14 @@ class PortConfigTab(ctk.CTkScrollableFrame):
 
         self.update_dropdown_values()
 
-    def load_from_project(self, blank):
+    def load_project(self):
+        self.hdlgen_prj = self.tabview.hdlgen_prj
+        
+        # This is a deadend so we can just set all the variables
+        hdlgen_prj_proj_config = self.hdlgen_prj.pynqbuildxml.read_proj_config()
 
-        self.hdlgen_path = "C:\\hdlgen\\March\\DSPProc_Threshold_Luke\\DSPProc\\HDLGenPrj\\DSPProc.hdlgen"
-        # self.proj = hdlprj.HdlgenProject()
-        xmlfile = xmlm.Xml_Manager(self.hdlgen_path)
-        xml_manager_config = xmlfile.read_proj_config()
         try:
-            use_board_io = xml_manager_config['use_board_io']
+            use_board_io = hdlgen_prj_proj_config['use_board_io']
             print(use_board_io)
             if use_board_io == True:
                 self.on_off_switch.select()
@@ -418,6 +475,9 @@ class PortConfigTab(ctk.CTkScrollableFrame):
         except Exception as e:
             print(e)
             print("Couldn't load config from project xml - IO Menu")
+
+
+        # This is where the IO-Config will be read. But it needs to be updated to store config in a different way.
 
     def switch_handler(self, internal_signal, index):
         if self.switches[index].get() == 1:
