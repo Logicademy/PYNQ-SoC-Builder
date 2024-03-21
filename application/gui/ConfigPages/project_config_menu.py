@@ -326,14 +326,16 @@ class PortConfigTab(ctk.CTkScrollableFrame):
         self.int_signals_lbl = ctk.CTkLabel(self.LHS_frame, text="Make Internal Signal a Port?", font=title_font)
         self.int_signals_explaination_lbl = ctk.CTkLabel(self.LHS_frame, text="Enabling an internal signal here will connect it to a port on the component, making it accessible by board I/O and in Jupyter Notebook", font=subtitle_font)
 
+        self.no_int_signals_lbl = ctk.CTkLabel(self.LHS_frame, width=200, text="No compatible internal signals found", font=title_font)
+
         # Need to parse the internal signals
         self.switches = []
 
         proj = hdlprj.HdlgenProject()
 
-        for internal_signal in proj.parsed_internal_sigs:
-            # name/width
-            self.switches.append(ctk.CTkSwitch(self.LHS_frame, text=f"{internal_signal[0]}({internal_signal[1]})", font=switch_font, width=260))
+        # for internal_signal in proj.parsed_internal_sigs:
+        #     # name/width
+        #     self.switches.append(ctk.CTkSwitch(self.LHS_frame, text=f"{internal_signal[0]}({internal_signal[1]})", font=switch_font, width=260))
 
 
 
@@ -424,6 +426,9 @@ class PortConfigTab(ctk.CTkScrollableFrame):
             row = 2 + (index // number_of_columns)          # eg if num_col = 2: (2 is offset for title + explaination cards) Floor divide - 0 = 0, 1 = 0, 2 = 1, 3 = 1, 4 = 2.
             column = index % number_of_columns              # Remainder - 0 = 0, 1 = 1, 2 = 0, 3 = 1, 4 = 0
             self.switches[index].grid(row=row, column=column, padx=5, pady=5)
+
+        if len(self.switches) == 0:
+            self.no_int_signals_lbl.grid(row=2, column=0, padx=5, pady=5)
 
         self.RHS_frame.grid(row=0, column=1, sticky='n')
 
