@@ -226,12 +226,12 @@ class ConfigTabView(ctk.CTkTabview):
             self.gen_when_build_sw.deselect()
         # Use Testplan in JNB
         try:
-            if prj_config['use_tstplan'] == True:
+            if prj_config['use_tstpln'] == True:
                 self.gen_tst_sw.select()
             else:
                 self.gen_tst_sw.deselect()
         except Exception as e:
-            print(f"\nCouldn't load use_tstplan: {e}")
+            print(f"\nCouldn't load use_tstpln: {e}")
             self.gen_tst_sw.deselect()
 
     def load_project_config(self):
