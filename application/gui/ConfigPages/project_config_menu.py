@@ -311,6 +311,7 @@ class PortConfigTab(ctk.CTkScrollableFrame):
         super().__init__(parent)
         self.parent = parent
 
+
         self._scrollbar.configure(height=0)
 
         dummy_label = ctk.CTkLabel(self, text="dummy")
@@ -332,13 +333,17 @@ class PortConfigTab(ctk.CTkScrollableFrame):
         # Need to parse the internal signals
         self.switches = []
 
-        proj = hdlprj.HdlgenProject()
+        self.proj = hdlprj.HdlgenProject()
 
-        # for internal_signal in proj.parsed_internal_sigs:
-        #     # name/width
-        #     self.switches.append(ctk.CTkSwitch(self.LHS_frame, text=f"{internal_signal[0]}({internal_signal[1]})", font=switch_font, width=260))
+        index = 0
+        for internal_signal in self.proj.parsed_internal_sigs:
+            # name/width
+            switch_to_create = ctk.CTkSwitch(self.LHS_frame, text=f"{internal_signal[0]}", font=switch_font, width=260, command=lambda int_sig=internal_signal, ind=index: self.switch_handler(int_sig, ind))
+            switch_to_create.deselect()
+            self.switches.append(switch_to_create)
+            index += 1
 
-
+        self.switches_values = [None] * len(self.switches)
 
         # self.sw0 = ctk.CTkSwitch(self.LHS_frame, text="intTC", font=switch_font, width=140)
         # self.sw1 = ctk.CTkSwitch(self.LHS_frame, text="NS", font=switch_font, width=140)
@@ -380,7 +385,43 @@ class PortConfigTab(ctk.CTkScrollableFrame):
         self.led3_entry = ctk.CTkEntry(self.RHS_frame, placeholder_text="(0-63)", width=55, font=switch_font)
         self.led3_entry_placeholder = ctk.CTkLabel(self.RHS_frame,text="")
 
+    def switch_handler(self, internal_signal, index):
+        if self.switches[index].get() == 1:
+            self.switches_values[index] = internal_signal
+        else:
+            self.switches_values[index] = None
 
+        print(self.switches_values)
+
+    def update_dropdown_values(self):
+
+        # 1) First we need to get the possible options.
+        # 2) Get all the currently selected options and set it as values for each dropdown
+        # 3) If an option doesn't exist. We can reset it.
+
+        dropdown_options_dict = {}
+
+        for port in self.proj.parsed_ports:
+            dropdown_options_dict[port[0]] = port[2]
+
+
+
+
+
+        active_switch_values = []
+        for switch in self.switches:
+            if switch.get() == 1:
+                # Switch is checked on
+                active_switch_values.append(switch.cget('text'))
+
+        for active_val in active_switch_values:
+            for sig in self.proj.parsed_internal_sigs:
+                if sig[0] == active_val:
+                    dropdown_options_dict[sig[0]]
+
+
+
+        
 
     def resize(self, event):
         # print("Am I getting called")
@@ -403,16 +444,6 @@ class PortConfigTab(ctk.CTkScrollableFrame):
             number_of_columns = 2
         else:
             number_of_columns = 3
-
-
-
-        # Calc number of columns in the LHS frame
-        # if event.width < x: # Single Column
-        # elif event.width < x: Double Column
-        # number_of_columns = 2
-        # # else:
-        # number_of_columns = 3
-
 
         self.LHS_frame.grid(row=0, column=0, sticky='n')
         # 1) Place the widget
@@ -469,8 +500,6 @@ class IOConfigTab(ctk.CTkFrame):
     def __init__(self, parent):
         super().__init__(parent)
         self.parent = parent
-
-
 
         ## Row 0
         # Title Label
