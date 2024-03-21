@@ -1,5 +1,7 @@
 import xml.dom.minidom
 import application.xml_manager as xmlm
+from datetime import datetime, timedelta
+import time
 
 class HdlgenProject:
 
@@ -211,3 +213,48 @@ class HdlgenProject:
                 # print(gpio_type)
             new_array.append([gpio_name, gpio_width])
         return new_array
+    
+    ###################################
+    ########## Build Project ##########
+    ###################################
+    def build_project(self, buildstatuspage=None):
+        pass
+
+    # Steps?
+    # 1) Load the XML configuration
+    # 2) Run everything as we need.
+    # 2.5) Update Build Status Flags
+    # 3) Everything handles it self anyways for most part.
+
+
+
+    ##############################################
+    ########## Update Build Status Page ##########
+    ##############################################
+    def update_build_status(self, buildstatuspage):
+        # We will need to listen to a number of flags.
+        options = ["gen_tcl", "run_viv", "opn_prj", "bld_bdn", "run_syn", "run_imp", "gen_bit", "gen_jnb", "cpy_out"]
+        last_time_tcl = "00:00"
+        # This function is going to be threaded tfk cos effort.
+        while not self.build_complete:
+            time.sleep(1)
+            # Need to simply listen for flags
+            if self.gen_tcl_running:
+                buildstatuspage.gen_tcl_statusbar.start()
+                last_time_tcl = self.add_one_second(last_time_tcl)
+                buildstatuspage.gen_tcl_time_lbl.configure(text=last_time_tcl)
+
+    ################################################
+    ########## Add Second to MM:SS string ##########
+    ################################################
+    def add_one_second(self, time_str):
+        # Convert the time string to a datetime object
+        time_obj = datetime.strptime(time_str, "%M:%S")
+        
+        # Add one second to the time object
+        new_time_obj = time_obj + timedelta(seconds=1)
+        
+        # Convert the new time object back to the string format
+        new_time_str = new_time_obj.strftime("%M:%S")
+        
+        return new_time_str
