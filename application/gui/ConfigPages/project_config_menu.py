@@ -447,22 +447,22 @@ class PortConfigTab(ctk.CTkScrollableFrame):
 
         self.led0_lbl.grid(row=4, column=0, padx=5, pady=5, sticky='e')
         self.led0_dropdown.grid(row=4, column=1, padx=5, pady=5)
-        self.led0_entry.grid(row=4, column=2, padx=5, pady=5, sticky='w')
+        # self.led0_entry.grid(row=4, column=2, padx=5, pady=5, sticky='w')
         # self.led0_entry_placeholder.grid(row=2, column=3, padx=5, pady=5)
 
         self.led1_lbl.grid(row=5, column=0, padx=5, pady=5, sticky='e')
         self.led1_dropdown.grid(row=5, column=1, padx=5, pady=5)
-        self.led1_entry.grid(row=5, column=2, padx=5, pady=5, sticky='w')
+        # self.led1_entry.grid(row=5, column=2, padx=5, pady=5, sticky='w')
         # self.led1_entry_placeholder.grid(row=3, column=3, padx=5, pady=5)
 
         self.led2_lbl.grid(row=6, column=0, padx=5, pady=5, sticky='e')
         self.led2_dropdown.grid(row=6, column=1, padx=5, pady=5)
-        self.led2_entry.grid(row=6, column=2, padx=5, pady=5, sticky='w')
+        # self.led2_entry.grid(row=6, column=2, padx=5, pady=5, sticky='w')
         # self.led2_entry_placeholder.grid(row=4, column=3, padx=5, pady=5)
 
         self.led3_lbl.grid(row=7, column=0, padx=5, pady=5, sticky='e')
         self.led3_dropdown.grid(row=7, column=1, padx=5, pady=5)
-        self.led3_entry.grid(row=7, column=2, padx=5, pady=5, sticky='w')
+        # self.led3_entry.grid(row=7, column=2, padx=5, pady=5, sticky='w')
         # self.led3_entry_placeholder.grid(row=5, column=3, padx=5, pady=5)
 
 class IOConfigTab(ctk.CTkFrame):
