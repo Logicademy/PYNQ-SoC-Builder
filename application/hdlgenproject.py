@@ -284,7 +284,7 @@ class HdlgenProject:
             if last_build_step == None:
                 continue
             self.buildstatuspage.set_build_status(last_build_step, 'running')
-            while self.current_step == last_build_step:
+            while self.current_step == last_build_step and self.build_running:
                 time.sleep(1)
                 self.buildstatuspage.increment_time(last_build_step)
                 if self.current_step in ['opn_prj', 'bld_bdn', 'run_syn', 'run_imp', 'gen_bit']:
@@ -292,6 +292,8 @@ class HdlgenProject:
 
                 if not self.build_running and not self.error_at_build_step:
                     self.buildstatuspage.set_build_status(last_build_step, 'success')
+                    
+            # print("Do I pass this threshold?")
 
             if self.error_at_build_step:
                 self.buildstatuspage.set_build_status(last_build_step, 'failed')
@@ -299,7 +301,7 @@ class HdlgenProject:
                     self.buildstatuspage.set_build_status('run_viv', 'failed')
                 return  # Return from the function completely if this happens.
             else:
-                if self.current_step == 'gen_bit':
+                if self.current_step == 'cpy_out':
                     self.buildstatuspage.set_build_status('run_viv', 'success')
                 self.buildstatuspage.set_build_status(last_build_step, 'success')
             
