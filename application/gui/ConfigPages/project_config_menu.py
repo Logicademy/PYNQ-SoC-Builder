@@ -454,12 +454,12 @@ class BuildStatusTab(ctk.CTkScrollableFrame):
                 'name' : self.gen_jnb_name_lbl
             },
             "cpy_out": {
-                'frame' : self.cpy_out_frame,
-                'est' : self.cpy_out_est_lbl,
-                'time' : self.cpy_out_time_lbl,
-                'status' : self.cpy_out_status_lbl,
-                'progbar' : self.cpy_out_statusbar,
-                'name' : self.cpy_out_name_lbl
+                'frame' : self.cpy_dir_frame,
+                'est' : self.cpy_dir_est_lbl,
+                'time' : self.cpy_dir_time_lbl,
+                'status' : self.cpy_dir_status_lbl,
+                'progbar' : self.cpy_dir_statusbar,
+                'name' : self.cpy_dir_name_lbl
             }
         }
 
@@ -478,13 +478,13 @@ class BuildStatusTab(ctk.CTkScrollableFrame):
         # mode = ["gen_tcl", "opn_prj", "bld_bdn", "run_syn", "run_imp", "gen_bit", "gen_jnb", "cpy_out"]
         # state = ["idle", "waiting", "running", "failed", "success"]
 
-        idle_color = "#2e86c1"
-        waiting_color = "#b7950b"
-        running_color = "#d4ac0d"
+        idle_color = "#424949 "
+        waiting_color = "#2980b9"
+        running_color = "#2980b9"
         failed_color = "#e74c3c" 
         success_color = "#239b56"
 
-        target_task = self.obj_dict['mode']
+        target_task = self.obj_dict[mode]
 
         if state == 'idle':
             # 1) Set text to idle.
@@ -522,8 +522,9 @@ class BuildStatusTab(ctk.CTkScrollableFrame):
             # 4) Stop the bar movement, set to determinate and 100%
             target_task['status'].configure(text="Failed")
             target_task['progbar'].configure(mode="determinate", progress_color=failed_color)
-            target_task['progbar'].set(1)
             target_task['progbar'].stop()
+            target_task['progbar'].set(1)
+            
         elif state == 'success':
             # 1) Set text to success.
             # 2) No need to update the time.
@@ -531,8 +532,9 @@ class BuildStatusTab(ctk.CTkScrollableFrame):
             # 4) Stop the bar movement, set to determinate and 100%
             target_task['status'].configure(text="Complete")
             target_task['progbar'].configure(mode="determinate", progress_color=success_color)
-            target_task['progbar'].set(1)
             target_task['progbar'].stop()
+            target_task['progbar'].set(1)
+
 
     def increment_time(self, modes):
         try:
@@ -540,13 +542,13 @@ class BuildStatusTab(ctk.CTkScrollableFrame):
                 target_task = self.obj_dict[modes]
                 last_val = target_task['time'].cget('text')
                 next_val = self.add_one_second(last_val)
-                target_task.configure(text=next_val)
+                target_task['time'].configure(text=next_val)
             elif isinstance(modes, list):
                 for mode in modes:
                     target_task = self.obj_dict[mode]
                     last_val = target_task['time'].cget('text')
                     next_val = self.add_one_second(last_val)
-                    target_task.configure(text=next_val)
+                    target_task['time'].configure(text=next_val)
             else:
                 print("String nor list passed")
         except Exception as e:
