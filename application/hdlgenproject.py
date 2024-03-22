@@ -218,6 +218,9 @@ class HdlgenProject:
     ###################################
     ########## Build Project ##########
     ###################################
+    def set_build_status_page(self, buildstatuspage):
+        self.buildstatuspage = buildstatuspage
+
     def build_project(self, buildstatuspage=None):
         
         self.build_running = True    # Flag that build has started
@@ -228,7 +231,7 @@ class HdlgenProject:
 
         thread1.start()
         thread2.start()
-        
+
     # Steps?
     # 1) Load the XML configuration
     # 2) Run everything as we need.
@@ -259,65 +262,99 @@ class HdlgenProject:
     ##############################################
     ########## Update Build Status Page ##########
     ##############################################
-    def update_build_status(self, buildstatuspage):
+    def update_build_status(self):
         # We will need to listen to a number of flags.
         options = ["gen_tcl", "run_viv", "opn_prj", "bld_bdn", "run_syn", "run_imp", "gen_bit", "gen_jnb", "cpy_out"]
         last_time_tcl = "00:00"
         # This function is going to be threaded tfk cos effort.
 
         # All status boxes need to be set to the "waiting" state.
-        buildstatuspage.gen_tcl_status_lbl.configure(text="Waiting")
-        buildstatuspage.run_viv_status_lbl.configure(text="Waiting")
-        buildstatuspage.run_viv0_status_lbl.configure(text="Waiting")
-        buildstatuspage.run_viv1_status_lbl.configure(text="Waiting")
-        buildstatuspage.run_viv2_status_lbl.configure(text="Waiting")
-        buildstatuspage.run_viv3_status_lbl.configure(text="Waiting")
-        buildstatuspage.run_viv4_status_lbl.configure(text="Waiting")
-        buildstatuspage.gen_jnb_status_lbl.configure(text="Waiting")
-        buildstatuspage.cpy_dir_status_lbl.configure(text="Waiting")
+        # self.buildstatuspage.gen_tcl_status_lbl.configure(text="Waiting")
+        # self.buildstatuspage.run_viv_status_lbl.configure(text="Waiting")
+        # self.buildstatuspage.run_viv0_status_lbl.configure(text="Waiting")
+        # self.buildstatuspage.run_viv1_status_lbl.configure(text="Waiting")
+        # self.buildstatuspage.run_viv2_status_lbl.configure(text="Waiting")
+        # self.buildstatuspage.run_viv3_status_lbl.configure(text="Waiting")
+        # self.buildstatuspage.run_viv4_status_lbl.configure(text="Waiting")
+        # self.buildstatuspage.gen_jnb_status_lbl.configure(text="Waiting")
+        # self.buildstatuspage.cpy_dir_status_lbl.configure(text="Waiting")
+        modes = ["gen_tcl", "opn_prj", "bld_bdn", "run_syn", "run_imp", "gen_bit", "gen_jnb", "cpy_out"]
+
+        for mode in modes:
+            self.buildstatuspage.set_build_status(mode, 'waiting')
 
         while self.build_running:
             time.sleep(1)
             # Need to simply listen for flags
             if self.current_step == "gen_tcl":
-                buildstatuspage.gen_tcl_statusbar.start()
+                self.buildstatuspage.gen_tcl_statusbar.start()
                 last_time_tcl = self.add_one_second(last_time_tcl)
-                buildstatuspage.gen_tcl_time_lbl.configure(text=last_time_tcl)
-
+                self.buildstatuspage.gen_tcl_time_lbl.configure(text=last_time_tcl)
+                self.buildstatuspage.gen_tcl_status_lbl.configure(text="Running")
             elif self.current_step == "opn_prj":
-                buildstatuspage.gen_tcl_statusbar.start()
+                self.buildstatuspage.run_viv_statusbar.start()
+                self.buildstatuspage.run_viv0_statusbar.start()
+                # self.buildstatuspage.run_viv_statusbar.start()
+                # self.buildstatuspage.run_viv0_statusbar.start()
                 last_time_tcl = self.add_one_second(last_time_tcl)
-                buildstatuspage.gen_tcl_time_lbl.configure(text=last_time_tcl)
-
+                self.buildstatuspage.run_viv_time_lbl.configure(text=last_time_tcl)
+                self.buildstatuspage.run_viv0_time_lbl.configure(text=last_time_tcl)
+                self.buildstatuspage.gen_tcl_status_lbl.configure(text="Complete")
+                self.buildstatuspage.run_viv_status_lbl.configure(text="Running")
+                self.buildstatuspage.run_viv0_status_lbl.configure(text="Running")
             elif self.current_step == "bld_bdn":
-                buildstatuspage.gen_tcl_statusbar.start()
+                self.buildstatuspage.run_viv0_statusbar.stop()
+                self.buildstatuspage.run_viv1_statusbar.start()
+                # self.buildstatuspage.run_viv_statusbar.start()
+                # self.buildstatuspage.run_viv0_statusbar.start()
                 last_time_tcl = self.add_one_second(last_time_tcl)
-                buildstatuspage.gen_tcl_time_lbl.configure(text=last_time_tcl)
-
+                self.buildstatuspage.run_viv_time_lbl.configure(text=last_time_tcl)
+                self.buildstatuspage.run_viv1_time_lbl.configure(text=last_time_tcl)
+                self.buildstatuspage.run_viv0_status_lbl.configure(text="Complete")
+                self.buildstatuspage.run_viv_status_lbl.configure(text="Running")
+                self.buildstatuspage.run_viv1_status_lbl.configure(text="Running")
             elif self.current_step == "run_syn":
-                buildstatuspage.gen_tcl_statusbar.start()
+                self.buildstatuspage.run_viv1_statusbar.stop()
+                self.buildstatuspage.run_viv2_statusbar.start()
+                # self.buildstatuspage.run_viv_statusbar.start()
+                # self.buildstatuspage.run_viv0_statusbar.start()
                 last_time_tcl = self.add_one_second(last_time_tcl)
-                buildstatuspage.gen_tcl_time_lbl.configure(text=last_time_tcl)
-
+                self.buildstatuspage.run_viv_time_lbl.configure(text=last_time_tcl)
+                self.buildstatuspage.run_viv2_time_lbl.configure(text=last_time_tcl)
+                self.buildstatuspage.run_viv1_status_lbl.configure(text="Complete")
+                self.buildstatuspage.run_viv_status_lbl.configure(text="Running")
+                self.buildstatuspage.run_viv2_status_lbl.configure(text="Running")
             elif self.current_step == "run_imp":
-                buildstatuspage.gen_tcl_statusbar.start()
+                self.buildstatuspage.run_viv2_statusbar.stop()
+                self.buildstatuspage.run_viv3_statusbar.start()
+                # self.buildstatuspage.run_viv_statusbar.start()
+                # self.buildstatuspage.run_viv0_statusbar.start()
                 last_time_tcl = self.add_one_second(last_time_tcl)
-                buildstatuspage.gen_tcl_time_lbl.configure(text=last_time_tcl)
-
+                self.buildstatuspage.run_viv_time_lbl.configure(text=last_time_tcl)
+                self.buildstatuspage.run_viv3_time_lbl.configure(text=last_time_tcl)
+                self.buildstatuspage.run_viv2_status_lbl.configure(text="Complete")
+                self.buildstatuspage.run_viv_status_lbl.configure(text="Running")
+                self.buildstatuspage.run_viv3_status_lbl.configure(text="Running")
             elif self.current_step == "gen_bit":
-                buildstatuspage.gen_tcl_statusbar.start()
+                self.buildstatuspage.run_viv3_statusbar.stop()
+                self.buildstatuspage.run_viv4_statusbar.start()
+                # self.buildstatuspage.run_viv_statusbar.start()
+                # self.buildstatuspage.run_viv0_statusbar.start()
                 last_time_tcl = self.add_one_second(last_time_tcl)
-                buildstatuspage.gen_tcl_time_lbl.configure(text=last_time_tcl)
-
+                self.buildstatuspage.run_viv_time_lbl.configure(text=last_time_tcl)
+                self.buildstatuspage.run_viv4_time_lbl.configure(text=last_time_tcl)
+                self.buildstatuspage.run_viv3_status_lbl.configure(text="Complete")
+                self.buildstatuspage.run_viv_status_lbl.configure(text="Running")
+                self.buildstatuspage.run_viv4_status_lbl.configure(text="Running")
             elif self.current_step == "gen_jnb":
-                buildstatuspage.gen_tcl_statusbar.start()
+                self.buildstatuspage.gen_tcl_statusbar.start()
                 last_time_tcl = self.add_one_second(last_time_tcl)
-                buildstatuspage.gen_tcl_time_lbl.configure(text=last_time_tcl)
+                self.buildstatuspage.gen_tcl_time_lbl.configure(text=last_time_tcl)
 
             elif self.current_step == "cpy_out":
-                buildstatuspage.gen_tcl_statusbar.start()
+                self.buildstatuspage.gen_tcl_statusbar.start()
                 last_time_tcl = self.add_one_second(last_time_tcl)
-                buildstatuspage.gen_tcl_time_lbl.configure(text=last_time_tcl)
+                self.buildstatuspage.gen_tcl_time_lbl.configure(text=last_time_tcl)
 
         if self.error_at_build_step == "gen_tcl":
             pass

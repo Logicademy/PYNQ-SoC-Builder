@@ -59,10 +59,11 @@ class SidebarMenu(ctk.CTkScrollableFrame):
             height=40, 
             font=button_font,
             fg_color=green_fg_clr,
-            hover_color=green_hv_clr
+            hover_color=green_hv_clr,
+            command=self.run_build
         )
         self.build_button.grid(row=1, column=0, pady=10)
-        self.build_button = ctk.CTkButton(
+        self.gen_jnb_button = ctk.CTkButton(
             self, 
             text="Create Jupyter Notebook", 
             width=225, 
@@ -71,10 +72,10 @@ class SidebarMenu(ctk.CTkScrollableFrame):
             fg_color=green_fg_clr,
             hover_color=green_hv_clr
         )
-        self.build_button.grid(row=2, column=0, pady=10)
+        self.gen_jnb_button.grid(row=2, column=0, pady=10)
 
-        self.build_button = ctk.CTkButton(self, text="Launch FPGA", width=225, height=40, font=button_font)
-        self.build_button.grid(row=3, column=0, pady=10)
+        self.fpga_button = ctk.CTkButton(self, text="Launch FPGA", width=225, height=40, font=button_font)
+        self.fpga_button.grid(row=3, column=0, pady=10)
         # self.build_button = ctk.CTkButton(self, text="Local FPGA", width=225, height=40, font=button_font)
         # self.build_button.grid(row=4, column=0, pady=10)
 
@@ -90,7 +91,7 @@ class SidebarMenu(ctk.CTkScrollableFrame):
         )
         self.help_button.grid(row=5, column=0, pady=10)
 
-        self.build_button = ctk.CTkButton(
+        self.close_button = ctk.CTkButton(
             self,
             text="Close Project", 
             width=225, 
@@ -100,7 +101,7 @@ class SidebarMenu(ctk.CTkScrollableFrame):
             hover_color=red_hv_clr,
             command=self.parent.close_project
         )
-        self.build_button.grid(row=6, column=0, pady=10)
+        self.close_button.grid(row=6, column=0, pady=10)
 
     def resize(self, event):
         # print("SidebarMenu Menu is called")
@@ -110,7 +111,11 @@ class SidebarMenu(ctk.CTkScrollableFrame):
         self.parent.app.path_to_markdown = "README.md"
         self.parent.app.open_markdown()
 
+    def load_project(self):
+        self.hdlgen_prj = self.parent.hdlgen_prj
 
+    def run_build(self):
+        self.hdlgen_prj.build_project()
 
 ##########################################
 ##### Config Menu Frame (Top Config) #####
@@ -240,7 +245,7 @@ class MainPage(ctk.CTkFrame):
 
         self.logMenu.load_project()
         self.configMenu.load_project()
-        # self.sidebarMenu.load_project()
+        self.sidebarMenu.load_project()
 
         # Assuming all has been run to load the project, I can now call the function to write to log box
         self.hdlgen_prj.add_to_build_log("Add a load project message running through the hdlgenprj object!!\n")

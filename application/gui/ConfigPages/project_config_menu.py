@@ -1,6 +1,7 @@
 import customtkinter as ctk
 import application.hdlgenproject as hdlprj
 import application.xml_manager as xmlm
+from datetime import datetime, timedelta
 
 class ConfigTabView(ctk.CTkTabview):
     def __init__(self, parent):
@@ -386,6 +387,84 @@ class BuildStatusTab(ctk.CTkScrollableFrame):
         self.gen_jnb_frame.grid(row=8, column=0, sticky='w')
         self.cpy_dir_frame.grid(row=9, column=0, sticky='w')
 
+
+        self.obj_dict = {
+            "gen_tcl": {
+                'frame' : self.gen_tcl_frame,
+                'est' : self.gen_tcl_est_lbl,
+                'time' : self.gen_tcl_time_lbl,
+                'status' : self.gen_tcl_status_lbl,
+                'progbar' : self.gen_tcl_statusbar,
+                'name' : self.gen_tcl_name_lbl
+            },
+            "run_viv":{
+                'frame' : self.run_viv_frame,
+                'est' : self.run_viv_est_lbl,
+                'time' : self.run_viv_time_lbl,
+                'status' : self.run_viv_status_lbl,
+                'progbar' : self.run_viv_statusbar,
+                'name' : self.run_viv_name_lbl
+            },
+            "opn_prj":{
+                'frame' : self.run_viv0_frame,
+                'est' : self.run_viv0_est_lbl,
+                'time' : self.run_viv0_time_lbl,
+                'status' : self.run_viv0_status_lbl,
+                'progbar' : self.run_viv0_statusbar,
+                'name' : self.run_viv0_name_lbl
+            },
+            "bld_bdn": {
+                'frame' : self.run_viv1_frame,
+                'est' : self.run_viv1_est_lbl,
+                'time' : self.run_viv1_time_lbl,
+                'status' : self.run_viv1_status_lbl,
+                'progbar' : self.run_viv1_statusbar,
+                'name' : self.run_viv1_name_lbl
+            },
+            "run_syn": {
+                'frame' : self.run_viv2_frame,
+                'est' : self.run_viv2_est_lbl,
+                'time' : self.run_viv2_time_lbl,
+                'status' : self.run_viv2_status_lbl,
+                'progbar' : self.run_viv2_statusbar,
+                'name' : self.run_viv2_name_lbl
+            },
+            "run_imp": {
+                'frame' : self.run_viv3_frame,
+                'est' : self.run_viv3_est_lbl,
+                'time' : self.run_viv3_time_lbl,
+                'status' : self.run_viv3_status_lbl,
+                'progbar' : self.run_viv3_statusbar,
+                'name' : self.run_viv3_name_lbl
+            },
+            "gen_bit": {
+                'frame' : self.run_viv4_frame,
+                'est' : self.run_viv4_est_lbl,
+                'time' : self.run_viv4_time_lbl,
+                'status' : self.run_viv4_status_lbl,
+                'progbar' : self.run_viv4_statusbar,
+                'name' : self.run_viv4_name_lbl
+            },
+            "gen_jnb": {
+                'frame' : self.gen_jnb_frame,
+                'est' : self.gen_jnb_est_lbl,
+                'time' : self.gen_jnb_time_lbl,
+                'status' : self.gen_jnb_status_lbl,
+                'progbar' : self.gen_jnb_statusbar,
+                'name' : self.gen_jnb_name_lbl
+            },
+            "cpy_out": {
+                'frame' : self.cpy_out_frame,
+                'est' : self.cpy_out_est_lbl,
+                'time' : self.cpy_out_time_lbl,
+                'status' : self.cpy_out_status_lbl,
+                'progbar' : self.cpy_out_statusbar,
+                'name' : self.cpy_out_name_lbl
+            }
+        }
+
+
+
     def resize(self, event):
         # Resize event handler.
         self.configure(width=event.width-330, height=event.height/2-80)
@@ -393,6 +472,100 @@ class BuildStatusTab(ctk.CTkScrollableFrame):
 
     def load_project(self):
         self.hdlgen_prj = self.tabview.hdlgen_prj
+        self.hdlgen_prj.set_build_status_page(self)
+
+    def set_build_status(self, mode, state):
+        # mode = ["gen_tcl", "opn_prj", "bld_bdn", "run_syn", "run_imp", "gen_bit", "gen_jnb", "cpy_out"]
+        # state = ["idle", "waiting", "running", "failed", "success"]
+
+        idle_color = "#2e86c1"
+        waiting_color = "#b7950b"
+        running_color = "#d4ac0d"
+        failed_color = "#e74c3c" 
+        success_color = "#239b56"
+
+        target_task = self.obj_dict['mode']
+
+        if state == 'idle':
+            # 1) Set text to idle.
+            # 2) Reset the time to --:--
+            # 3) Change colour of prog bar to idle_color
+            # 4) Make sure prog bar is stopped and indeterminate mode
+            target_task['time'].configure(text="--:--")
+            target_task['status'].configure(text="Idle")
+            target_task['progbar'].stop()
+            target_task['progbar'].configure(mode="indeterminate", progress_color=idle_color)
+            target_task['progbar'].set(0.5)
+        elif state == 'waiting':
+            # 1) Set text to waiting.
+            # 2) Reset the time to 00:00
+            # 3) Change colour of prog bar to waiting_color
+            # 4) Make sure prog bar is stopped and indeterminate mode
+            target_task['time'].configure(text="00:00")
+            target_task['status'].configure(text="Waiting")
+            target_task['progbar'].stop()
+            target_task['progbar'].configure(mode="indeterminate", progress_color=waiting_color)
+            target_task['progbar'].set(0.5)
+        elif state == 'running':
+            # 1) Set text to running.
+            # 2) Reset the time to 00:00
+            # 3) Change colour of prog bar to running_color and set indeterminate mode
+            # 4) Start the prog bar movement 
+            target_task['time'].configure(text="00:00")
+            target_task['status'].configure(text="Running")
+            target_task['progbar'].configure(mode="indeterminate", progress_color=running_color)
+            target_task['progbar'].start()
+        elif state == 'failed':
+            # 1) Set text to failed.
+            # 2) No need to update the time.
+            # 3) Change colour of prog bar to running_color
+            # 4) Stop the bar movement, set to determinate and 100%
+            target_task['status'].configure(text="Failed")
+            target_task['progbar'].configure(mode="determinate", progress_color=failed_color)
+            target_task['progbar'].set(1)
+            target_task['progbar'].stop()
+        elif state == 'success':
+            # 1) Set text to success.
+            # 2) No need to update the time.
+            # 3) Change colour of prog bar to running_color
+            # 4) Stop the bar movement, set to determinate and 100%
+            target_task['status'].configure(text="Complete")
+            target_task['progbar'].configure(mode="determinate", progress_color=success_color)
+            target_task['progbar'].set(1)
+            target_task['progbar'].stop()
+
+    def increment_time(self, modes):
+        try:
+            if isinstance(modes, str):
+                target_task = self.obj_dict[modes]
+                last_val = target_task['time'].cget('text')
+                next_val = self.add_one_second(last_val)
+                target_task.configure(text=next_val)
+            elif isinstance(modes, list):
+                for mode in modes:
+                    target_task = self.obj_dict[mode]
+                    last_val = target_task['time'].cget('text')
+                    next_val = self.add_one_second(last_val)
+                    target_task.configure(text=next_val)
+            else:
+                print("String nor list passed")
+        except Exception as e:
+            print(f"An error occured: {e}")
+
+    ################################################
+    ########## Add Second to MM:SS string ##########
+    ################################################
+    def add_one_second(self, time_str):
+        # Convert the time string to a datetime object
+        time_obj = datetime.strptime(time_str, "%M:%S")
+        
+        # Add one second to the time object
+        new_time_obj = time_obj + timedelta(seconds=1)
+        
+        # Convert the new time object back to the string format
+        new_time_str = new_time_obj.strftime("%M:%S")
+        
+        return new_time_str
 
 class PortConfigTab(ctk.CTkScrollableFrame):
     def __init__(self, parent, tabview):
