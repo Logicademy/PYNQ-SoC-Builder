@@ -2,6 +2,7 @@ import xml.dom.minidom
 import application.xml_manager as xmlm
 from datetime import datetime, timedelta
 import time
+import threading
 
 class HdlgenProject:
 
@@ -218,15 +219,42 @@ class HdlgenProject:
     ########## Build Project ##########
     ###################################
     def build_project(self, buildstatuspage=None):
-        pass
+        
+        self.build_running = True    # Flag that build has started
+        self.current_step = None     # Set initalise build_step
 
+        thread1 = threading.Thread(target=self.update_build_status)
+        thread2 = threading.Thread(target=self.update_build_status_tester)
+
+        thread1.start()
+        thread2.start()
+        
     # Steps?
     # 1) Load the XML configuration
     # 2) Run everything as we need.
     # 2.5) Update Build Status Flags
     # 3) Everything handles it self anyways for most part.
 
-
+    def update_build_status_tester(self):
+        time.sleep(10)
+        self.current_step = "gen_tcl"
+        time.sleep(10)
+        self.current_step = "opn_prj"
+        time.sleep(10)
+        self.current_step = "bld_bdn"
+        time.sleep(10)
+        self.current_step = "run_syn"
+        time.sleep(10)
+        self.current_step = "run_imp"
+        time.sleep(10)
+        self.current_step = "gen_bit"
+        time.sleep(10)
+        self.current_step = "gen_jnb"
+        time.sleep(10)
+        self.current_step = "cpy_dir"
+        time.sleep(10)
+        self.error_at_build_step = False
+        self.build_running = False
 
     ##############################################
     ########## Update Build Status Page ##########
@@ -236,13 +264,79 @@ class HdlgenProject:
         options = ["gen_tcl", "run_viv", "opn_prj", "bld_bdn", "run_syn", "run_imp", "gen_bit", "gen_jnb", "cpy_out"]
         last_time_tcl = "00:00"
         # This function is going to be threaded tfk cos effort.
-        while not self.build_complete:
+
+        # All status boxes need to be set to the "waiting" state.
+        buildstatuspage.gen_tcl_status_lbl.configure(text="Waiting")
+        buildstatuspage.run_viv_status_lbl.configure(text="Waiting")
+        buildstatuspage.run_viv0_status_lbl.configure(text="Waiting")
+        buildstatuspage.run_viv1_status_lbl.configure(text="Waiting")
+        buildstatuspage.run_viv2_status_lbl.configure(text="Waiting")
+        buildstatuspage.run_viv3_status_lbl.configure(text="Waiting")
+        buildstatuspage.run_viv4_status_lbl.configure(text="Waiting")
+        buildstatuspage.gen_jnb_status_lbl.configure(text="Waiting")
+        buildstatuspage.cpy_dir_status_lbl.configure(text="Waiting")
+
+        while self.build_running:
             time.sleep(1)
             # Need to simply listen for flags
-            if self.gen_tcl_running:
+            if self.current_step == "gen_tcl":
                 buildstatuspage.gen_tcl_statusbar.start()
                 last_time_tcl = self.add_one_second(last_time_tcl)
                 buildstatuspage.gen_tcl_time_lbl.configure(text=last_time_tcl)
+
+            elif self.current_step == "opn_prj":
+                buildstatuspage.gen_tcl_statusbar.start()
+                last_time_tcl = self.add_one_second(last_time_tcl)
+                buildstatuspage.gen_tcl_time_lbl.configure(text=last_time_tcl)
+
+            elif self.current_step == "bld_bdn":
+                buildstatuspage.gen_tcl_statusbar.start()
+                last_time_tcl = self.add_one_second(last_time_tcl)
+                buildstatuspage.gen_tcl_time_lbl.configure(text=last_time_tcl)
+
+            elif self.current_step == "run_syn":
+                buildstatuspage.gen_tcl_statusbar.start()
+                last_time_tcl = self.add_one_second(last_time_tcl)
+                buildstatuspage.gen_tcl_time_lbl.configure(text=last_time_tcl)
+
+            elif self.current_step == "run_imp":
+                buildstatuspage.gen_tcl_statusbar.start()
+                last_time_tcl = self.add_one_second(last_time_tcl)
+                buildstatuspage.gen_tcl_time_lbl.configure(text=last_time_tcl)
+
+            elif self.current_step == "gen_bit":
+                buildstatuspage.gen_tcl_statusbar.start()
+                last_time_tcl = self.add_one_second(last_time_tcl)
+                buildstatuspage.gen_tcl_time_lbl.configure(text=last_time_tcl)
+
+            elif self.current_step == "gen_jnb":
+                buildstatuspage.gen_tcl_statusbar.start()
+                last_time_tcl = self.add_one_second(last_time_tcl)
+                buildstatuspage.gen_tcl_time_lbl.configure(text=last_time_tcl)
+
+            elif self.current_step == "cpy_out":
+                buildstatuspage.gen_tcl_statusbar.start()
+                last_time_tcl = self.add_one_second(last_time_tcl)
+                buildstatuspage.gen_tcl_time_lbl.configure(text=last_time_tcl)
+
+        if self.error_at_build_step == "gen_tcl":
+            pass
+        elif self.error_at_build_step == "opn_prj":
+            pass
+        elif self.error_at_build_step == "bld_bdn":
+            pass
+        elif self.error_at_build_step == "run_syn":
+            pass
+        elif self.error_at_build_step == "run_imp":
+            pass
+        elif self.error_at_build_step == "gen_bit":
+            pass
+        elif self.error_at_build_step == "gen_jnb":
+            pass
+        elif self.error_at_build_step == "cpy_out":
+            pass
+        else:
+            print("Build passed")
 
     ################################################
     ########## Add Second to MM:SS string ##########
