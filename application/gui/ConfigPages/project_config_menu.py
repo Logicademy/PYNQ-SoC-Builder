@@ -584,7 +584,7 @@ class PortConfigTab(ctk.CTkScrollableFrame):
         no_int_font = (default_font, 16, 'bold')
         subtitle_font = (default_font, 16)
         master_switch_font = (default_font, 16, 'bold')
-        switch_font = (default_font, 16)
+        self.switch_font = (default_font, 16)
 
         # Internal Signals Frame
         self.LHS_frame = ctk.CTkFrame(self)
@@ -593,27 +593,12 @@ class PortConfigTab(ctk.CTkScrollableFrame):
 
         self.no_int_signals_lbl = ctk.CTkLabel(self.LHS_frame, width=200, text="No compatible internal signals found", font=no_int_font)
 
-        # Need to parse the internal signals
-        self.switches = []
-
-        self.proj = hdlprj.HdlgenProject()
-
-        index = 0
-        for internal_signal in self.proj.parsed_internal_sigs:
-            # name/width
-            switch_to_create = ctk.CTkSwitch(self.LHS_frame, text=f"{internal_signal[0]}", font=switch_font, width=260, command=lambda int_sig=internal_signal, ind=index: self.switch_handler(int_sig, ind))
-            switch_to_create.deselect()
-            self.switches.append(switch_to_create)
-            index += 1
-
-        self.switches_values = [None] * len(self.switches)
-
-        # self.sw0 = ctk.CTkSwitch(self.LHS_frame, text="intTC", font=switch_font, width=140)
-        # self.sw1 = ctk.CTkSwitch(self.LHS_frame, text="NS", font=switch_font, width=140)
-        # self.sw2 = ctk.CTkSwitch(self.LHS_frame, text="CS", font=switch_font, width=140)
-        # self.sw3 = ctk.CTkSwitch(self.LHS_frame, text="nextOP", font=switch_font, width=140)
-        # self.sw4 = ctk.CTkSwitch(self.LHS_frame, text="decoded", font=switch_font, width=140)
-        # self.sw5 = ctk.CTkSwitch(self.LHS_frame, text="intSelMux", font=switch_font, width=140)
+        # self.sw0 = ctk.CTkSwitch(self.LHS_frame, text="intTC", font=self.switch_font, width=140)
+        # self.sw1 = ctk.CTkSwitch(self.LHS_frame, text="NS", font=self.switch_font, width=140)
+        # self.sw2 = ctk.CTkSwitch(self.LHS_frame, text="CS", font=self.switch_font, width=140)
+        # self.sw3 = ctk.CTkSwitch(self.LHS_frame, text="nextOP", font=self.switch_font, width=140)
+        # self.sw4 = ctk.CTkSwitch(self.LHS_frame, text="decoded", font=self.switch_font, width=140)
+        # self.sw5 = ctk.CTkSwitch(self.LHS_frame, text="intSelMux", font=self.switch_font, width=140)
 
 
 
@@ -628,35 +613,46 @@ class PortConfigTab(ctk.CTkScrollableFrame):
         self.on_off_switch = ctk.CTkSwitch(self.RHS_frame, text="Enable LEDs?", font=master_switch_font)
         self.on_off_subtext = ctk.CTkLabel(self.RHS_frame, text="If enabled, connect component to LEDs\nIf disabled, no LEDs are connected", font=subtitle_font)
 
-        self.led0_lbl = ctk.CTkLabel(self.RHS_frame, text="LED0", width=50, font=switch_font)
-        self.led0_dropdown = ctk.CTkOptionMenu(self.RHS_frame, values=["signal1", "signal2", "signal3", "signal4", "signal5"], font=switch_font, variable=ctk.StringVar(), width=200, command=lambda signal, io="led0": self.io_optionbox_handler(signal, io))
-        self.led0_entry = ctk.CTkEntry(self.RHS_frame, width=60, font=switch_font)
-        self.led0_entry_placeholder = ctk.CTkLabel(self.RHS_frame, font=switch_font)
+        self.led0_lbl = ctk.CTkLabel(self.RHS_frame, text="LED0", width=50, font=self.switch_font)
+        self.led0_dropdown = ctk.CTkOptionMenu(self.RHS_frame, font=self.switch_font, variable=ctk.StringVar(), width=200, command=lambda signal, io="led0": self.io_optionbox_handler(signal, io))
+        self.led0_entry = ctk.CTkEntry(self.RHS_frame, width=60, font=self.switch_font)
+        self.led0_entry_placeholder = ctk.CTkLabel(self.RHS_frame, font=self.switch_font)
 
-        self.led1_lbl = ctk.CTkLabel(self.RHS_frame, text="LED1", width=50, font=switch_font)
-        self.led1_dropdown = ctk.CTkOptionMenu(self.RHS_frame, values=["signal1", "signal2", "signal3", "signal4", "signal5"], font=switch_font, variable=ctk.StringVar(), width=200, command=lambda signal, io="led1": self.io_optionbox_handler(signal, io))
-        self.led1_entry = ctk.CTkEntry(self.RHS_frame, width=60, font=switch_font)
+        self.led1_lbl = ctk.CTkLabel(self.RHS_frame, text="LED1", width=50, font=self.switch_font)
+        self.led1_dropdown = ctk.CTkOptionMenu(self.RHS_frame, font=self.switch_font, variable=ctk.StringVar(), width=200, command=lambda signal, io="led1": self.io_optionbox_handler(signal, io))
+        self.led1_entry = ctk.CTkEntry(self.RHS_frame, width=60, font=self.switch_font)
         self.led1_entry_placeholder = ctk.CTkLabel(self.RHS_frame, text="")
 
-        self.led2_lbl = ctk.CTkLabel(self.RHS_frame, text="LED2", width=50, font=switch_font)
-        self.led2_dropdown = ctk.CTkOptionMenu(self.RHS_frame, values=["signal1", "signal2", "signal3", "signal4", "signal5"], font=switch_font, variable=ctk.StringVar(), width=200, command=lambda signal, io="led2": self.io_optionbox_handler(signal, io))
-        self.led2_entry = ctk.CTkEntry(self.RHS_frame, width=60, font=switch_font)
+        self.led2_lbl = ctk.CTkLabel(self.RHS_frame, text="LED2", width=50, font=self.switch_font)
+        self.led2_dropdown = ctk.CTkOptionMenu(self.RHS_frame, font=self.switch_font, variable=ctk.StringVar(), width=200, command=lambda signal, io="led2": self.io_optionbox_handler(signal, io))
+        self.led2_entry = ctk.CTkEntry(self.RHS_frame, width=60, font=self.switch_font)
         self.led2_entry_placeholder = ctk.CTkLabel(self.RHS_frame, text="")
 
-        self.led3_lbl = ctk.CTkLabel(self.RHS_frame, text="LED3", width=50, font=switch_font)
-        self.led3_dropdown = ctk.CTkOptionMenu(self.RHS_frame, values=["signal1", "signal2", "signal3", "signal4", "signal5"], font=switch_font, variable=ctk.StringVar(), width=200, command=lambda signal, io="led3": self.io_optionbox_handler(signal, io))
-        self.led3_entry = ctk.CTkEntry(self.RHS_frame, width=60, font=switch_font)
+        self.led3_lbl = ctk.CTkLabel(self.RHS_frame, text="LED3", width=50, font=self.switch_font)
+        self.led3_dropdown = ctk.CTkOptionMenu(self.RHS_frame, font=self.switch_font, variable=ctk.StringVar(), width=200, command=lambda signal, io="led3": self.io_optionbox_handler(signal, io))
+        self.led3_entry = ctk.CTkEntry(self.RHS_frame, width=60, font=self.switch_font)
         self.led3_entry_placeholder = ctk.CTkLabel(self.RHS_frame,text="")
 
         self.led_optionboxes = [self.led0_dropdown, self.led1_dropdown, self.led2_dropdown, self.led3_dropdown]
-
-        self.update_dropdown_values()
 
     def load_project(self):
         self.hdlgen_prj = self.tabview.hdlgen_prj
         
         # This is a deadend so we can just set all the variables
         hdlgen_prj_proj_config = self.hdlgen_prj.pynqbuildxml.read_proj_config()
+
+        # Need to parse the internal signals
+        self.switches = []
+
+        index = 0
+        for internal_signal in self.hdlgen_prj.parsed_internal_sigs:
+            # name/width
+            switch_to_create = ctk.CTkSwitch(self.LHS_frame, text=f"{internal_signal[0]}", font=self.switch_font, width=260, command=lambda int_sig=internal_signal, ind=index: self.switch_handler(int_sig, ind))
+            switch_to_create.deselect()
+            self.switches.append(switch_to_create)
+            index += 1
+
+        self.switches_values = [None] * len(self.switches)
 
         try:
             use_board_io = hdlgen_prj_proj_config['use_board_io']
@@ -669,7 +665,7 @@ class PortConfigTab(ctk.CTkScrollableFrame):
             print(e)
             print("Couldn't load config from project xml - IO Menu")
 
-
+        self.update_dropdown_values()
         # This is where the IO-Config will be read. But it needs to be updated to store config in a different way.
 
     def switch_handler(self, internal_signal, index):
@@ -688,9 +684,15 @@ class PortConfigTab(ctk.CTkScrollableFrame):
         # 2) Get all the currently selected options and set it as values for each dropdown
         # 3) If an option doesn't exist. We can reset it.
 
+        # If we haven't got a project yet, well don't worry about updating the dropdown values.
+        # I'm pretty sure this isn't called before but here for safety regardless.
+        if not self.hdlgen_prj:
+            return
+
+
         dropdown_options = []
         self.dropdown_dict = {}
-        for port in self.proj.parsed_ports:
+        for port in self.hdlgen_prj.parsed_ports:
             dropdown_options.append(port[0])
             # dropdown_ports.append(port[0], port[2])
             self.dropdown_dict[port[0]] = port[2]

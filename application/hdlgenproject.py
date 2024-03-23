@@ -339,18 +339,7 @@ class HdlgenProject:
             print("\n\nTcl Generation called as force quit flag asserted!")
             return # Return to leave function
 
-        # self.pm_obj.generate_tcl(read_from_xml=True, print_to_log_function=self.add_to_build_log)
-        self.check_generated_path_and_mkdir()
-        tcl_gen.generate_tcl(self.hdlgen_project_path, read_from_xml=True, log_print_func=self.add_to_build_log)
-
-    ######################################################################
-    ###### Check that /PYNQBuild/generated/ dictory exists and mkdir #####
-    ######################################################################
-    def check_generated_path_and_mkdir(self):
-        try:
-            os.makedirs(self.pynq_build_generated_path)
-        except FileExistsError:
-            print("PYNQBuild/generated exists already.")
+        self.pm_obj.generate_tcl(self, self.add_to_build_log)
 
     ##########################################################
     ###### Delete Vivado Log Files (.log, .jou from CWD) #####

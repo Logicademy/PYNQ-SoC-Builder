@@ -221,7 +221,7 @@ class In_Progress_Page(ctk.CTkFrame):
             print(f"The file {self.impl_log_path} does not exist.")
 
 
-        
+
         logger_thread = threading.Thread(target=self.run_logger)
         logger_thread.start()   # Start the logger thread
         syn_thread = threading.Thread(target=self.run_synthesis_logger)

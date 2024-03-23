@@ -345,8 +345,8 @@ def generate_tcl(hdlgen_prj, add_to_log_box):
     except Exception as e:
         add_to_log_box("\nCouldn't load alwys_gen_bd setting from XML - using default: True")
     finally:
-        if not isinstance(alwys_gen_bd, bool): # Check if value is a boolean before continuing
-            alwys_gen_bd = True
+        if not isinstance(regenerate_bd, bool): # Check if value is a boolean before continuing
+            regenerate_bd = True
             add_to_log_box("\nalwys_gen_bd not loaded as boolean, ignoring and using default: True")
 
     # Decision Variables
@@ -466,7 +466,7 @@ def generate_tcl(hdlgen_prj, add_to_log_box):
         if io_map:
             add_to_log_box(f"\nIO Map Present: {io_map}")
 
-        returned_contents, created_signals = generate_connections(hdlgen_prj.name, hdlgen_prj.all_ports_parsed, io_map, hdlgen_prj.location, add_to_log_box)
+        returned_contents, created_signals = generate_connections(hdlgen_prj.name, hdlgen_prj.parsed_ports, io_map, hdlgen_prj.location, add_to_log_box)
         file_contents += returned_contents
 
         file_contents += connect_interconnect_reset_and_run_block_automation(created_signals, add_to_log_box)
