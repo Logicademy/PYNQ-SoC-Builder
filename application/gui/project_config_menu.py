@@ -111,9 +111,9 @@ class ConfigTabView(ctk.CTkTabview):
         self.pynq_board_settings_lbl = ctk.CTkLabel(self.RHS_switch_frame, text="PYNQ Board Settings", font=bold_text_font)
         # self.pynq_board_settings_lbl.grid(row=0, column=3, padx=5, pady=5)
 
-        self.gen_io_var = ctk.StringVar(value="on")
-        self.gen_io_sw = ctk.CTkSwitch(self.RHS_switch_frame, text="Make Connections to Board I/O", 
-                                        variable=self.gen_io_var, onvalue="on", offvalue="off", font=text_font)
+        # self.gen_io_var = ctk.StringVar(value="on")
+        # self.gen_io_sw = ctk.CTkSwitch(self.RHS_switch_frame, text="Make Connections to Board I/O", 
+        #                                 variable=self.gen_io_var, onvalue="on", offvalue="off", font=text_font)
         # self.gen_io_sw.grid(row=1, column=3, padx=5, pady=5, sticky="w")
 
         self.RHS_switch_frame.grid()
@@ -183,6 +183,8 @@ class ConfigTabView(ctk.CTkTabview):
     def load_project(self):
         self.hdlgen_prj = self.parent.hdlgen_prj
 
+        self.hdlgen_prj.set_save_project_function(self.save_project)
+
         self.ioconfigpage.load_project()
         self.buildstatuspage.load_project()
 
@@ -235,13 +237,36 @@ class ConfigTabView(ctk.CTkTabview):
             print(f"\nCouldn't load use_tstpln: {e}")
             self.gen_tst_sw.deselect()
 
-    def load_project_config(self):
-        print(self.hdlgen_path)
-        self.hdlgen_path = "C:\\hdlgen\\March\\DSPProc_Threshold_Luke\\DSPProc\\HDLGenPrj\\DSPProc.hdlgen"
-        xmlmanager = xmlm.Xml_Manager(self.hdlgen_path)
-        project_configuration = xmlmanager.read_proj_config()
+    # def load_project_config(self):
+    #     print(self.hdlgen_path)
+    #     self.hdlgen_path = "C:\\hdlgen\\March\\DSPProc_Threshold_Luke\\DSPProc\\HDLGenPrj\\DSPProc.hdlgen"
+    #     xmlmanager = xmlm.Xml_Manager(self.hdlgen_path)
+    #     project_configuration = xmlmanager.read_proj_config()
 
-        self.ioconfigpage.load_from_project(project_configuration)
+    #     self.ioconfigpage.load_from_project(project_configuration)
+
+
+    # When a project is loaded this function is passed as a class to the hdlgen_prj object, making it accessible.
+    def save_project(self, xml_manager_instance):
+
+        # First we will save the configuration, then we will prompt ioconfigpage to save I/O config. 
+        
+        # Save Config
+        config_dict = {}
+        # Project Config
+        config_dict['open_viv_gui'] = True if self.open_viv_sw.get() == 1 else False
+        config_dict['keep_viv_opn'] = True if self.keep_viv_open_sw.get() == 1 else False
+        config_dict['regen_bd'] = True if self.always_regen_bd_sw.get() == 1 else False
+        config_dict['gen_jnb'] = True if self.gen_when_build_sw.get() == 1 else False
+        config_dict['use_tstpln'] = True if self.gen_tst_sw.get() == 1 else False
+        # IO Config Page (not IO connections)
+        config_dict['use_board_io'] = True if self.ioconfigpage.on_off_switch.get() == 1 else False
+        
+        # Save IO Config Connections
+        self.ioconfigpage.save_io_config(xml_manager_instance)
+
+        # Write Config Dict to XML File
+        xml_manager_instance.write_proj_config(config_dict)
 
 class BuildStatusTab(ctk.CTkScrollableFrame):
     def __init__(self, parent, tabview):
@@ -593,17 +618,6 @@ class PortConfigTab(ctk.CTkScrollableFrame):
 
         self.no_int_signals_lbl = ctk.CTkLabel(self.LHS_frame, width=200, text="No compatible internal signals found", font=no_int_font)
 
-        # self.sw0 = ctk.CTkSwitch(self.LHS_frame, text="intTC", font=self.switch_font, width=140)
-        # self.sw1 = ctk.CTkSwitch(self.LHS_frame, text="NS", font=self.switch_font, width=140)
-        # self.sw2 = ctk.CTkSwitch(self.LHS_frame, text="CS", font=self.switch_font, width=140)
-        # self.sw3 = ctk.CTkSwitch(self.LHS_frame, text="nextOP", font=self.switch_font, width=140)
-        # self.sw4 = ctk.CTkSwitch(self.LHS_frame, text="decoded", font=self.switch_font, width=140)
-        # self.sw5 = ctk.CTkSwitch(self.LHS_frame, text="intSelMux", font=self.switch_font, width=140)
-
-
-
-        # self.switches = [self.sw0, self.sw1, self.sw2, self.sw3, self.sw4, self.sw5]
-
         # LED Connections
         self.RHS_frame = ctk.CTkFrame(self)
 
@@ -635,9 +649,67 @@ class PortConfigTab(ctk.CTkScrollableFrame):
 
         self.led_optionboxes = [self.led0_dropdown, self.led1_dropdown, self.led2_dropdown, self.led3_dropdown]
 
+    def save_io_config(self, xml_instance):
+        # We first load the settings then send it to the XML instance
+        io_config = {
+            "led0":"None",
+            "led1":"None",
+            "led2":"None",
+            "led3":"None",
+            "led4_b":"None",
+            "led4_g":"None",
+            "led4_r":"None",
+            "led5_b":"None",
+            "led5_g":"None",
+            "led5_r":"None"
+        }
+
+        led0_value = self.led0_dropdown.get()
+        led1_value = self.led1_dropdown.get()
+        led2_value = self.led2_dropdown.get()
+        led3_value = self.led3_dropdown.get()
+
+        led0_array = []
+        led1_array = []
+        led2_array = []
+        led3_array = []
+
+
+        if self.led0_entry.grid_info():
+            # This means the entry box is shown and you should read the value.
+            led0_array = [self.led0_dropdown.get(), int(self.led0_entry.get())]
+        else:
+            led0_array = [self.led0_dropdown.get(), 0]
+
+        if self.led1_entry.grid_info():
+            # This means the entry box is shown and you should read the value.
+            led1_array = [self.led1_dropdown.get(), int(self.led1_entry.get())]
+        else:
+            led1_array = [self.led1_dropdown.get(), 0]
+
+        if self.led2_entry.grid_info():
+            # This means the entry box is shown and you should read the value.
+            led2_array = [self.led2_dropdown.get(), int(self.led2_entry.get())]
+        else:
+            led2_array = [self.led2_dropdown.get(), 0]
+
+        if self.led3_entry.grid_info():
+            # This means the entry box is shown and you should read the value.
+            led3_array = [self.led3_dropdown.get(), int(self.led3_entry.get())]
+        else:
+            led3_array = [self.led3_dropdown.get(), 0]
+
+        io_config["led0"] = led0_array
+        io_config["led1"] = led1_array
+        io_config["led2"] = led2_array
+        io_config["led3"] = led3_array
+
+        xml_instance.write_io_config(io_config)
+
     def load_project(self):
         self.hdlgen_prj = self.tabview.hdlgen_prj
         
+
         # This is a deadend so we can just set all the variables
         hdlgen_prj_proj_config = self.hdlgen_prj.pynqbuildxml.read_proj_config()
 
@@ -721,11 +793,11 @@ class PortConfigTab(ctk.CTkScrollableFrame):
                 self.led1_entry.grid(row=5, column=2, padx=5, pady=5, sticky='w')
                 self.led1_entry.configure(placeholder_text=f"(0-{self.dropdown_dict[signal]-1})")
             elif io == "led2":
-                self.led1_entry.grid(row=6, column=2, padx=5, pady=5, sticky='w')
-                self.led1_entry.configure(placeholder_text=f"(0-{self.dropdown_dict[signal]-1})")
+                self.led2_entry.grid(row=6, column=2, padx=5, pady=5, sticky='w')
+                self.led2_entry.configure(placeholder_text=f"(0-{self.dropdown_dict[signal]-1})")
             elif io == "led3":
-                self.led1_entry.grid(row=7, column=2, padx=5, pady=5, sticky='w')
-                self.led1_entry.configure(placeholder_text=f"(0-{self.dropdown_dict[signal]-1})")
+                self.led3_entry.grid(row=7, column=2, padx=5, pady=5, sticky='w')
+                self.led3_entry.configure(placeholder_text=f"(0-{self.dropdown_dict[signal]-1})")
         else:
             print("Forgot box")
             if io == "led0":
@@ -733,9 +805,9 @@ class PortConfigTab(ctk.CTkScrollableFrame):
             elif io == "led1":
                 self.led1_entry.grid_forget()
             elif io == "led2":
-                self.led1_entry.grid_forget()
+                self.led2_entry.grid_forget()
             elif io == "led3":
-                self.led1_entry.grid_forget()
+                self.led3_entry.grid_forget()
 
 
     def resize(self, event):

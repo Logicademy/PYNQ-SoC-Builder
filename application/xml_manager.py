@@ -88,7 +88,7 @@ class Xml_Manager:
         for connection in connections:
             io = connection.getElementsByTagName("io")[0].firstChild.data
             signal = connection.getElementsByTagName("signal")[0].firstChild.data
-
+            pin = connection.getElementByTagName("pin")[0].firstChild.data
             # If the connection goes nowhere, ignore it.
             if signal == None or io == "None":
                 continue
@@ -96,15 +96,18 @@ class Xml_Manager:
             # Add to IO Map
             try:
                 before = io_config[io] # Do this to raise a key error if the IO doesn't exist in IO Map
-                print(signal)
-                io_config[io] = signal
+                print(io, signal, pin)
+                io_config[io] = [signal, int(pin)]
             except KeyError:
                 print(f"The IO ({io}) could not be found in IO map provided. Ignoring connection for: {signal}")
-        
+            except Exception as e:
+                print(f"Error Reading IO Config: {e}")
+
         print(f"Loaded the following io config from file: \n{io_config}")
         return io_config
     
     def write_io_config(self, io_config):
+        print("Perhaps im not called at all?")
         # Load File
         buildconfig = xml.dom.minidom.parse(self.pynq_build_path + "/PYNQBuildConfig.xml")
         # Find root
@@ -121,21 +124,28 @@ class Xml_Manager:
             print("No elements to delete")
 
         for pynq_io, comp_io in io_config.items():
-            if comp_io == None or comp_io == "None":
+            if comp_io == None or comp_io == "None" or comp_io == ['', 0]:
+                print("Do I do any running?")
                 continue    # Skip empty connections
 
             connection = buildconfig.createElement("connection")
 
             signal = buildconfig.createElement("signal")
-            signal_text = buildconfig.createTextNode(comp_io)
+            signal_text = buildconfig.createTextNode(str(comp_io[0]))
             signal.appendChild(signal_text)
 
+            pin = buildconfig.createElement("pin")
+            pin_text = buildconfig.createTextNode(str(comp_io[1]))
+            pin.appendChild(pin_text)
+
             io = buildconfig.createElement("io")
-            io_text = buildconfig.createTextNode(pynq_io)
+            io_text = buildconfig.createTextNode(str(pynq_io))
             io.appendChild(io_text)
 
+            print("AMM I RUNNING???????")
             connection.appendChild(signal)
             connection.appendChild(io)
+            connection.appendChild(pin)
 
             root.getElementsByTagName("ioConfig")[0].appendChild(connection)
 

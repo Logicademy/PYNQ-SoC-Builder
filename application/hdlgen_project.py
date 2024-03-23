@@ -265,12 +265,20 @@ class HdlgenProject:
     def set_build_status_page(self, buildstatuspage):
         self.buildstatuspage = buildstatuspage
 
+    def set_save_project_function(self, save_project):
+        self.save_project = save_project
 
     #########################
     ##### Build Project #####
     #########################
     def build_project(self):
         
+        self.save_project(self.pynqbuildxml)
+
+        print("Saved and not building")
+
+        return
+
         self.add_to_build_log(f"\nBuild project commencing @ {time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))}")
 
         # Try change current tab to the Build Status tab

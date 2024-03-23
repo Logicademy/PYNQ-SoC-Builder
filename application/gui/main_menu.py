@@ -131,8 +131,6 @@ class SidebarMenu(ctk.CTkScrollableFrame):
         self.hdlgen_prj = self.parent.hdlgen_prj
 
     def run_build(self):
-        # It is here that we need to trigger save to XML.
-
         self.hdlgen_prj.build_project()
 
     def open_project_in_file_explorer(self):
@@ -182,6 +180,7 @@ class ConfigMenu(ctk.CTkFrame):
 
         # set the hdlgen_prj object and then pass onwards to the ConfigTabView
         self.tab_view.load_project()
+
 
 ###################################
 ##### Log Menu Frame (Bottom) #####
@@ -279,7 +278,6 @@ class MainPage(ctk.CTkFrame):
 
         # Assuming all has been run to load the project, I can now call the function to write to log box
         self.hdlgen_prj.add_to_build_log("Add a load project message running through the hdlgenprj object!!\n")
-
 
     def hide(self):
         self.pack_forget()
