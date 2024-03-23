@@ -1,293 +1,285 @@
 import customtkinter as ctk
-from tktooltip import ToolTip
 import os
-import application.xml_manager as xmlman
+import time
+import application.gui.ConfigPages.project_config_menu as pcm
+import application.gui.LogPages.log_menu as logm
+import application.hdlgenproject as hdlgenprj
+import webbrowser
 
-class Main_Menu(ctk.CTkFrame):
+
+ctk.set_appearance_mode("System")       # 'Light' 'Dark' or 'System
+ctk.set_default_color_theme("blue")
+
+#######################################################################
+##### Sidebar Menu (Build, Gen, Launch FPGA, Help, Close Project) #####
+#######################################################################
+class SidebarMenu(ctk.CTkScrollableFrame):
+    def __init__(self, parent):
+        super().__init__(parent)
+
+        self.parent = parent
+
+        # set the height of the internal scrollbar to zero
+        # # then it will be expanded vertically to the configured height of "frame"
+        self._scrollbar.configure(height=0)
+
+        window_height = parent.app.get_window_height()
+
+        self.configure(width=250, height=window_height/2)
+        print(window_height/2)
+
+        dummy_label = ctk.CTkLabel(self, text="dummy")
+        default_font = dummy_label.cget("font")
+
+        title_font = (default_font, 24, "bold")
+        button_font = (default_font, 16, 'bold')
+
+        # Green foreground and hover colours 
+        green_fg_clr = "#1D8348"
+        green_hv_clr = "#145a32"
+        
+
+        # Blue foreground and hover colours
+        blue_fg_clr = "#2471A3"
+        blue_hv_clr = "#1A5276"
+
+        # Red foreground and hover colours
+        red_fg_clr = "#CB4335"
+        red_hv_clr = "#943126"
+
+        # Yellow foreground and hover colours
+        yellow_fg_clr = "#b7950b"
+        yellow_hv_clr = "#7d6608"
+
+        self.label = ctk.CTkLabel(self, text="PYNQ SoC Builder", font=title_font, width=250)
+        self.label.grid(row=0, column=0, pady=10)
+
+        self.build_button = ctk.CTkButton(
+            self, 
+            text="Build Project", 
+            width=225, 
+            height=40, 
+            font=button_font,
+            fg_color=green_fg_clr,
+            hover_color=green_hv_clr,
+            command=self.run_build
+        )
+        self.build_button.grid(row=1, column=0, pady=10)
+        self.gen_jnb_button = ctk.CTkButton(
+            self, 
+            text="Create Jupyter Notebook", 
+            width=225, 
+            height=40, 
+            font=button_font,
+            fg_color=green_fg_clr,
+            hover_color=green_hv_clr
+        )
+        self.gen_jnb_button.grid(row=2, column=0, pady=10)
+
+        self.fpga_button = ctk.CTkButton(
+            self,
+            text="Launch FPGA",
+            width=225,
+            height=40,
+            font=button_font
+        )
+        self.fpga_button.grid(row=3, column=0, pady=10)
+
+        self.open_dir_button = ctk.CTkButton(
+            self,
+            text="Open Project Directory",
+            width=225,
+            height=40,
+            font=button_font,
+            command=self.open_project_in_file_explorer
+        )
+        self.open_dir_button.grid(row=4, column=0, pady=10)
+
+        self.help_button = ctk.CTkButton(
+            self,
+            text="Help", 
+            width=225, 
+            height=40, 
+            font=button_font,
+            fg_color=yellow_fg_clr,
+            hover_color=yellow_hv_clr, 
+            command=self.open_help   
+        )
+        self.help_button.grid(row=5, column=0, pady=10)
+
+        self.close_button = ctk.CTkButton(
+            self,
+            text="Close Project", 
+            width=225, 
+            height=40, 
+            font=button_font,
+            fg_color=red_fg_clr,
+            hover_color=red_hv_clr,
+            command=self.parent.close_project
+        )
+        self.close_button.grid(row=7, column=0, pady=10)
+
+    def resize(self, event):
+        # print("SidebarMenu Menu is called")
+        self.configure(height=(event.height/2))
+
+    def open_help(self):
+        self.parent.app.path_to_markdown = "README.md"
+        self.parent.app.open_markdown()
+
+    def load_project(self):
+        self.hdlgen_prj = self.parent.hdlgen_prj
+
+    def run_build(self):
+        # It is here that we need to trigger save to XML.
+
+        self.hdlgen_prj.build_project()
+
+    def open_project_in_file_explorer(self):
+        # Find the directory of the project.
+        self.open_dir(self.hdlgen_prj.location)
+        pass
+
+
+    def open_dir(self, path):
+        if os.path.isdir(path):
+            webbrowser.open('file://' + os.path.realpath(path))
+        else:
+            print("Not a valid directory path")
+
+##########################################
+##### Config Menu Frame (Top Config) #####
+##########################################
+class ConfigMenu(ctk.CTkFrame):
+    def __init__(self, parent):
+        super().__init__(parent)
+        self.parent = parent
+
+        window_height = parent.app.get_window_height()
+        window_width = parent.app.get_window_width()
+
+        self.configure(width=window_width-290, height=window_height/2)
+
+
+        dummy_label = ctk.CTkLabel(self, text="dummy")
+        default_font = dummy_label.cget("font")
+
+        title_font = (default_font, 24, "bold")
+        button_font = (default_font, 16, 'bold')
+
+        self.tab_view = pcm.ConfigTabView(self) # Project Config Menu = pcm
+        self.tab_view.grid(row=0, column=0, padx=10, pady=5)
+
+    def resize(self, event): 
+        # print("Config Menu is called")
+        # Handle how frame gets bigger and smaller.
+        self.tab_view.configure(width=event.width-310, height=event.height/2)
+        self.tab_view.resize(event)
+        self.tab_view.project_config_scrollable.configure(width=event.width-330, height=event.height/2-80)
+
+    def load_project(self):
+        self.hdlgen_prj = self.parent.hdlgen_prj
+
+        # set the hdlgen_prj object and then pass onwards to the ConfigTabView
+        self.tab_view.load_project()
+
+###################################
+##### Log Menu Frame (Bottom) #####
+###################################
+class LogMenu(ctk.CTkFrame):
+    def __init__(self, parent):
+        super().__init__(parent)
+
+        self.parent = parent 
+
+        window_height = parent.app.get_window_height()
+        window_width = parent.app.get_window_width()
+
+        self.configure(width=window_width, height=window_height/2)
+
+
+        dummy_label = ctk.CTkLabel(self, text="dummy")
+        default_font = dummy_label.cget("font")
+
+        title_font = (default_font, 24, "bold")
+        button_font = (default_font, 16, 'bold')
+
+        self.tab_view = logm.LogTabView(self)
+        self.tab_view.grid(row=0, column=0, padx=10, pady=5)
+
+    def resize(self, event):
+        # print("Log Menu is called")
+        # Handle how frame gets bigger and smaller.
+        self.tab_view.configure(width=event.width-20, height=(event.height/2)-20)
+        self.tab_view.resize(event)
+
+    def load_project(self):
+        self.hdlgen_prj = self.parent.hdlgen_prj
+        self.tab_view.load_project()
+
+###############################################
+##### Main Page (The Entire Window Frame) #####
+###############################################
+class MainPage(ctk.CTkFrame):
     def __init__(self, app):
         ctk.CTkFrame.__init__(self, app.root)
-        self.app = app       
+        self.app = app
 
-        row_0_frame = ctk.CTkFrame(self, width=500, height=30, corner_radius=0)
-        row_1_frame = ctk.CTkFrame(self, width=500, height=30)
-        self.row_2_frame = ctk.CTkFrame(self, width=500, height=30)
-        row_3_frame = ctk.CTkFrame(self, width=500)
-        row_3_frame.grid_rowconfigure(0, weight=1)
-        # row_3_frame.grid_rowconfigure(1, weight=1)
-        row_3_frame.grid_columnconfigure(0, weight=1)
-        row_3_frame.grid_columnconfigure(1, weight=1)
-        row_3_frame.grid_columnconfigure(2, weight=1)
-        row_3_frame.columnconfigure(0, weight=1)
-        row_3_frame.columnconfigure(1, weight=1)
-        row_3_frame.columnconfigure(2, weight=1)
-        # self.rowconfigure(3, weight=1)
-        self.columnconfigure(0,weight=1)
-        # row_3_frame.rowconfigure(0, weight=1)
-        # row_3_frame.rowconfigure(1, weight=1)
-        # row_3_frame.rowconfigure(2, weight=1)
-        row_4_frame = ctk.CTkFrame(self, width=500, height=30)
-        row_last_frame = ctk.CTkFrame(self, width=500, height=30)
+        self.configure(
+            height=self.app.get_window_height(),
+            width=self.app.get_window_width()
+        )
 
-        row_0_frame.grid(row=0, sticky="nsew")
-        row_0_frame.columnconfigure(0, weight=1) # Centre the row
-        row_1_frame.grid(row=1, pady=15, padx=10)
-        # self.row_2_frame.grid(row=2,pady=10)
-        row_3_frame.grid(row=3, padx=5, ipady=5, sticky="nsew")
-        # row_4_frame.grid(row=4, padx=5, pady=5)
-
-
-        row_last_frame.grid(row=10, pady=15)
-
-        ## Row 0
-        # Title Label
-        title_font = ("Segoe UI", 20, "bold") # Title font
-        title_label = ctk.CTkLabel(row_0_frame, text="PYNQ SoC Builder", font=title_font, padx=10)
-        title_label.grid(row=0, column=0, sticky="nsew")
-
-        title_label.bind("<Button-3>", self.on_right_button_title_label)
-
-
-        ## Row 1
-        # File path entry and browse button
-        def browse_files():
-            file_path = ctk.filedialog.askopenfilename(filetypes=[("HDLGen Files", "*.hdlgen")])
-            entry_path.delete(0, ctk.END)
-            entry_path.insert(0, file_path)
-
-            proj_config = None
-            # If the file exists, read the config from it.
-            if os.path.exists(file_path.replace("\\", "/")):
-                xmlmanager = xmlman.Xml_Manager(file_path)
-                proj_config = xmlmanager.read_proj_config()
-
-            print("Have I gotted called")
-            if proj_config:
-                print("Have I gotted set")
-
-                # Set the variables
-                try:
-                    print("on" if proj_config['open_viv_gui'] else "off")
-                    self.open_gui_var.set("on" if proj_config['open_viv_gui'] else "off")
-                    if proj_config['open_viv_gui']:
-                        print("Yes")
-                        open_gui_check_box.select()
-                    else:
-                        print("No")
-                        open_gui_check_box.deselect()
-                except:
-                    print("No Open GUI param in XML")
-                
-                try:
-                    self.keep_gui_open_var.set("on" if proj_config['keep_viv_opn'] else "off")
-                    if proj_config['keep_viv_opn']:
-                        keep_gui_open_check_box.select()
-                    else:
-                        keep_gui_open_check_box.deselect()
-                except:
-                    print("No Keep Viv Open param in XML")
-                
-                try:
-                    self.gen_jnb_var.set("on" if proj_config['gen_jnb'] else "off")
-                    if proj_config['gen_jnb']:
-                        gen_jnb_check_box.select()
-                    else:
-                        gen_jnb_check_box.deselect()
-                except:
-                    print("No Gen JNB param in XML")
-                
-                try:
-                    self.use_testplan_var.set("on" if proj_config['use_tstpln'] else "off")
-                    if proj_config['use_tstpln']:
-                        use_testplan_check_box.select()
-                    else:
-                        use_testplan_check_box.deselect()
-                except:
-                    print("No Use Testplan param in XML")
-                
-                try:
-                    self.use_io_var.set("on" if proj_config['use_board_io'] else "off")
-                    if proj_config['use_board_io']:
-                        use_io_check_box.select()
-                    else:
-                        use_io_check_box.deselect()
-                except:
-                    print("No Use Board IO param in XML")
-                
-                checkbox_event()
-
-        entry_path = ctk.CTkEntry(row_1_frame, width=360, placeholder_text="To get started, browse for a .hdlgen project file")
-        browse_button = ctk.CTkButton(row_1_frame, text="Browse", command=browse_files, width=100)
-        entry_path.grid(row=1, column=0, padx=5, pady=5)
-        browse_button.grid(row=1, column=1, padx=5, pady=5)
-
-        ## Row 2
-        # Select Mode
-        mode_font = ("Segoe UI", 16)
-        mode_label = ctk.CTkLabel(self.row_2_frame, text="Mode", font=mode_font, pady=5, width=20)
-
-        self.mode_menu_options = ["Run All", "Generate Tcl", "Run Vivado", "Copy Bitstream", "Gen Jupyter Notebook"]
-        mode_menu_var = ctk.StringVar(self)
-        mode_menu_var.set(self.mode_menu_options[0])
-
-        def on_mode_dropdown(choice):
-            # callback - not currently used
-            # self.app.top_level_message = "We wanna ask a question"
-            # self.app.open_dialog()
-            pass
-
-        mode_dropdown = ctk.CTkOptionMenu(self.row_2_frame, variable=mode_menu_var, values=self.mode_menu_options, command=on_mode_dropdown, width=150)
-        mode_label.grid(row=2, column=0, pady=5, padx=10)
-        mode_dropdown.grid(row=2, column=1, pady=5, padx=10)
-
-        # Row 3
-        ## Checkbox buttons and labels
-        def checkbox_event():
-            # print("Checkbox toggled\topen GUI: ", self.open_gui_var.get())
-            # print("\t\t\topen GUI: ", self.keep_gui_open_var.get())
-            if self.open_gui_var.get() == "on":
-                keep_gui_open_check_box.configure(state="normal")
-            else:
-                keep_gui_open_check_box.configure(state="disabled")
-
-            if self.gen_jnb_var.get() == "on":
-                use_testplan_check_box.configure(state="normal")
-            else:
-                use_testplan_check_box.configure(state="disabled")
-            # self.app.checkbox_values = [self.open_gui_var.get(), self.keep_gui_open_var.get()]
-            
-            if self.use_io_var.get() == "on":
-                configure_io_button.configure(state="normal")
-            else:
-                configure_io_button.configure(state="disabled")
-
-            # Convert to true/false
-            self.app.checkbox_values = [self.open_gui_var.get() == "on", self.keep_gui_open_var.get() == "on", self.gen_jnb_var.get() == "on", self.use_testplan_var.get() == "on", self.use_io_var.get() == "on"]
-
-
-        # vivado config subframe
-        viv_subframe = ctk.CTkFrame(row_3_frame, width=166)
-        # jnb_subframe
-        jnb_subframe = ctk.CTkFrame(row_3_frame, width=166)
-        # io_subframe
-        io_subframe = ctk.CTkFrame(row_3_frame, width=166)
+        self.columnconfigure(1, weight=1)
         
-        viv_subframe.grid(row=0, column=0)
-        jnb_subframe.grid(row=0, column=1)
-        io_subframe.grid(row=0, column=2)
+        # Initalise Sidebar Menu and Grid place
+        self.sidebarMenu = SidebarMenu(self)
+        self.sidebarMenu.grid(row=0, column=0, sticky='news')
+        # Initalise Config Menu and Grid place
+        self.configMenu = ConfigMenu(self)
+        self.configMenu.grid(row=0, column=1, sticky='news')
+        # Initalise Log Menu and Grid place
+        self.logMenu = LogMenu(self)
+        self.logMenu.grid(row=1, column=0, sticky='news', columnspan=2)
 
+        # Bind the resize event to the frame
+        # Left side menu bind 
+        self.bind("<Configure>", self.sidebarMenu.resize)
+        # Config Menu Bind
+        self.bind("<Configure>", self.configMenu.resize)
+        # Logging Area 
+        self.bind("<Configure>", self.logMenu.resize)
 
-        # Vivado config subframe
-        self.open_gui_var = ctk.StringVar(value="on")
-        open_gui_check_box = ctk.CTkCheckBox(viv_subframe, text="Open Vivado GUI", command=checkbox_event,
-                                    variable=self.open_gui_var, onvalue="on", offvalue="off", width=140)
-        open_gui_check_box.grid(row=0, column=0, pady=5, padx=5, sticky = 'nswe')
-
-        self.keep_gui_open_var = ctk.StringVar(value="off")
-        keep_gui_open_check_box = ctk.CTkCheckBox(viv_subframe, text="Keep Vivado Open", command=checkbox_event,
-                                    variable=self.keep_gui_open_var, onvalue="on", offvalue="off", width=140)
-        keep_gui_open_check_box.grid(row=1, column=0, pady=5, padx=5, sticky = 'nswe')
-
-
-        # jnb subframe
-        self.gen_jnb_var = ctk.StringVar(value="on")
-        gen_jnb_check_box = ctk.CTkCheckBox(jnb_subframe, text="Generate JNB", command=checkbox_event,
-                                    variable=self.gen_jnb_var, onvalue="on", offvalue="off", width=140, )
-        gen_jnb_check_box.grid(row=0, column=0, pady=5, padx=5, sticky = 'nswe')
-
-        self.use_testplan_var = ctk.StringVar(value="on")
-        use_testplan_check_box = ctk.CTkCheckBox(jnb_subframe, text="Use Testplan", command=checkbox_event,
-                                    variable=self.use_testplan_var, onvalue="on", offvalue="off", width=140)
-        use_testplan_check_box.grid(row=1, column=0, pady=5, padx=5, sticky = 'nswe')
-
-        # io subframe
-        self.use_io_var = ctk.StringVar(value="on")
-        use_io_check_box = ctk.CTkCheckBox(io_subframe, text="Use Board I/O", command=checkbox_event,
-                                    variable=self.use_io_var, onvalue="on", offvalue="off", width=140)
-        use_io_check_box.grid(row=0, column=0, pady=5, padx=5, sticky = 'nswe')
-
-        def on_io_config_button():
-            self.app.hdlgen_path = entry_path.get()
-            if not os.path.isfile(entry_path.get()):
-                self.app.top_level_message = "Error: Could not find HDLGen file at path specified"
-                self.app.open_alert()
-                return
-            else:
-                self.app.show_page(self.app.page3)
-
-
-        # config = ctk.StringVar(value="on")
-        configure_io_button = ctk.CTkButton(io_subframe, text="Configure I/O", command=on_io_config_button, width=140)
-        configure_io_button.grid(row=1, column=0, pady=5, padx=5, sticky = 'nswe')
-
-        ToolTip(open_gui_check_box, msg="Open Vivado GUI when executing automation steps", delay=0.5)
-        ToolTip(keep_gui_open_check_box, msg="Keep Vivado GUI open once automation steps have completed", delay=0.5)
-        ToolTip(gen_jnb_check_box, msg="Generate Jupyter Notebook file for project", delay=0.5)
-        ToolTip(use_testplan_check_box, msg="Generate JNB to execute each individual test case", delay=0.5)
-        ToolTip(use_io_check_box, msg="Enable to allow connection to PYNQ-Z2 I/O such as LEDs", delay=0.5)
-
-        checkbox_event() # Calling to set default values
-
-        ## Last Row
-        def _on_run_button():
-            self.app.mode = mode_dropdown.get()
-            self.app.hdlgen_path = entry_path.get()
-            
-            # Check if HDLGen file exists - if not send message box and return from this func.
-            if not os.path.isfile(entry_path.get()):
-                self.app.top_level_message = "Error: Could not find HDLGen file at path specified"
-                self.app.open_alert()
-                return
-            
-            # Save the config
-            proj_config = {
-                "open_viv_gui": True if self.open_gui_var.get() == "on" else False,
-                "keep_viv_opn": True if self.keep_gui_open_var.get() == "on" else False,
-                "gen_jnb": True if self.gen_jnb_var.get() == "on" else False,
-                "use_tstpln": True if self.use_testplan_var.get() == "on" else False,
-                "use_board_io": True if self.use_io_var.get() == "on" else False
-            }
-
-            # Available Path entry_path.get().replace("\\", "/")
-            try:
-                xmlmanager = xmlman.Xml_Manager(self.app.hdlgen_path)
-                xmlmanager.write_proj_config(proj_config)
-            except Exception as e:
-                print(f"Couldn't save config: {e}")
-            
-            
-            # Run threaded program:
-            # self.run_pynq_manager()
-            proceed = self.app.page2.run_pynq_manager() # If false, abort.
-            # HDLGen file exists:
-            # Move to page two:
-            if proceed:
-                self.app.show_page(self.app.page2)
-                self.app.root.geometry("500x580")
-            else:
-                # Do nothing
-                pass
-
-        # Go Button
-        run_button = ctk.CTkButton(row_last_frame, text="Run", command=_on_run_button)
-        run_button.grid(row=0, column=0, pady=5, padx=5)
-        remote_button = ctk.CTkButton(row_last_frame, text="Remote Lab", command=self.app.open_remote_menu)
-        remote_button.grid(row=0, column=1, pady=5, padx=5)
-
-    
-
-    def on_right_button_title_label(self, arg):
-        # Second argument provided is the button press event, eg: <ButtonPress event state=Mod1 num=3 x=141 y=12>
-        # print(arg)
-        if self.row_2_frame.winfo_ismapped():
-            self.row_2_frame.grid_forget()
-            self.app.root.geometry("500x240")
-        else:
-            self.row_2_frame.grid(row=2)
-            self.app.root.geometry("500x280")
-
+    def close_project(self):
+        self.app.hdlgen_path = None             # Reset HDLGen Proj variable
+        self.app.show_page(self.app.page2)      # Show main menu again
+        # This will require more checks in future
 
     def show(self):
-        self.pack()
+        self.pack(fill="both", expand=True)
+        self.pack_propagate(False)
+        self.app.root.geometry("1200x800")
+        self.app.root.minsize(800, 500)
+        self.load_project()
+
+    def load_project(self):
+        # This is called when a project has been loaded.
+        self.hdlgen_path = self.app.hdlgen_path # Make the HDLGen path available locally - Might also make this hdlgenproject.py
+        self.app.hdlgen_prj = hdlgenprj.HdlgenProject(self.hdlgen_path)
+        self.hdlgen_prj = self.app.hdlgen_prj
     
+        # The following other classes need to be informed and passed the object:
+        # 1) Log Tabs
+        # 2) Config Tabs
+        # 3) Sidebar Menu
+
+        self.logMenu.load_project()
+        self.configMenu.load_project()
+        self.sidebarMenu.load_project()
+
+        # Assuming all has been run to load the project, I can now call the function to write to log box
+        self.hdlgen_prj.add_to_build_log("Add a load project message running through the hdlgenprj object!!\n")
+
+
     def hide(self):
         self.pack_forget()

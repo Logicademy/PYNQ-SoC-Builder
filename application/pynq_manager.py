@@ -113,20 +113,21 @@ class Pynq_Manager:
 
         return bd_exists
 
-    def generate_tcl(self, regenerate_bd=True, start_gui=True, keep_vivado_open=False, skip_board_config=False, io_map=None, gui_app=None):
+    def generate_tcl(self, hdlgen_prj, add_to_log_box):
         self.check_generated_path_and_mkdir()
-        tcl_gen.generate_tcl(self.hdlgen_project_path, regenerate_bd=regenerate_bd, start_gui=start_gui, keep_vivado_open=keep_vivado_open, skip_board_config=skip_board_config, io_map=io_map, gui_application=gui_app)
+        tcl_gen.generate_tcl(hdlgen_prj, add_to_log_box)
 
-    def run_vivado(self, force_close_flag=None):
-        try:
-            checks.check_for_dashes(self.hdlgen_project_path)
-        except checks.DashesInHDLFileError:
-            print(f"PYNQ Manager Detected Dashes in HDL File {self.hdlgen_project_path}")
-            raise checks.DashesInHDLFileError
-        except Exception as e:
-            print(f"Expection Occured in Run Vivado: {e}")
-            print("Pynq_Manager.run_vivado() returning without action.")
-            return
+    def run_vivado(self, hdlgen_prj, add_to_log_box):
+        # I don't like how this was implemented. I would rather this be flagged sooner.
+        # try:
+        #     checks.check_for_dashes(self.hdlgen_project_path)
+        # except checks.DashesInHDLFileError:
+        #     print(f"PYNQ Manager Detected Dashes in HDL File {self.hdlgen_project_path}")
+        #     raise checks.DashesInHDLFileError
+        # except Exception as e:
+        #     print(f"Expection Occured in Run Vivado: {e}")
+        #     print("Pynq_Manager.run_vivado() returning without action.")
+        #     return
         
         # D:\Xilinx\Vivado\2019.1\bin\vivado.bat -mode tcl -source C:/masters/masters_automation/generate_script.tcl
         try:
@@ -139,19 +140,19 @@ class Pynq_Manager:
 
             while vivado_process.poll() is None:
                 time.sleep(1)
-                if force_close_flag and force_close_flag.is_set():
-                    print("murder vivado")
+                if hdlgen_prj.build_force_quit_event and hdlgen_prj.build_force_quit_event.is_set():
+                    print("PYNQ Manager - Killing Vivado Process")
                     parent = psutil.Process(vivado_process.pid)
                     for child in parent.children(recursive=True):
                         child.terminate()
                     parent.terminate()
-                    print("waiting 2 seconds to allow vivado time to quit")
                     time.sleep(2)
                     break
 
         except Exception as e:
-            print("Exception")
-            print(e)
+            add_to_log_box(f"\nError when executing in Vivado:\n{e}")
+            hdlgen_prj.build_force_quit_event.set() # Set the flag to quit everything.
+            print(f"Exception: {e}")
 
         finally:
             # Ensure the subprocess is terminated even if the thread exits
@@ -187,7 +188,6 @@ class Pynq_Manager:
         except FileExistsError:
             print("PYNQBuild/generated exists already.")
 
-    def generate_jnb(self, generic=False, io_map=False):
+    def generate_jnb(self, hdlgen_prj, add_to_log_box, force_gen=False):
         self.check_path_and_mkdir()
-        dest_path = self.pynq_build_output_path
-        nbg.create_jnb(self.hdlgen_project_path, generic=generic, output_filename=dest_path, io_map=io_map)
+        nbg.create_jnb(hdlgen_prj, add_to_log_box, force_gen=force_gen)
