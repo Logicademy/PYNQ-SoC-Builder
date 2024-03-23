@@ -1,5 +1,5 @@
 import customtkinter as ctk
-import application.hdlgenproject as hdlprj
+import application.hdlgen_project as hdlprj
 import application.xml_manager as xmlm
 from datetime import datetime, timedelta
 

@@ -1,9 +1,9 @@
 import customtkinter as ctk
 import os
 import time
-import application.gui.ConfigPages.project_config_menu as pcm
-import application.gui.LogPages.log_menu as logm
-import application.hdlgenproject as hdlgenprj
+import application.gui.project_config_menu as pcm
+import application.gui.log_menu as logm
+import application.hdlgen_project as hdlgenprj
 import webbrowser
 
 

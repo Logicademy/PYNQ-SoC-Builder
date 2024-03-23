@@ -1,6 +1,6 @@
 import customtkinter as ctk
 import xml.dom.minidom
-import application.hdlgenproject as hdlproj
+import application.hdlgen_project as hdlproj
 #######################################
 #####      Log Frame Tab View     #####
 ##### (Frame with Tabbed Top Bar) #####

@@ -1,7 +1,7 @@
 import customtkinter as ctk
 import application.gui.main_menu as main_menu
 import application.gui.popups as popups
-import application.gui.openproject as openproj
+import application.gui.open_project as openproj
 import threading
 
 class Application:
