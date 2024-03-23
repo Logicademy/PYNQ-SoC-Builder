@@ -221,8 +221,14 @@ class HdlgenProject:
     def set_build_status_page(self, buildstatuspage):
         self.buildstatuspage = buildstatuspage
 
-    def build_project(self, buildstatuspage=None):
+    def build_project(self):
         
+    
+        try:
+            self.buildstatuspage.tabview.set("Build Status")
+        except Exception as e:
+            print(f"Could not set tab to build tab: {e}")
+
         self.build_running = True    # Flag that build has started
         self.current_step = None     # Set initalise build_step
 
