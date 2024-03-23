@@ -271,157 +271,99 @@ verbose_prints = False # Not implemented yet.
 #   a. Set created wrapper as top
 # 12. Run Synthesis, Implementation and Generate Bitstream
 
-def generate_tcl(path_to_hdlgen_project, regenerate_bd=True, start_gui=True, keep_vivado_open=False, skip_board_config=False, io_map=None, gui_application=None, internal_signals=None):
-    # io_map = True   # Force true for testing purposes
-    if io_map == True:
-        # This is the instruction to load from file.
-        xmlmanager = xmlman.Xml_Manager(path_to_hdlgen_project)
-        io_map = xmlmanager.read_io_config()
 
-    # For logging to console window - Look for GUI_APP and use the add_to_log_box API - Seen throughout this project/script.
-    if gui_application:
-        gui_application.add_to_log_box(f"\nRunning Generate Tcl Program")
+def generate_tcl(hdlgen_prj, add_to_log_box):
+    # io_map = True   # Force true for testing purposes
+    # This is the instruction to load from file.
+    xmlmanager = xmlman.Xml_Manager(hdlgen_prj.hdlgen_path)
+    io_map = xmlmanager.read_io_config()
+    proj_config = xmlmanager.read_proj_config()
+
+    add_to_log_box(f"\nRunning Generate Tcl Program")
 
     file_contents = ""
+
     ###################################################################
     ########## Parsing .hdlgen file for required information ##########
     ###################################################################
 
-    hdlgen = xml.dom.minidom.parse(path_to_hdlgen_project)
-    root = hdlgen.documentElement
+    # As of 23/3/24 all the .hdlgen information is parsed in hdlgenproject.py 
+    # - All variables are found here.
 
-    # Project Manager - Settings
-    projectManager = root.getElementsByTagName("projectManager")[0]
-    projectManagerSettings = projectManager.getElementsByTagName("settings")[0]
-    name = projectManagerSettings.getElementsByTagName("name")[0].firstChild.data
-    environment = projectManagerSettings.getElementsByTagName("environment")[0].firstChild.data
-    location = projectManagerSettings.getElementsByTagName("location")[0].firstChild.data
-
-    # Project Manager - HDL
-    projectManagerHdl = projectManager.getElementsByTagName("HDL")[0]
-    language = projectManagerHdl.getElementsByTagName("language")[0]
-    project_language = language.getElementsByTagName("name")[0].firstChild.data
-
-    if gui_application:
-        gui_application.add_to_log_box(f"\nLoaded HDLGen Project: {name} at {path_to_hdlgen_project}")
-
-
-    # genFolder - VHDL Folders
-    genFolder = root.getElementsByTagName("genFolder")[0]
-    try:
-        model_folder = genFolder.getElementsByTagName("vhdl_folder")[0]
-        testbench_folder = genFolder.getElementsByTagName("vhdl_folder")[1]
-        # ChatGPT_folder = genFolder.getElementsByTagName("vhdl_folder")[2]             # Commented as not needed
-        # ChatGPT_Backups_folder = genFolder.getElementsByTagName("vhdl_folder")[3]     # Commented as not needed
-        AMDproj_folder = genFolder.getElementsByTagName("vhdl_folder")[4]
-    except Exception:
-        model_folder = genFolder.getElementsByTagName("verilog_folder")[0]
-        testbench_folder = genFolder.getElementsByTagName("verilog_folder")[1]
-        AMDproj_folder = genFolder.getElementsByTagName("verilog_folder")[4]
-    AMDproj_folder_rel_path = AMDproj_folder.firstChild.data
-
-    # hdlDesign - entityIOPorts
-    hdlDesign = root.getElementsByTagName("hdlDesign")[0]
-    entityIOPorts = hdlDesign.getElementsByTagName("entityIOPorts")[0]
-    signals = entityIOPorts.getElementsByTagName("signal")
-
-    if gui_application:
-        gui_application.add_to_log_box(f"\nHDLGen XML Loaded Successfully")
-
-    all_ports = []
-    for sig in signals:
-        signame = sig.getElementsByTagName("name")[0]
-        mode = sig.getElementsByTagName("mode")[0]
-        type = sig.getElementsByTagName("type")[0]
-        desc = sig.getElementsByTagName("description")[0]
-        all_ports.append(
-            [signame.firstChild.data, mode.firstChild.data, type.firstChild.data, desc.firstChild.data]
-        )
-    # All ports recieved as in HDLGen XML.
-    #    signame = sig.getElementsByTagName("name")[0]
-    #    mode = sig.getElementsByTagName("mode")[0]
-    #    type = sig.getElementsByTagName("type")[0]
-    #    desc = sig.getElementsByTagName("description")[0]
-    # Job here is to convert into:
-    # [signal_name, gpio_mode, gpio_width]
-    all_ports_parsed = parse_all_ports(all_ports)
-
-    # # TODO: Internal Signals to be added
-    # if internal_signals:
-    #     for port in internal_signals:
-    #         all_ports_parsed.append(port)
-
-    if gui_application:
-        gui_application.add_to_log_box(f"\nFound Signals:")
-        for sig in all_ports:
-            gui_application.add_to_log_box(f"\n    {sig[0]}, {sig[1]}, {sig[2]}")
-
-    # Derived Variables
-    location = location.replace('\\', '/')
-    environment = environment.replace('\\', '/')
-    path_to_xpr = environment + "/" + AMDproj_folder_rel_path + "/" + name + ".xpr"    #   hotfix changed to environment
-    bd_filename = name + "_bd"
-    module_source = name
-    path_to_bd = environment + "/" + AMDproj_folder_rel_path + "/" + name + ".srcs/sources_1/bd"    # hotfix changed to environment
-
-    # XDC Variables
-    path_to_xdc = environment + "/" + AMDproj_folder_rel_path + "/" + name + ".srcs/constrs_1/imports/generated/"    # hotfix changed to environment
-    full_path_to_xdc = path_to_xdc + "physical_constr.xdc"
-
-    #################################################
-    ########## Begin Tcl Script Generation ##########
-    #################################################
+    ###########################################
+    ########## Source Generate Procs ##########
+    ###########################################
+    file_contents += source_generate_procs()
 
     ##############################################
     ########## Open Project / Start GUI ##########
     ##############################################
-    print(file_contents)
-    file_contents += source_generate_procs()
-    print(file_contents)
 
-    # Additional Step: Set if GUI should be opened
+    # Try to load from XML and sanitize the response
+    start_gui = True
+    try:
+        start_gui = proj_config['open_viv_gui']
+    except Exception as e:
+        add_to_log_box("\nCouldn't load open_viv_gui setting from XML - using default: True")
+    finally:
+        if not isinstance(start_gui, bool): # Check if the value is a boolean when finishing 
+            start_gui = True
+            add_to_log_box("\nopen_viv_gui not loaded as boolean, ignoring and using default: True")
+
+    # Add Tcl Command 
     if start_gui:
-        file_contents += "\nstart_gui"                              # Open Vivado GUI (option)
+        file_contents += "\nstart_gui" 
+    
 
     # Open Project
-    file_contents += f"\nopen_project {path_to_xpr}"                # Open Project
-    
-    if gui_application:
-        gui_application.add_to_log_box(f"\nXPR Location: {path_to_xpr}")
+    file_contents += f"\nopen_project {hdlgen_prj.path_to_xpr}" # Path store in hdlgenproject.py
+
+    # Print info to log_box
+    add_to_log_box(f"\nXPR Location: {hdlgen_prj.path_to_xpr}")
 
 
     ###############################################
     ########## Set Project Configuration ##########
     ###############################################
 
-    # Set Board Part (Project Parameter)
-    if not skip_board_config:
-        file_contents += f"\nset_property board_part tul.com.tw:pynq-z2:part0:1.0 [current_project]"
+    # This was previously optional. Since board is ALWAYS automatically installed, this param is no longer optional.
+    file_contents += f"\nset_property board_part tul.com.tw:pynq-z2:part0:1.0 [current_project]"
 
     #################################################
     ########## Import XDC Constraints File ##########
     #################################################
-    file_contents += import_xdc_constraints_file(full_path_to_xdc, location)
+    file_contents += import_xdc_constraints_file(hdlgen_prj.full_path_to_xdc, hdlgen_prj.location)
 
     ###########################################
     ########## Generate Block Design ##########
     ###########################################
 
+    # Try to load from XML and sanitize the response
+    regenerate_bd = True
+    try:
+        regenerate_bd = proj_config['alwys_gen_bd']
+    except Exception as e:
+        add_to_log_box("\nCouldn't load alwys_gen_bd setting from XML - using default: True")
+    finally:
+        if not isinstance(alwys_gen_bd, bool): # Check if value is a boolean before continuing
+            alwys_gen_bd = True
+            add_to_log_box("\nalwys_gen_bd not loaded as boolean, ignoring and using default: True")
+
     # Decision Variables
     generate_new_bd_design = regenerate_bd   # Default Consignment
     delete_old_bd_design = False             # Default Consignment
 
-    # Wrapper Path:
+    # Example Wrapper Path:
     # D:/HDLGen-ChatGPT/User_Projects/Fearghal_November/RISCV_RB/VHDL/AMDprj/RISCV_RB.srcs/sources_1/bd/RISCV_RB_bd/hdl/RISCV_RB_bd_wrapper.vhd
 
-    # BD Path:
+    # Example BD Path:
     # D:/HDLGen-ChatGPT/User_Projects/Fearghal_November/RISCV_RB/VHDL/AMDprj/RISCV_RB.srcs/sources_1/bd/RISCV_RB_bd/RISCV_RB_bd.bd
     
-    path_to_bd_folder_check = path_to_bd + "/" +  bd_filename
-    path_to_bd_file_check = path_to_bd_folder_check + "/" + bd_filename + ".bd"
+    path_to_bd_folder_check = hdlgen_prj.path_to_bd + "/" +  hdlgen_prj.bd_filename
+    path_to_bd_file_check = path_to_bd_folder_check + "/" + hdlgen_prj.bd_filename + ".bd"
     
     # Wrapper can be Verilog or VHDL
-    path_to_wrapper = path_to_bd_folder_check + "/hdl/" + bd_filename + "_wrapper"
+    path_to_wrapper = path_to_bd_folder_check + "/hdl/" + hdlgen_prj.bd_filename + "_wrapper"
 
     # Use this variables for checking if a wrapper exists
     path_to_vhdl_wrapper_file_check = path_to_wrapper + "vhd"
@@ -431,10 +373,9 @@ def generate_tcl(path_to_hdlgen_project, regenerate_bd=True, start_gui=True, kee
     bd_exists = os.path.exists(path_to_bd_file_check)
     wrapper_exists = os.path.exists(path_to_vhdl_wrapper_file_check) or os.path.exists(path_to_verilog_wrapper_file_check)
 
-    if gui_application:
-            gui_application.add_to_log_box(f"\nExisting Block Design Found?: {bd_exists}")
-            gui_application.add_to_log_box(f"\nExisting HDL Wrapper Found?: {wrapper_exists}")
-            gui_application.add_to_log_box(f"\nRegenerate new BD?: {regenerate_bd}")
+    add_to_log_box(f"\nExisting Block Design Found?: {bd_exists}")
+    add_to_log_box(f"\nExisting HDL Wrapper Found?: {wrapper_exists}")
+    add_to_log_box(f"\nRegenerate new BD?: {regenerate_bd}")
 
     print(f"\nExisting Block Design Found?: {bd_exists}")
     print(f"\nExisting HDL Wrapper Found?: {wrapper_exists}")
@@ -460,10 +401,8 @@ def generate_tcl(path_to_hdlgen_project, regenerate_bd=True, start_gui=True, kee
     elif (not wrapper_exists and not bd_exists):
         print("Wrapper and BD not found, generating these components...")
 
-
     if delete_old_bd_design:
-        if gui_application:
-            gui_application.add_to_log_box("\nRemoving Old Block Design")
+        add_to_log_box("\nRemoving Old Block Design")
         # TODO: This could have safety checks to in event that one or other doesn't exist.
         file_contents += f"\ndelete_hdl_wrapper {path_to_wrapper}"  # Wrapper deletes first - Note Tcl API doesn't want extension
         file_contents += f"\ndelete_file {path_to_bd_file_check}"       # then the BD design
@@ -484,39 +423,36 @@ def generate_tcl(path_to_hdlgen_project, regenerate_bd=True, start_gui=True, kee
     generate_svg = True
     if generate_svg:
         img_bd_name = "image_bd"
-        path_to_img_bd = path_to_bd + "/" + img_bd_name + "/" + img_bd_name + ".bd"
+        path_to_img_bd = hdlgen_prj.path_to_bd + "/" + img_bd_name + "/" + img_bd_name + ".bd"
 
-        file_contents += f"\ndelete_file_safely {path_to_bd + '/' + img_bd_name + '/' + img_bd_name} .bd"
+        file_contents += f"\ndelete_file_safely {hdlgen_prj.path_to_bd + '/' + img_bd_name + '/' + img_bd_name} .bd"
 
         # Create block design, import the 
         file_contents += f"\ncreate_bd_file {img_bd_name}"
         # file_contents += "\nupdate_compile_order -fileset sources_1"
         # file_contents += f"\ncreate_bd_cell -type module -reference {module_source} {module_source}_0"
         file_contents += "\nset_property source_mgmt_mode All [current_project]"    # Setting automatic mode for source management
-        file_contents += f"\nadd_module {module_source} {module_source}_0"  # Import the user-created module
+        file_contents += f"\nadd_module {hdlgen_prj.name} {hdlgen_prj.name}_0"  # Import the user-created module
 
 
     if generate_new_bd_design:
-        if gui_application:
-            gui_application.add_to_log_box("\nGenerating New Block Design")
+        add_to_log_box("\nGenerating New Block Design")
         created_signals = [] # This is an array of all signals that are created (this is cos >32 bit signals are divided)
 
         # (3) Create a new BD File
-        file_contents += f"\ncreate_bd_file {bd_filename}"              # Create a new BD
-        if gui_application:
-                gui_application.add_to_log_box(f"\nCreating Block Design: {bd_filename}")
+        file_contents += f"\ncreate_bd_file {hdlgen_prj.bd_filename}"              # Create a new BD
+        
+        add_to_log_box(f"\nCreating Block Design: {hdlgen_prj.bd_filename}")
         
         # (4) Add User Created Model to BD
         file_contents += "\nset_property source_mgmt_mode All [current_project]"    # Setting automatic mode for source management
-        file_contents += f"\nadd_module {module_source} {module_source}_0"  # Import the user-created module
-        if gui_application:
-                gui_application.add_to_log_box(f"\nImporting Module: {module_source}")
+        file_contents += f"\nadd_module {hdlgen_prj.name} {hdlgen_prj.name}_0"  # Import the user-created module
+        add_to_log_box(f"\nImporting Module: {hdlgen_prj.name}")
 
 
         # (5) Add Processor to BD
         file_contents += "\nadd_processing_unit"                        # Import Processing Unit to the BD
-        if gui_application:
-                gui_application.add_to_log_box(f"\nAdding Processing Unit")
+        add_to_log_box(f"\nAdding Processing Unit")
         
         # Running this as safety
         file_contents += "\nupdate_compile_order -fileset sources_1"
@@ -527,13 +463,13 @@ def generate_tcl(path_to_hdlgen_project, regenerate_bd=True, start_gui=True, kee
         # It should also only be completed if the io_map is supplied
 
 
-        if io_map and gui_application:
-            gui_application.add_to_log_box(f"\nIO Map Present: {io_map}")
+        if io_map:
+            add_to_log_box(f"\nIO Map Present: {io_map}")
 
-        returned_contents, created_signals = generate_connections(module_source, all_ports_parsed, io_map, location, gui_application)
+        returned_contents, created_signals = generate_connections(hdlgen_prj.name, hdlgen_prj.all_ports_parsed, io_map, hdlgen_prj.location, add_to_log_box)
         file_contents += returned_contents
 
-        file_contents += connect_interconnect_reset_and_run_block_automation(created_signals, gui_application)
+        file_contents += connect_interconnect_reset_and_run_block_automation(created_signals, add_to_log_box)
     
         #+++++++++++++++++++++++++++++++++++++++++++++++++++++#
         #++++++++# End of Generate New BD File Block #++++++++#
@@ -542,17 +478,16 @@ def generate_tcl(path_to_hdlgen_project, regenerate_bd=True, start_gui=True, kee
 
     # Need to check what mode we are in:
     # if project_language == "VHDL":
-    file_contents += create_vhdl_wrapper(bd_filename, path_to_bd) 
+    file_contents += create_vhdl_wrapper(hdlgen_prj.bd_filename, hdlgen_prj.path_to_bd) 
     # elif project_language == "Verilog":
     #     file_contents += create_verilog_wrapper(bd_filename, path_to_bd)
     # else:
     #     print("Couldn't detect language - Deaulting to VHDL")
     #     file_contents += create_vhdl_wrapper(bd_filename, path_to_bd)
-    #     if gui_application:
-    #         gui_application.add_to_log_box("Couldn't detect language - Defaulting to VHDL")
 
-    path_to_bd_export = environment + "/" + AMDproj_folder_rel_path + "/" + bd_filename + ".tcl"   # hotfix changed to environment
-    path_to_bd_file = f"{path_to_bd}/{bd_filename}/{bd_filename}.bd"
+
+    path_to_bd_export = hdlgen_prj.environment + "/" + hdlgen_prj.AMDproj_folder_rel_path + "/" + hdlgen_prj.bd_filename + ".tcl"   # hotfix changed to environment
+    path_to_bd_file = f"{hdlgen_prj.path_to_bd}/{hdlgen_prj.bd_filename}/{hdlgen_prj.bd_filename}.bd"
 
     # Just before we generate bitstream, reopen first design and export it as SVG before deleting it again.
     if generate_svg:
@@ -563,19 +498,32 @@ def generate_tcl(path_to_hdlgen_project, regenerate_bd=True, start_gui=True, kee
         file_contents += f"\nopen_bd_design {path_to_img_bd}"
         
         # Export SVG image of the created model
-        print(f"Attempting to export SVG at {location}/PYNQBuild/generated/{module_source}.svg")
+        print(f"Attempting to export SVG at {hdlgen_prj.location}/PYNQBuild/generated/{hdlgen_prj.name}.svg")
         friendly_cwd = os.getcwd().replace('\\', '/')
-        file_contents += f"\nwrite_bd_layout -force -format svg {location}/PYNQBuild/generated/{module_source}.svg"
+        file_contents += f"\nwrite_bd_layout -force -format svg {hdlgen_prj.location}/PYNQBuild/generated/{hdlgen_prj.name}.svg"
 
         # Delete it all again
         file_contents += f"\nexport_ip_user_files -of_objects  [get_files {path_to_img_bd}] -no_script -reset -force -quiet"
         file_contents += f"\nremove_files  {path_to_img_bd}"
-        file_contents += f"\nfile delete -force {path_to_bd + '/' + img_bd_name}"
+        file_contents += f"\nfile delete -force {hdlgen_prj.path_to_bd + '/' + img_bd_name}"
 
     file_contents += generate_bitstream(path_to_bd_export,path_to_bd_file)
-    file_contents += save_and_quit(start_gui, keep_vivado_open)
-    write_tcl_file(file_contents, gui_application, location)
 
+
+    # Try to load from XML and sanitize the response
+    keep_vivado_open = False
+    try:
+        keep_vivado_open = proj_config['keep_viv_opn']
+    except Exception as e:
+        add_to_log_box("\nCouldn't load keep_viv_opn setting from XML - using default: False")
+    finally:
+        if not isinstance(start_gui, bool): # Check if the value is a boolean when finishing 
+            keep_vivado_open = False
+            add_to_log_box("\nkeep_viv_opn not loaded as boolean, ignoring and using default: False")
+
+
+    file_contents += save_and_quit(start_gui, keep_vivado_open)
+    write_tcl_file(file_contents, add_to_log_box, hdlgen_prj.location)
 
 
             #++++++++++++++++++++++++++++++++++++++++#
@@ -583,7 +531,12 @@ def generate_tcl(path_to_hdlgen_project, regenerate_bd=True, start_gui=True, kee
             #++++++++++++++++++++++++++++++++++++++++#
 
 
-def connect_interconnect_reset_and_run_block_automation(created_signals, gui_application):
+
+################################################################################################
+########## Import and Connect Interconnect Reset, Run Block and Connection Automation ##########
+################################################################################################
+
+def connect_interconnect_reset_and_run_block_automation(created_signals, add_to_log_box=None):
     # (7) Add the AXI Interconnect to the IP Block Design
     file_contents = f"\nadd_axi_interconnect 1 {len(created_signals)}"
 
@@ -656,10 +609,10 @@ def connect_slice_to_gpio(bit, gpio_mode, gpio_name, gpio_width, slice_number, m
 ###########################################################################################
 ########## Generate Tcl Code to Add and Connect All Input GPIO with External Pin ##########
 ###########################################################################################
-def generate_all_input_external_gpio(gpio_name, gpio_width, module_source, occurences, gui_application=None):
+def generate_all_input_external_gpio(gpio_name, gpio_width, module_source, occurences, add_to_log_box=None):
     file_contents = ""
-    if gui_application:
-        gui_application.add_to_log_box(f"\nConnecting {gpio_name} to {occurences[0][0]} in 'all_input_external' mode")
+    
+    add_to_log_box(f"\nConnecting {gpio_name} to {occurences[0][0]} in 'all_input_external' mode")
     # In this configuration, we need to:
     #   1) Add an ALL INPUT GPIO, 
     #   2) make the pin of the COMPONENT external
@@ -678,10 +631,10 @@ def generate_all_input_external_gpio(gpio_name, gpio_width, module_source, occur
 ############################################################################################
 ########## Generate Tcl Code to Add and Connect All Output GPIO with External Pin ##########
 ############################################################################################
-def generate_all_output_external_gpio(gpio_name, gpio_width, module_source, occurences, gui_application=None):
+def generate_all_output_external_gpio(gpio_name, gpio_width, module_source, occurences, add_to_log_box=None):
     file_contents = ""
-    if gui_application:
-        gui_application.add_to_log_box(f"\nConnecting {gpio_name} to {occurences[0][0]} in 'all_output_external' mode")
+    
+    add_to_log_box(f"\nConnecting {gpio_name} to {occurences[0][0]} in 'all_output_external' mode")
     # In this configuration, we need to:
     #   1) Add an ALL OUTPUT GPIO, 
     #   2) make the pin of the GPIO external, 
@@ -700,7 +653,7 @@ def generate_all_output_external_gpio(gpio_name, gpio_width, module_source, occu
 ##############################################################################################
 ########## Generate Tcl Code to Add and Connect All Input GPIO with No External Pin ##########
 ##############################################################################################
-def generate_all_input_no_ext_gpio(gpio_name, gpio_width, module_source, gui_application=None):
+def generate_all_input_no_ext_gpio(gpio_name, gpio_width, module_source, add_to_log_box=None):
     file_contents = f"\nadd_axi_gpio_all_input {gpio_name} {gpio_width}"
     file_contents += f"\nconnect_gpio_all_input_to_module_port {gpio_name} {module_source}_0"
     return file_contents 
@@ -708,7 +661,7 @@ def generate_all_input_no_ext_gpio(gpio_name, gpio_width, module_source, gui_app
 ###############################################################################################
 ########## Generate Tcl Code to Add and Connect All Output GPIO with No External Pin ##########
 ###############################################################################################
-def generate_all_output_no_ext_gpio(gpio_name, gpio_width, module_source, gui_application=None):
+def generate_all_output_no_ext_gpio(gpio_name, gpio_width, module_source, add_to_log_box=None):
     file_contents = f"\nadd_axi_gpio_all_output {gpio_name} {gpio_width}"
     file_contents += f"\nconnect_gpio_all_output_to_module_port {gpio_name} {module_source}_0"
     return file_contents 
@@ -716,7 +669,7 @@ def generate_all_output_no_ext_gpio(gpio_name, gpio_width, module_source, gui_ap
 ##########################################
 ########## Generate Connections ##########
 ##########################################
-def generate_connections(module_source, all_ports_parsed, io_map, location, gui_application=None):
+def generate_connections(module_source, all_ports_parsed, io_map, location, add_to_log_box=None):
     xdc_contents = ""
     file_contents = ""
     interconnect_signals = []
@@ -760,14 +713,14 @@ def generate_connections(module_source, all_ports_parsed, io_map, location, gui_
             # No external pins to be generated.
 
             if gpio_mode == "out" and int(gpio_width) <= 32:
-                file_contents += generate_all_input_no_ext_gpio(gpio_name, gpio_width, module_source, gui_application)
+                file_contents += generate_all_input_no_ext_gpio(gpio_name, gpio_width, module_source, add_to_log_box)
                 # Add signal to the list of GPIO to be connected to interconnect (needed for block automation)
                 interconnect_signals.append(gpio_name)
             elif gpio_mode == "in" and int(gpio_width) <= 32:
-                file_contents += generate_all_output_no_ext_gpio(gpio_name, gpio_width, module_source, gui_application)
+                file_contents += generate_all_output_no_ext_gpio(gpio_name, gpio_width, module_source, add_to_log_box)
                 interconnect_signals.append(gpio_name)
             elif gpio_mode == "out" and int(gpio_width) > 32:
-                returned_file_contents, returned_interconnect_signals = create_split_all_inputs(gpio_mode, gpio_name, gpio_width, module_source, gui_application)
+                returned_file_contents, returned_interconnect_signals = create_split_all_inputs(gpio_mode, gpio_name, gpio_width, module_source, add_to_log_box)
 
                 file_contents += returned_file_contents
                 for conn in returned_interconnect_signals:
@@ -776,7 +729,7 @@ def generate_connections(module_source, all_ports_parsed, io_map, location, gui_
             elif gpio_mode == "in" and int(gpio_width) > 32:
                 print(gpio_name + " is greater than 32 bits. I/O will be split.")
 
-                returned_file_contents, returned_interconnect_signals = create_split_all_outputs(gpio_mode, gpio_name, gpio_width, module_source, gui_application)
+                returned_file_contents, returned_interconnect_signals = create_split_all_outputs(gpio_mode, gpio_name, gpio_width, module_source, add_to_log_box)
 
                 file_contents += returned_file_contents
                 for conn in returned_interconnect_signals:
@@ -795,9 +748,9 @@ def generate_connections(module_source, all_ports_parsed, io_map, location, gui_
             
             if gpio_mode == "in" and pynq_constraints_mode[occurences[0][0]]=="in":
                 # Do not know yet what happens if you have two drivers. Probably not good.
-                if gui_application:
-                    gui_application.add_to_log_box("\nDon't know how to configure inputs yet for gpio_mode = in and pynq_constraints_mode = in. Skipping IO config. (GPIO_width = 1)")
-                file_contents += generate_all_output_no_ext_gpio(gpio_name, gpio_width, module_source, gui_application)
+                
+                add_to_log_box("\nDon't know how to configure inputs yet for gpio_mode = in and pynq_constraints_mode = in. Skipping IO config. (GPIO_width = 1)")
+                file_contents += generate_all_output_no_ext_gpio(gpio_name, gpio_width, module_source, add_to_log_box)
                 
                 # Add signal to the list of GPIO to be connected to interconnect (needed for block automation)
                 # Possible Solution:
@@ -805,22 +758,22 @@ def generate_connections(module_source, all_ports_parsed, io_map, location, gui_
 
                 interconnect_signals.append(gpio_name)
             elif gpio_mode == "in" and pynq_constraints_mode[occurences[0][0]]=="out":
-                file_contents += generate_all_output_external_gpio(gpio_name, gpio_width, module_source, occurences, gui_application)
+                file_contents += generate_all_output_external_gpio(gpio_name, gpio_width, module_source, occurences, add_to_log_box)
                 interconnect_signals.append(gpio_name)
                 # XDC Constraints
                 xdc_contents += add_line_to_xdc(occurences[0][0], gpio_name+"_ext")
 
             elif gpio_mode == "out" and pynq_constraints_mode[occurences[0][0]]=="in":
                 # This mode is not possible, and should be ignored.
-                if gui_application:
-                    gui_application.add_to_log_box(f"\n{gpio_name} as an output and ({occurences[0][0]}) board I/O as input is not possible. Configuring without I/O")
+                
+                add_to_log_box(f"\n{gpio_name} as an output and ({occurences[0][0]}) board I/O as input is not possible. Configuring without I/O")
 
-                file_contents += generate_all_input_no_ext_gpio(gpio_name, gpio_width, module_source, gui_application)
+                file_contents += generate_all_input_no_ext_gpio(gpio_name, gpio_width, module_source, add_to_log_box)
                 # Add signal to the list of GPIO to be connected to interconnect (needed for block automation)
                 interconnect_signals.append(gpio_name)
                 pass
             elif gpio_mode == "out" and pynq_constraints_mode[occurences[0][0]]=="out":
-                file_contents += generate_all_input_external_gpio(gpio_name, gpio_width, module_source, occurences, gui_application)
+                file_contents += generate_all_input_external_gpio(gpio_name, gpio_width, module_source, occurences, add_to_log_box)
                 interconnect_signals.append(gpio_name)
                 # run XDC constraints 
                 xdc_contents += add_line_to_xdc(occurences[0][0], gpio_name+"_ext")
@@ -839,10 +792,9 @@ def generate_connections(module_source, all_ports_parsed, io_map, location, gui_
             for occur in occurences:
                 if pynq_constraints_mode[occur[0]] != last_occur_io_mode:
                     print("=========Does not support mixed INPUT and OUTPUT for GPIO same GPIO at this time=======")
-                    if gui_application:
-                        gui_application.add_to_log_box("\n=========Does not support mixed INPUT and OUTPUT for GPIO same GPIO at this time=======")
-                        file_contents += generate_all_output_no_ext_gpio(gpio_name, gpio_width, module_source, gui_application)
-                        force_continue = True
+                    add_to_log_box("\n=========Does not support mixed INPUT and OUTPUT for GPIO same GPIO at this time=======")
+                    file_contents += generate_all_output_no_ext_gpio(gpio_name, gpio_width, module_source, add_to_log_box)
+                    force_continue = True
                 else:
                     last_occur_io_mode = pynq_constraints_mode[occur[0]]
 
@@ -852,14 +804,14 @@ def generate_connections(module_source, all_ports_parsed, io_map, location, gui_
 
             if gpio_mode == "in" and last_occur_io_mode=="in":
                 # Do not know yet what happens if you have two drivers. Probably not good.
-                if gui_application:
-                    gui_application.add_to_log_box("\nDon't know how to configure inputs yet for gpio_mode = in and pynq_constraints_mode = in. Skipping IO config. (gpio_width > 1)")
-                file_contents += generate_all_output_no_ext_gpio(gpio_name, gpio_width, module_source, gui_application)
+                
+                add_to_log_box("\nDon't know how to configure inputs yet for gpio_mode = in and pynq_constraints_mode = in. Skipping IO config. (gpio_width > 1)")
+                file_contents += generate_all_output_no_ext_gpio(gpio_name, gpio_width, module_source, add_to_log_box)
                 # Interconnect is completed already
                 # - Handle (in, in) situations
 
             elif gpio_mode == "in" and last_occur_io_mode=="out":
-                file_contents += generate_all_output_external_gpio(gpio_name, gpio_width, module_source, occurences, gui_application)
+                file_contents += generate_all_output_external_gpio(gpio_name, gpio_width, module_source, occurences, add_to_log_box)
                 # Interconnect is completed already
                 # Generate XDC
                 for occur in occurences:
@@ -867,13 +819,13 @@ def generate_connections(module_source, all_ports_parsed, io_map, location, gui_
 
             elif gpio_mode == "out" and last_occur_io_mode=="in":
                 # This mode is not possible, and should be ignored.
-                if gui_application:
-                    gui_application.add_to_log_box(f"\n{gpio_name} as an output and IO as input is not possible. Configuring without I/O")
-                file_contents += generate_all_input_no_ext_gpio(gpio_name, gpio_width, module_source, gui_application)
+                
+                add_to_log_box(f"\n{gpio_name} as an output and IO as input is not possible. Configuring without I/O")
+                file_contents += generate_all_input_no_ext_gpio(gpio_name, gpio_width, module_source, add_to_log_box)
                 # Interconnect is completed already
                 
             elif gpio_mode == "out" and last_occur_io_mode=="out":
-                file_contents += generate_all_input_external_gpio(gpio_name, gpio_width, module_source, occurences, gui_application)
+                file_contents += generate_all_input_external_gpio(gpio_name, gpio_width, module_source, occurences, add_to_log_box)
                 # Interconnect is completed already
                 # Generate XDC
                 for occur in occurences:
@@ -888,9 +840,9 @@ def generate_connections(module_source, all_ports_parsed, io_map, location, gui_
             # IMPROVEMENT: We could reduce number of IP used by combining neighbouring bits into a single slice IP. I won't for sake of development time right now.
             # occurences in the form of [signal[x], bit] -> (We know that there cannot be just a single signal as gpio_width > 1 )
             if gpio_mode == "in":
-                file_contents += generate_all_output_no_ext_gpio(gpio_name, gpio_width, module_source, gui_application)
+                file_contents += generate_all_output_no_ext_gpio(gpio_name, gpio_width, module_source, add_to_log_box)
             elif gpio_mode == "out":
-                file_contents += generate_all_input_no_ext_gpio(gpio_name, gpio_width, module_source, gui_application)
+                file_contents += generate_all_input_no_ext_gpio(gpio_name, gpio_width, module_source, add_to_log_box)
             interconnect_signals.append(gpio_name)  # Add to interconnect as normal.
             
             for occur in occurences:
@@ -898,10 +850,9 @@ def generate_connections(module_source, all_ports_parsed, io_map, location, gui_
                 signal_pin = occur[1]
                 if gpio_mode == "in" and pynq_constraints_mode[board_io]=="in":
                     # Do not know yet what happens if you have two drivers.
-                    if gui_application:
-                        gui_application.add_to_log_box("\nDon't know how to configure inputs yet. Skipping IO")
-                    # file_contents += generate_all_output_no_ext_gpio(gpio_name, gpio_width, module_source, gui_application)
-                    # Add signal to the list of GPIO to be connected to interconnect (needed for block automation)
+                    
+                    add_to_log_box("\nDon't know how to configure inputs yet. Skipping IO")
+
                    
                 elif gpio_mode == "in" and pynq_constraints_mode[board_io]=="out":
                     # think LED on selOPALU
@@ -924,8 +875,7 @@ def generate_connections(module_source, all_ports_parsed, io_map, location, gui_
                     try:
                         bit = int(extracted_number)
                     except Exception:
-                        if gui_application:
-                            gui_application.add_to_log_box("\nCould not find specifed bit, assuming bit 0.")
+                        add_to_log_box("\nCould not find specifed bit, assuming bit 0.")
                     
                     # Procedure
                     # 1) Do GPIO connection as normal.
@@ -941,8 +891,7 @@ def generate_connections(module_source, all_ports_parsed, io_map, location, gui_
                     pass
                 elif gpio_mode == "out" and pynq_constraints_mode[board_io]=="in":
                     # This mode is not possible, and should be ignored.
-                    if gui_application:
-                        gui_application.add_to_log_box(f"\n{gpio_name} as an output and IO as input is not possible. Configuring without I/O")
+                    add_to_log_box(f"\n{gpio_name} as an output and IO as input is not possible. Configuring without I/O")
                     
                     # Add signal to the list of GPIO to be connected to interconnect (needed for block automation)
                     pass # not possible
@@ -967,8 +916,8 @@ def generate_connections(module_source, all_ports_parsed, io_map, location, gui_
                     try:
                         bit = int(extracted_number)
                     except Exception:
-                        if gui_application:
-                            gui_application.add_to_log_box("\nCould not find specifed bit, assuming bit 0.")
+                        
+                        add_to_log_box("\nCould not find specifed bit, assuming bit 0.")
                     
                     # Procedure
                     # 1) Do GPIO connection as normal.
@@ -985,17 +934,17 @@ def generate_connections(module_source, all_ports_parsed, io_map, location, gui_
                 pass
 
         elif gpio_width > 1 and len(occurences) > 1 and gpio_width < len(occurences):
-            if gui_application:
-                gui_application.add_to_log_box("\nMore occurences than GPIO, not applicable for now. Ignoring - No External Connection Made")
+            
+            add_to_log_box("\nMore occurences than GPIO, not applicable for now. Ignoring - No External Connection Made")
             if gpio_mode == "out":
-                file_contents += generate_all_input_no_ext_gpio(gpio_name, gpio_width, module_source, gui_application)
+                file_contents += generate_all_input_no_ext_gpio(gpio_name, gpio_width, module_source, add_to_log_box)
             elif gpio_mode == "in":
-                file_contents += generate_all_output_no_ext_gpio(gpio_name, gpio_width, module_source, gui_application)
+                file_contents += generate_all_output_no_ext_gpio(gpio_name, gpio_width, module_source, add_to_log_box)
             interconnect_signals.append(gpio_name)
 
         elif gpio_width > 32 and len(occurences) > 0 and gpio_width > len(occurences):
-            if gui_application:
-                gui_application.add_to_log_box(f"\nOutput on Signal >32-bit. {gpio_name} {gpio_width} {occurences}")
+    
+            add_to_log_box(f"\nOutput on Signal >32-bit. {gpio_name} {gpio_width} {occurences}")
             print(f"\nOutput on Signal >32-bit. {gpio_name} {gpio_width} {occurences}")
 
             # How to approach this:
@@ -1011,12 +960,12 @@ def generate_connections(module_source, all_ports_parsed, io_map, location, gui_
 
 
             if gpio_mode == "in":
-                returned_contents, returned_interconnect_signals = create_split_all_outputs(gpio_mode, gpio_name, gpio_width, module_source, gui_application)
+                returned_contents, returned_interconnect_signals = create_split_all_outputs(gpio_mode, gpio_name, gpio_width, module_source, add_to_log_box)
                 file_contents += returned_contents
                 for conn in returned_interconnect_signals:
                     interconnect_signals.append(conn)
             elif gpio_mode == "out":
-                returned_contents, returned_interconnect_signals = create_split_all_inputs(gpio_mode, gpio_name, gpio_width, module_source, gui_application)
+                returned_contents, returned_interconnect_signals = create_split_all_inputs(gpio_mode, gpio_name, gpio_width, module_source, add_to_log_box)
                 file_contents += returned_contents
                 for conn in returned_interconnect_signals:
                     interconnect_signals.append(conn)
@@ -1038,20 +987,20 @@ def generate_connections(module_source, all_ports_parsed, io_map, location, gui_
                 try:
                     bit = int(extracted_number)
                 except Exception:
-                    if gui_application:
-                        gui_application.add_to_log_box("\nCould not find specifed bit, assuming bit 0.") 
+                    
+                    add_to_log_box("\nCould not find specifed bit, assuming bit 0.") 
 
 
                 # Now that we have extracted the necessary info, we target our specific application
                 if gpio_mode == "in" and pynq_constraints_mode[board_io]=="in":
-                    if gui_application:
-                        gui_application.add_to_log_box("\nInput IO Mapping on Split Input not supported yet. Adding without IO")
+                    
+                    add_to_log_box("\nInput IO Mapping on Split Input not supported yet. Adding without IO")
 
                         # GPIO are already added. No need to do anything with XDC.
                     pass
                 elif gpio_mode == "in" and pynq_constraints_mode[board_io]=="out":
-                    if gui_application:
-                        gui_application.add_to_log_box(f"\n{signal_pin} mapping to ({board_io}) ")
+                    
+                    add_to_log_box(f"\n{signal_pin} mapping to ({board_io}) ")
                     # Slicing signal
 
                     # Just like normal, make the inital connection.
@@ -1090,14 +1039,14 @@ def generate_connections(module_source, all_ports_parsed, io_map, location, gui_
 
                 elif gpio_mode == "out" and pynq_constraints_mode[board_io]=="in":
                     # This case is impossible
-                    if gui_application:
-                        gui_application.add_to_log_box(f"\n{signal_pin} as an output and ({board_io}) board I/O as input is not possible. Configuring without I/O")
+                    
+                    add_to_log_box(f"\n{signal_pin} as an output and ({board_io}) board I/O as input is not possible. Configuring without I/O")
                     # The GPIO is already added, no XDC changes needed.
                     # XDC
                     
                 elif gpio_mode == "out" and pynq_constraints_mode[board_io]=="out":
-                    if gui_application:
-                        gui_application.add_to_log_box(f"\n{signal_pin} mapping to ({board_io}) ")
+                    
+                    add_to_log_box(f"\n{signal_pin} mapping to ({board_io}) ")
                     
                     # Output is routed, just add the slice pin.
                     file_contents += connect_slice_to_gpio(bit, gpio_mode, gpio_name, gpio_width, slice_number, module_source)
@@ -1107,21 +1056,20 @@ def generate_connections(module_source, all_ports_parsed, io_map, location, gui_
                     slice_number += 1   # must be called every time above API is used to ensure there is never any name collisions
 
         else:
-            if gui_application:
-                gui_application.add_to_log_box(f"\nEdge Case Detected. {gpio_name} {gpio_width} {occurences}")
+            
+            add_to_log_box(f"\nEdge Case Detected. {gpio_name} {gpio_width} {occurences}")
             print(f"\nEdge Case Detected. {gpio_name} {gpio_width} {occurences}")
 
         # imagine we somehow swap the key and value of the dictionary:
         # Now check: Is our signal in the swapped dictionary?
-    write_xdc_file(xdc_contents, gui_application, location)
+    write_xdc_file(xdc_contents, add_to_log_box, location)
     return file_contents, interconnect_signals
 
 #######################################################
 ########## Split and Route ALL INPUT signal ##########
 #######################################################
-def create_split_all_inputs(gpio_mode, gpio_name, gpio_width, module_source, gui_application=None):
-    if gui_application:
-        gui_application.add_to_log_box(f"\nCreating split ALL OUTPUTS for {gpio_name} of size {gpio_width}")
+def create_split_all_inputs(gpio_mode, gpio_name, gpio_width, module_source, add_to_log_box=None):
+    add_to_log_box(f"\nCreating split ALL OUTPUTS for {gpio_name} of size {gpio_width}")
     file_contents = ""
     interconnect_signals = []
     
@@ -1167,9 +1115,9 @@ def create_split_all_inputs(gpio_mode, gpio_name, gpio_width, module_source, gui
 #######################################################
 ########## Split and Route ALL OUTPUT signal ##########
 #######################################################
-def create_split_all_outputs(gpio_mode, gpio_name, gpio_width, module_source, gui_application=None):
-    if gui_application:
-        gui_application.add_to_log_box(f"\nCreating split ALL INPUTS for {gpio_name} of size {gpio_width}")
+def create_split_all_outputs(gpio_mode, gpio_name, gpio_width, module_source, add_to_log_box=None):
+    
+    add_to_log_box(f"\nCreating split ALL INPUTS for {gpio_name} of size {gpio_width}")
     ###### IMPORTANT: As we are in a loop here creating signals - Need to check what still exists.
     print(gpio_name + " is greater than 32 bits. I/O will be split.")
     gpio_width_int = int(gpio_width)
@@ -1383,30 +1331,21 @@ def save_and_quit(start_gui, keep_vivado_open):
 ########################
 #   Write to Tcl File  #
 ########################
-def write_tcl_file(file_contents, gui_application, location):
-    # Check does the /generated/ folder exist
-    # This check is completed in PYNQ_Manager
-    # if not os.path.exists("./generated"):
-    #     os.mkdir("generated")
-    #     if gui_application:
-    #         gui_application.add_to_log_box(f"\nDirectory '{os.getcwd()}/generated/' not found. Created successfully.")
-
+def write_tcl_file(file_contents, add_to_log_box, location):
     with open(f'{location}/PYNQBuild/generated/generate_script.tcl', 'w') as file:
         # Export Tcl Script
         file.write(file_contents)
         # print("generate_script.tcl generated!")
-        if gui_application:
-            gui_application.add_to_log_box(f"\nSuccessfully wrote Tcl Script to {location}/PYNQBuild/generated/generate_script.tcl")
+        add_to_log_box(f"\nSuccessfully wrote Tcl Script to {location}/PYNQBuild/generated/generate_script.tcl")
 
 ########################
 #   Write to XDC File  #
 ########################
-def write_xdc_file(xdc_contents, gui_application, location):
+def write_xdc_file(xdc_contents, add_to_log_box, location):
     with open(f'{location}/PYNQBuild/generated/physical_constr.xdc', 'w') as file:
         # Export contraints file
         file.write(xdc_contents)
-        if gui_application:
-            gui_application.add_to_log_box(f"\nSuccessfully wrote constraints file to {location}/PYNQBuild/generated/physical_constr.xdc")
+        add_to_log_box(f"\nSuccessfully wrote constraints file to {location}/PYNQBuild/generated/physical_constr.xdc")
 
 ########################
 #   Make XDC Cfg Line  #

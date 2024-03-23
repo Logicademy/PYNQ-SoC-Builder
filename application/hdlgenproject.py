@@ -3,14 +3,17 @@ import application.xml_manager as xmlm
 from datetime import datetime, timedelta
 import time
 import threading
+import os
+import application.pynq_manager as pm
+import application.tcl_generator as tcl_gen
 
 class HdlgenProject:
 
     def __init__(self, path_to_hdlgen=None):
         # If a HDLGen file isn't provided, assume we are in testing mode.
         self.hdlgen = path_to_hdlgen
-        if not path_to_hdlgen:
-            self.hdlgen = "C:\\hdlgen\\March\\DSPProc_Threshold_Luke\\DSPProc\\HDLGenPrj\\DSPProc.hdlgen"
+        # if not path_to_hdlgen:
+        #     self.hdlgen = "C:\\hdlgen\\March\\DSPProc_Threshold_Luke\\DSPProc\\HDLGenPrj\\DSPProc.hdlgen"
         self.hdlgen_path = self.hdlgen.replace("\\", "/")
 
         self.pynqbuildxml = xmlm.Xml_Manager(self.hdlgen_path)  # This is accessible object we can always call on.
@@ -27,8 +30,11 @@ class HdlgenProject:
         projectManager = root.getElementsByTagName("projectManager")[0]
         projectManagerSettings = projectManager.getElementsByTagName("settings")[0]
         self.name = projectManagerSettings.getElementsByTagName("name")[0].firstChild.data
-        self.environment = projectManagerSettings.getElementsByTagName("environment")[0].firstChild.data
-        self.location = projectManagerSettings.getElementsByTagName("location")[0].firstChild.data
+        environment = projectManagerSettings.getElementsByTagName("environment")[0].firstChild.data
+        location = projectManagerSettings.getElementsByTagName("location")[0].firstChild.data
+        self.environment = environment.replace("\\", "/")   # Make dir safe for use
+        self.location = location.replace("\\", "/")
+
 
         # Project Manager - EDA
         projectManagerEda = projectManager.getElementsByTagName("EDA")[0]
@@ -59,7 +65,7 @@ class HdlgenProject:
             model_folder = genFolder.getElementsByTagName("verilog_folder")[0]
             testbench_folder = genFolder.getElementsByTagName("verilog_folder")[1]
             AMDproj_folder = genFolder.getElementsByTagName("verilog_folder")[4]
-        AMDproj_folder_rel_path = AMDproj_folder.firstChild.data
+        self.AMDproj_folder_rel_path = AMDproj_folder.firstChild.data
 
         ###################################
         ###### Parse Entity IO Ports ######
@@ -112,10 +118,37 @@ class HdlgenProject:
         except Exception:
             self.TBNoteData = None
 
-
-        self.build_logger = None
+        ###################################
+        ##### GUI Object Declarations #####
+        ###################################
+        self.build_logger = None    # Logger objects with add_to_log_box APIs
         self.synth_logger = None
         self.impl_logger = None
+
+        ############################################
+        ##### Derive Vivado Log File Locations #####
+        ############################################
+
+        # Note: Synthesis has multiple OOC (Out-of-context) Synthesis locations - Need to figure out how to find them...
+        self.syn_log_path = self.environment + "/" + self.AMDproj_folder_rel_path + "/" + self.name + ".runs/" + self.name + "_bd_processing_system7_0_0_synth_1/runme.log"
+        # Fortunately Implementation does not have this issue.
+        self.impl_log_path = self.environment + "/" + self.AMDproj_folder_rel_path + "/" + self.name + ".runs/impl_1/runme.log"
+        ######################################
+        ##### Threading force quit flags #####
+        ######################################
+        self.build_force_quit_event = threading.Event()
+
+        ##########################################
+        ##### Generate Tcl Derived Variables #####
+        ##########################################
+        self.path_to_xpr = self.environment + "/" + self.AMDproj_folder_rel_path + "/" + self.name + ".xpr"  # Hotfix change to envrionment
+        self.bd_filename = self.name + "_bd"
+        # module_source = name
+        self.path_to_bd = self.environment + "/" + self.AMDproj_folder_rel_path + "/" + self.name + ".srcs/sources_1/bd"    # hotfix changed to environment
+        # XDC Variables
+        self.path_to_xdc = self.environment + "/" + self.AMDproj_folder_rel_path + "/" + self.name + ".srcs/constrs_1/imports/generated/"    # hotfix changed to environment
+        self.full_path_to_xdc = self.path_to_xdc + "physical_constr.xdc"
+
 
     ############################################################
     ########## Logger set and add_to_log_box function ##########
@@ -215,15 +248,21 @@ class HdlgenProject:
             new_array.append([gpio_name, gpio_width])
         return new_array
     
-    ###################################
-    ########## Build Project ##########
-    ###################################
+    #############################################
+    ##### Start Build Status Page Reference #####
+    #############################################
     def set_build_status_page(self, buildstatuspage):
         self.buildstatuspage = buildstatuspage
 
+
+    #########################
+    ##### Build Project #####
+    #########################
     def build_project(self):
         
-    
+        self.add_to_build_log(f"\nBuild project commencing @ {time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))}")
+
+        # Try change current tab to the Build Status tab
         try:
             self.buildstatuspage.tabview.set("Build Status")
         except Exception as e:
@@ -232,18 +271,140 @@ class HdlgenProject:
         self.build_running = True    # Flag that build has started
         self.current_step = None     # Set initalise build_step
 
+        # Start Build Status Updater Thread
+        self.add_to_build_log(f"\nStarting Build Status Updater Thread")
         thread1 = threading.Thread(target=self.update_build_status)
-        thread2 = threading.Thread(target=self.update_build_status_tester)
-
         thread1.start()
-        thread2.start()
 
-    # Steps:
-    # 1) Load the XML configuration
-    # 2) Run everything as we need.
-    # 2.5) Update Build Status Flags
-    # 3) Everything handles it self anyways for most part.
+        # (Testing) Test Driver Thread
+        # thread2 = threading.Thread(target=self.update_build_status_tester)
+        # thread2.start()
 
+        # Delete existing Vivado log files
+        self.add_to_build_log(f"\nDeleting existing Vivado .log and .jou files")
+        self.remove_vivado_log_jou_files()
+
+
+        # Create PYNQ Manager Object
+        self.add_to_build_log(f"\nLaunching PYNQ Manager")
+        self.pm_obj = pm.Pynq_Manager(self.hdlgen_path)
+
+        # Install board files (if not already)
+        self.add_to_build_log(f"\nChecking Vivado has PYNQ Z2 board files installed")
+        self.pm_obj.get_board_config_exists()
+
+        # Delete old synthesis and implementation log files
+        self.add_to_build_log(f"\nDeleting existing Vivado Project Synthesis and Implementation (runme.log) log files")
+        self.remove_vivado_syn_impl_log_files()
+
+        # Start Logger Threads
+        # self.add_to_build_log(f"\nStarting Logger Threads (Build, Synth and Impl loggers)")
+        # self.build_logger_thread = threading.Thread(target=self.run_build_logger)
+        # self.synth_logger_thread = threading.Thread(target=self.run_synth_logger)
+        # self.impl_logger_thread = threading.Thread(target=self.run_impl_logger)
+        # self.build_logger_thread.start()
+        # self.synth_logger_thread.start()
+        # self.impl_logger_thread.start()
+
+        # Execute Program
+        self.add_to_build_log(f"\nClearing force close threading flag")
+        self.build_force_quit_event.clear()
+        self.add_to_build_log(f"\nCreating Build Thread")
+        build_thread = threading.Thread(target=self.build)
+        self.add_to_build_log(f"\nStarting Build Thread")
+        build_thread.start()
+
+        # Steps:
+        # 1) Load the XML configuration
+        # 2) Run everything as we need.
+        # 2.5) Update Build Status Flags
+        # 3) Everything handles it self anyways for most part.
+
+    ########################################################
+    ###### Build thread - Called by build_project func #####
+    ########################################################
+    def build(self):
+        # Will need to be setting flags or something along the way here.
+        
+        # Generate TCL
+        self.generate_tcl()
+
+    ########################################################
+    ###### Build thread - Called by build_project func #####
+    ########################################################
+    def generate_tcl(self):
+
+        if self.build_force_quit_event.is_set():
+            self.add_to_build_log("\n\nTcl Generation called as force quit flag asserted!")
+            print("\n\nTcl Generation called as force quit flag asserted!")
+            return # Return to leave function
+
+        # self.pm_obj.generate_tcl(read_from_xml=True, print_to_log_function=self.add_to_build_log)
+        self.check_generated_path_and_mkdir()
+        tcl_gen.generate_tcl(self.hdlgen_project_path, read_from_xml=True, log_print_func=self.add_to_build_log)
+
+    ######################################################################
+    ###### Check that /PYNQBuild/generated/ dictory exists and mkdir #####
+    ######################################################################
+    def check_generated_path_and_mkdir(self):
+        try:
+            os.makedirs(self.pynq_build_generated_path)
+        except FileExistsError:
+            print("PYNQBuild/generated exists already.")
+
+    ##########################################################
+    ###### Delete Vivado Log Files (.log, .jou from CWD) #####
+    ##########################################################
+    def remove_vivado_log_jou_files(self):
+        
+        # Find Vivado log file and delete it.
+        try:
+            os.remove(os.path.join(os.getcwd(), "vivado.log"))
+            print("Successfully deleted Vivado.log file")
+        except FileNotFoundError:
+            print("No vivado.log file to delete")
+        except Exception as e:
+            print(f"An error occured: {e}")
+        
+        # Find Vivado jou file and delete it.
+        try:
+            os.remove(os.path.join(os.getcwd(), "vivado.jou"))
+            print("Successfully deleted Vivado.jou file")
+        except FileNotFoundError:
+            print("No vivado.jou file to delete")
+        except Exception as e:
+            print(f"An error occured: {e}")
+
+    ####################################################################
+    ###### Delete Project Log Files (runme.log for synth and impl) #####
+    ####################################################################
+    def remove_vivado_syn_impl_log_files(self):
+        # Delete old Synthesis Log
+        if os.path.exists(self.syn_log_path):
+            # If it exists, delete the file
+            os.remove(self.syn_log_path)
+            print(f"The file {self.syn_log_path} has been deleted.")
+        else:
+            print(f"The file {self.syn_log_path} does not exist.")
+
+        # Delete old Implementation Log
+        if os.path.exists(self.impl_log_path):
+            # If it exists, delete the file
+            os.remove(self.impl_log_path)
+            print(f"The file {self.impl_log_path} has been deleted.")
+        else:
+            print(f"The file {self.impl_log_path} does not exist.")
+
+    #############################################################
+    ###### Generate Jupyter Notebook Only (No Vivado Build) #####
+    #############################################################
+    def generate_jnb(self):
+        # A separate API only for generating JNB
+        pass
+
+    ####################################################
+    ###### Build Status Test Code for Updating GUI #####
+    ####################################################
     def update_build_status_tester(self):
         self.error_at_build_step = False
         time.sleep(10)
@@ -267,9 +428,9 @@ class HdlgenProject:
         self.error_at_build_step = False
         self.build_running = False
 
-    ##############################################
-    ########## Update Build Status Page ##########
-    ##############################################
+    ###########################################################
+    ########## Update Build Status Page (Full Build) ##########
+    ###########################################################
     def update_build_status(self):
         # We will need to listen to a number of flags.
         options = ["gen_tcl", "run_viv", "opn_prj", "bld_bdn", "run_syn", "run_imp", "gen_bit", "gen_jnb", "cpy_out"]
