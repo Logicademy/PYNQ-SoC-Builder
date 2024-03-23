@@ -149,6 +149,11 @@ class HdlgenProject:
         self.path_to_xdc = self.environment + "/" + self.AMDproj_folder_rel_path + "/" + self.name + ".srcs/constrs_1/imports/generated/"    # hotfix changed to environment
         self.full_path_to_xdc = self.path_to_xdc + "physical_constr.xdc"
 
+        #########################################################################
+        ##### Variable used to track what buildstatuspage items are running #####
+        #########################################################################
+        self.running_build_status_modes = []
+
 
     ############################################################
     ########## Logger set and add_to_log_box function ##########
@@ -275,11 +280,6 @@ class HdlgenProject:
         self.add_to_build_log(f"\nStarting Build Status Updater Thread")
         thread1 = threading.Thread(target=self.update_build_status)
         thread1.start()
-
-        # (Testing) Test Driver Thread
-        # thread2 = threading.Thread(target=self.update_build_status_tester)
-        # thread2.start()
-
         # Delete existing Vivado log files
         self.add_to_build_log(f"\nDeleting existing Vivado .log and .jou files")
         self.remove_vivado_log_jou_files()
@@ -502,35 +502,33 @@ class HdlgenProject:
         # A separate API only for generating JNB
         pass
 
-    ####################################################
-    ###### Build Status Test Code for Updating GUI #####
-    ####################################################
-    def update_build_status_tester(self):
-        self.error_at_build_step = False
-        time.sleep(10)
-        self.current_step = "gen_tcl"
-        time.sleep(10)
-        self.current_step = "opn_prj"
-        time.sleep(10)
-        self.current_step = "bld_bdn"
-        time.sleep(10)
-        self.current_step = "run_syn"
-        time.sleep(10)
-        # self.error_at_build_step = True
-        self.current_step = "run_imp"
-        time.sleep(10)
-        self.current_step = "gen_bit"
-        time.sleep(10)
-        self.current_step = "gen_jnb"
-        time.sleep(10)
-        self.current_step = "cpy_out"
-        time.sleep(10)
-        self.error_at_build_step = False
-        self.build_running = False
-
     ###########################################################
     ########## Update Build Status Page (Full Build) ##########
     ###########################################################
+
+    def start_build_status_process(self, mode):
+
+        # Check that the mode exists.
+        try:
+            self.buildstatuspage.self.obj_dict[mode]
+        except KeyError:
+            print("Mode not found in start_build_status_process")
+        except Exception as e:
+            print(e)
+
+        # Add the dictionary to the list of processes currently running.    
+        self.running_build_status_modes.append(mode)
+        # Then we want to start the process.
+        self.buildstatuspage.set_build_status(mode, 'running')
+
+    def end_build_status_process(self, mode):
+        if mode in self.running_build_status_modes:
+            self.running_build_status_modes.remove(mode)
+
+    def build_status_process(self):
+        time.sleep(1)
+        self.buildstatuspage.increment_time(self.build_running_status_modes)
+
     def update_build_status(self):
         # We will need to listen to a number of flags.
         options = ["gen_tcl", "run_viv", "opn_prj", "bld_bdn", "run_syn", "run_imp", "gen_bit", "gen_jnb", "cpy_out"]
