@@ -131,6 +131,8 @@ class SidebarMenu(ctk.CTkScrollableFrame):
         self.hdlgen_prj = self.parent.hdlgen_prj
 
     def run_build(self):
+        # It is here that we need to trigger save to XML.
+
         self.hdlgen_prj.build_project()
 
     def open_project_in_file_explorer(self):
