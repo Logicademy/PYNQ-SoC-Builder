@@ -238,7 +238,7 @@ class HdlgenProject:
         thread1.start()
         thread2.start()
 
-    # Steps?
+    # Steps:
     # 1) Load the XML configuration
     # 2) Run everything as we need.
     # 2.5) Update Build Status Flags
@@ -310,26 +310,6 @@ class HdlgenProject:
                 if self.current_step == 'cpy_out':
                     self.buildstatuspage.set_build_status('run_viv', 'success')
                 self.buildstatuspage.set_build_status(last_build_step, 'success')
-            
-
-        if self.error_at_build_step == "gen_tcl":
-            pass
-        elif self.error_at_build_step == "opn_prj":
-            pass
-        elif self.error_at_build_step == "bld_bdn":
-            pass
-        elif self.error_at_build_step == "run_syn":
-            pass
-        elif self.error_at_build_step == "run_imp":
-            pass
-        elif self.error_at_build_step == "gen_bit":
-            pass
-        elif self.error_at_build_step == "gen_jnb":
-            pass
-        elif self.error_at_build_step == "cpy_out":
-            pass
-        else:
-            print("Build passed")
 
     ################################################
     ########## Add Second to MM:SS string ##########
