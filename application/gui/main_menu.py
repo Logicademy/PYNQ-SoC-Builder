@@ -76,8 +76,9 @@ class SidebarMenu(ctk.CTkScrollableFrame):
 
         self.fpga_button = ctk.CTkButton(self, text="Launch FPGA", width=225, height=40, font=button_font)
         self.fpga_button.grid(row=3, column=0, pady=10)
-        # self.build_button = ctk.CTkButton(self, text="Local FPGA", width=225, height=40, font=button_font)
-        # self.build_button.grid(row=4, column=0, pady=10)
+
+        self.fpga_button = ctk.CTkButton(self, text="Open Project Directory", width=225, height=40, font=button_font)
+        self.fpga_button.grid(row=4, column=0, pady=10)
 
         self.help_button = ctk.CTkButton(
             self,
@@ -101,7 +102,7 @@ class SidebarMenu(ctk.CTkScrollableFrame):
             hover_color=red_hv_clr,
             command=self.parent.close_project
         )
-        self.close_button.grid(row=6, column=0, pady=10)
+        self.close_button.grid(row=7, column=0, pady=10)
 
     def resize(self, event):
         # print("SidebarMenu Menu is called")
