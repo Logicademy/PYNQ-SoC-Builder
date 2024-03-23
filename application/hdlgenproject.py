@@ -70,16 +70,16 @@ class HdlgenProject:
         entityIOPorts = hdlDesign.getElementsByTagName("entityIOPorts")[0]
         signals = entityIOPorts.getElementsByTagName("signal")
 
-        all_ports = []
+        self.all_ports = []
         for sig in signals:
             signame = sig.getElementsByTagName("name")[0]
             mode = sig.getElementsByTagName("mode")[0]
             type = sig.getElementsByTagName("type")[0]
             desc = sig.getElementsByTagName("description")[0]
-            all_ports.append(
+            self.all_ports.append(
                 [signame.firstChild.data, mode.firstChild.data, type.firstChild.data, desc.firstChild.data]
             )
-        self.parsed_ports = self.parse_all_ports(all_ports)
+        self.parsed_ports = self.parse_all_ports(self.all_ports)
     
         ####################################
         ###### Parse Internal Signals ######
@@ -89,15 +89,15 @@ class HdlgenProject:
         internalSignals = hdlDesign.getElementsByTagName("internalSignals")[0]
         intsignals = internalSignals.getElementsByTagName("signal")
         
-        all_internal = []
+        self.all_internal = []
         for sig in intsignals:
             signame = sig.getElementsByTagName("name")[0]
             type = sig.getElementsByTagName("type")[0]
             desc = sig.getElementsByTagName("description")[0]
-            all_internal.append(
+            self.all_internal.append(
                 [signame.firstChild.data, type.firstChild.data, desc.firstChild.data]
             )
-        self.parsed_internal_sigs = self.parse_all_internal_sigs(all_internal)
+        self.parsed_internal_sigs = self.parse_all_internal_sigs(self.all_internal)
         # self.parsed_internal_sigs = self.parse_all_internal_sigs(all_internal)
 
         #############################

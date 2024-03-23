@@ -141,13 +141,11 @@ class SummaryTab(ctk.CTkScrollableFrame):
         self.signal_dict_lbl = ctk.CTkLabel(self.rhs_signal_frame, text="Signal Dictionary", font=bold_text_font, justify='left', anchor='w', width=550)
         self.signal_dict_lbl.grid(row=0, column=0, padx=5, pady=5)
         self.signal_dict_tbox = ctk.CTkTextbox(self.rhs_signal_frame, width=550, font=sig_dictionary_font)
-        self.signal_dict_tbox.insert("0.0", "datIn - in - single bit - description\ndatIn - in - single bit - description\ndatIn - in - single bit - description\n")
         self.signal_dict_tbox.grid(row=1, column=0, padx=5, pady=5)
 
         self.int_sig_dict_lbl = ctk.CTkLabel(self.rhs_signal_frame, text="Internal Signals", font=bold_text_font, justify='left', anchor='w', width=550)
         self.int_sig_dict_lbl.grid(row=2, column=0, padx=5, pady=5)
         self.int_sig_dict_tbox = ctk.CTkTextbox(self.rhs_signal_frame, width=550, font=sig_dictionary_font)
-        self.int_sig_dict_tbox.insert("0.0", "datIn - in - single bit - description\ndatIn - in - single bit - description\ndatIn - in - single bit - description\n")
         self.int_sig_dict_tbox.grid(row=3, column=0, padx=5, pady=5)
 
         self.rhs_signal_frame.grid(row=0, column=2, padx=5, pady=5, rowspan=100)
@@ -170,10 +168,19 @@ class SummaryTab(ctk.CTkScrollableFrame):
 
         # Parsed ports and internal signal strings need to be formatted here.
 
-        # Assign to textboxes
-        self.signal_dict_tbox.insert("0.0", self.hdlgen_prj.parsed_ports)
+        # Signal Dictionary Text
+        signal_dictionary_string = "Signal Name - Mode (in/out) - Type (single bit/bus) - Description\n\n"
+        for port in self.hdlgen_prj.all_ports:
+            signal_dictionary_string += f"{port[0]} - {port[1]} - {port[2]} - {port[3]}\n"
+        self.signal_dict_tbox.insert("0.0", signal_dictionary_string)
         self.signal_dict_tbox.configure(state="disabled")
-        self.int_sig_dict_tbox.insert("0.0", self.hdlgen_prj.parsed_internal_sigs)
+
+        # Internal Signal Dictionary Text
+        int_signal_dictionary_string = "Internal Signal Name - Type  - Description\n\n"
+        for int_sig in self.hdlgen_prj.all_internal:
+            int_signal_dictionary_string += f"{int_sig[0]} - {int_sig[1]} - {int_sig[2]}\n"
+
+        self.int_sig_dict_tbox.insert("0.0", int_signal_dictionary_string)
         self.int_sig_dict_tbox.configure(state="disabled")
 
     def resize(self, event):
