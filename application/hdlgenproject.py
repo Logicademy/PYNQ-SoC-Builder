@@ -306,6 +306,9 @@ class HdlgenProject:
         # self.synth_logger_thread.start()
         # self.impl_logger_thread.start()
 
+        self.vivado_logger = threading.Thread(target=self.vivado_state_logger)
+
+
         # Execute Program
         self.add_to_build_log(f"\nClearing force close threading flag")
         self.build_force_quit_event.clear()
@@ -320,6 +323,85 @@ class HdlgenProject:
         # 2.5) Update Build Status Flags
         # 3) Everything handles it self anyways for most part.
 
+    #############################################################
+    ###### Used to flag the various stages for Build Status #####
+    #############################################################
+    def vivado_state_logger(self):
+        vivado_log_path = os.path.join(os.getcwd(), "vivado.log")
+        
+        # If the vivado.log file hasn't been created yet just wait 1 second.
+        
+        while not os.path.exists(vivado_log_path):
+            self.add_to_build_log("\nWaiting for Vivado to launch...")
+            time.sleep(1)
+            if self.build_force_quit_event.is_set():
+                self.add_to_build_log("\nQuitting Vivado Logger - Quit flag asserted")
+                return
+
+        waiting_counter = 0
+        # We can progress once the program is open.
+        with open(vivado_log_path, 'r') as vivado_log:
+            while True:
+                if self.app.vivado_force_quit_event.is_set():
+                    self.add_to_build_log("\nQuitting Vivado Logger - Quit flag asserted")
+                    return
+
+                # Will return to this depending on our flag scheme
+                # if self.current_running_mode != "run_viv":
+                #         break
+
+                line = vivado_log.readline()
+                if not line:
+                    time.sleep(1)   # No line is available, wait a second
+                else:
+                    if line == "":
+                        pass    # Skip empty lines
+                    elif line[0] == '#':
+                        pass    # this line just has the tcl script we sourced
+                    elif line.startswith("CRITICAL WARNING"):
+                        self.add_to_build_log("\n"+line)
+                    elif line.startswith("ERROR"):
+                        # If an error is detected, we want to set the flag as error.
+                        self.add_to_build_log("\n"+line.strip())
+                        # Read out the remainder of the lines in buffer
+                        while True:
+                            line = vivado_log.readline()
+                            if not line:
+                                break
+                            self.add_to_build_log("\n"+line.strip())
+                            time.sleep(0.05)
+                        self.add_to_build_log("\n\nVivado raised an error and the build could not complete. Please check the log above for more details")
+                        self.add_to_build_log("\nBuild is quitting.")
+                    elif "open_project" in line:
+                        self.add_to_build_log(f"\nOpening Vivado Project {self.path_to_xpr}")
+                        self.add_to_build_log("\n" + line.strip())
+                    elif "create_bd_design" in line:
+                        self.add_to_build_log(f"\nCreating BD Design: {self.path_to_bd}")
+                        self.add_to_build_log("\n"+line)
+                    elif "_0_0_synth_1" in line:
+                        self.add_to_build_log("\nStarting Synthesis of Design")
+                        self.add_to_build_log("\n"+line.strip())
+                    elif "Launched impl_1..." in line:
+                        self.add_to_build_log("\nLaunching Implementation\n" +line)
+                        self.add_to_build_log(vivado_log.readline())
+                    elif "Waiting for impl_1 to finish..." in line:
+                        dots = "."*(waiting_counter//2%5)
+                        # if waiting_counter == 0:
+                            # self.log_data = self.log_data + "\nWaiting for synthesis & implementation to complete, see syn/impl log tabs for more details"
+                        # self.add_to_build_log(self.log_data + dots, True)
+                        # time.sleep(0.5)
+                        # waiting_counter += 1
+                    elif "write_bitstream completed successfully" in line:
+                        self.add_to_build_log("\nBitstream written successfully.")
+                    self.add_to_log_box("\nExit command issued to Vivado. Waiting for Vivado to close.")
+                    # Stall the process until the flag is updated by other thread.
+                    while self.app.build_running:
+                        time.sleep(1)
+                        pass
+                    break
+
+
+
     ########################################################
     ###### Build thread - Called by build_project func #####
     ########################################################
@@ -327,19 +409,48 @@ class HdlgenProject:
         # Will need to be setting flags or something along the way here.
         
         # Generate TCL
+        self.current_step = "gen_tcl"
         self.generate_tcl()
 
-    ########################################################
-    ###### Build thread - Called by build_project func #####
-    ########################################################
-    def generate_tcl(self):
+        # Run Vivado
+        self.vivado_logger.start()
+        self.run_vivado()
 
+        # Generate JNB
+        # self.generate_jnb()
+
+        # Copy to Directory
+        # self.copy_output()
+
+        # Some cleanup/completion activities
+        
+        # Complete.
+
+
+    ################################################
+    ###### Generate Tcl - Called by build func #####
+    ################################################
+    def generate_tcl(self):
+        
         if self.build_force_quit_event.is_set():
-            self.add_to_build_log("\n\nTcl Generation called as force quit flag asserted!")
-            print("\n\nTcl Generation called as force quit flag asserted!")
+            self.add_to_build_log("\n\nTcl Generation cancelled as force quit flag asserted!")
+            print("\n\nTcl Generation cancelled as force quit flag asserted!")
             return # Return to leave function
 
         self.pm_obj.generate_tcl(self, self.add_to_build_log)
+
+
+    ################################################
+    ###### Run Vivado - Called by build func #####
+    ################################################
+    def run_vivado(self):
+
+        if self.build_force_quit_event.is_set():
+            self.add_to_build_log("\n\nRun Vivado cancelled as force quit flag asserted!")
+            print("\n\nRun Vivado cancelled as force quit flag asserted!")
+            return # Return to leave function
+
+        self.pm_obj.run_vivado(self, self.add_to_build_log)
 
     ##########################################################
     ###### Delete Vivado Log Files (.log, .jou from CWD) #####

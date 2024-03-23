@@ -117,16 +117,17 @@ class Pynq_Manager:
         self.check_generated_path_and_mkdir()
         tcl_gen.generate_tcl(hdlgen_prj, add_to_log_box)
 
-    def run_vivado(self, force_close_flag=None):
-        try:
-            checks.check_for_dashes(self.hdlgen_project_path)
-        except checks.DashesInHDLFileError:
-            print(f"PYNQ Manager Detected Dashes in HDL File {self.hdlgen_project_path}")
-            raise checks.DashesInHDLFileError
-        except Exception as e:
-            print(f"Expection Occured in Run Vivado: {e}")
-            print("Pynq_Manager.run_vivado() returning without action.")
-            return
+    def run_vivado(self, hdlgen_prj, add_to_log_box):
+        # I don't like how this was implemented. I would rather this be flagged sooner.
+        # try:
+        #     checks.check_for_dashes(self.hdlgen_project_path)
+        # except checks.DashesInHDLFileError:
+        #     print(f"PYNQ Manager Detected Dashes in HDL File {self.hdlgen_project_path}")
+        #     raise checks.DashesInHDLFileError
+        # except Exception as e:
+        #     print(f"Expection Occured in Run Vivado: {e}")
+        #     print("Pynq_Manager.run_vivado() returning without action.")
+        #     return
         
         # D:\Xilinx\Vivado\2019.1\bin\vivado.bat -mode tcl -source C:/masters/masters_automation/generate_script.tcl
         try:
@@ -139,19 +140,19 @@ class Pynq_Manager:
 
             while vivado_process.poll() is None:
                 time.sleep(1)
-                if force_close_flag and force_close_flag.is_set():
-                    print("murder vivado")
+                if hdlgen_prj.build_force_quit_event and hdlgen_prj.build_force_quit_event.is_set():
+                    print("PYNQ Manager - Killing Vivado Process")
                     parent = psutil.Process(vivado_process.pid)
                     for child in parent.children(recursive=True):
                         child.terminate()
                     parent.terminate()
-                    print("waiting 2 seconds to allow vivado time to quit")
                     time.sleep(2)
                     break
 
         except Exception as e:
-            print("Exception")
-            print(e)
+            add_to_log_box(f"\nError when executing in Vivado:\n{e}")
+            hdlgen_prj.build_force_quit_event.set() # Set the flag to quit everything.
+            print(f"Exception: {e}")
 
         finally:
             # Ensure the subprocess is terminated even if the thread exits
