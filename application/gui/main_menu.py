@@ -4,6 +4,8 @@ import time
 import application.gui.ConfigPages.project_config_menu as pcm
 import application.gui.LogPages.log_menu as logm
 import application.hdlgenproject as hdlgenprj
+import webbrowser
+
 
 ctk.set_appearance_mode("System")       # 'Light' 'Dark' or 'System
 ctk.set_default_color_theme("blue")
@@ -74,11 +76,24 @@ class SidebarMenu(ctk.CTkScrollableFrame):
         )
         self.gen_jnb_button.grid(row=2, column=0, pady=10)
 
-        self.fpga_button = ctk.CTkButton(self, text="Launch FPGA", width=225, height=40, font=button_font)
+        self.fpga_button = ctk.CTkButton(
+            self,
+            text="Launch FPGA",
+            width=225,
+            height=40,
+            font=button_font
+        )
         self.fpga_button.grid(row=3, column=0, pady=10)
 
-        self.fpga_button = ctk.CTkButton(self, text="Open Project Directory", width=225, height=40, font=button_font)
-        self.fpga_button.grid(row=4, column=0, pady=10)
+        self.open_dir_button = ctk.CTkButton(
+            self,
+            text="Open Project Directory",
+            width=225,
+            height=40,
+            font=button_font,
+            command=self.open_project_in_file_explorer
+        )
+        self.open_dir_button.grid(row=4, column=0, pady=10)
 
         self.help_button = ctk.CTkButton(
             self,
@@ -117,6 +132,18 @@ class SidebarMenu(ctk.CTkScrollableFrame):
 
     def run_build(self):
         self.hdlgen_prj.build_project()
+
+    def open_project_in_file_explorer(self):
+        # Find the directory of the project.
+        self.open_dir(self.hdlgen_prj.location)
+        pass
+
+
+    def open_dir(self, path):
+        if os.path.isdir(path):
+            webbrowser.open('file://' + os.path.realpath(path))
+        else:
+            print("Not a valid directory path")
 
 ##########################################
 ##### Config Menu Frame (Top Config) #####
