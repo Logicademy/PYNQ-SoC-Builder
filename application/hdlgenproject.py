@@ -373,12 +373,16 @@ class HdlgenProject:
                         self.add_to_build_log("\n\nVivado raised an error and the build could not complete. Please check the log above for more details")
                         self.add_to_build_log("\nBuild is quitting.")
                     elif "open_project" in line:
+                        self.start_build_status_process('opn_prj')
                         self.add_to_build_log(f"\nOpening Vivado Project {self.path_to_xpr}")
                         self.add_to_build_log("\n" + line.strip())
                     elif "create_bd_design" in line:
+                        self.end_build_status_process('opn_prj')
+                        self.start_build_status_process('bld_bdn')
                         self.add_to_build_log(f"\nCreating BD Design: {self.path_to_bd}")
                         self.add_to_build_log("\n"+line)
                     elif "_0_0_synth_1" in line:
+                        self.end_build_status_process('bld_bdn')
                         self.add_to_build_log("\nStarting Synthesis of Design")
                         self.add_to_build_log("\n"+line.strip())
                     elif "Launched impl_1..." in line:
@@ -409,23 +413,29 @@ class HdlgenProject:
         # Will need to be setting flags or something along the way here.
         
         # Generate TCL
-        self.current_step = "gen_tcl"
+        self.start_build_status_process('gen_tcl')
         self.generate_tcl()
+        self.end_build_status_process('gen_tcl')
 
         # Run Vivado
+        self.start_build_status_process('run_viv')
         self.vivado_logger.start()
         self.run_vivado()
+        self.end_build_status_process('run_viv')
 
         # Generate JNB
+        # self.start_build_status_process('gen_jnb')
         # self.generate_jnb()
+        # self.end_build_status_process('gen_jnb')
 
         # Copy to Directory
+        # self.start_build_status_process('cpy_out')
         # self.copy_output()
+        # self.end_build_status_process('cpy_out')
 
         # Some cleanup/completion activities
         
         # Complete.
-
 
     ################################################
     ###### Generate Tcl - Called by build func #####
@@ -451,6 +461,29 @@ class HdlgenProject:
             return # Return to leave function
 
         self.pm_obj.run_vivado(self, self.add_to_build_log)
+
+    ###################################################
+    ###### Generate Jupyter Notebook (Full Build) #####
+    ###################################################
+    def generate_jnb(self):
+        # A separate API only for generating JNB
+        if self.build_force_quit_event.is_set():
+            self.add_to_build_log("\n\nGenerate JNB cancelled as force quit flag asserted!")
+            print("\n\nGenerate JNB cancelled as force quit flag asserted!")
+            return # Return to leave function
+
+        self.pm_obj.generate_jnb(self, self.add_to_build_log)
+
+    ########################################################
+    ###### Generate Jupyter Notebook (No Vivado Build) #####
+    ########################################################
+    def generate_jnb_solo(self):
+        # We are gonna need a 'force gen' option in the gen_jnb api as the switch could be deassert in config file.
+        self.pm_obj.generate_jnb(self, self.add_to_build_log, force_gen=True)        
+
+    ########################################################
+    ###### Copy Output Files (Full Build) #####
+    ########################################################  
 
     ##########################################################
     ###### Delete Vivado Log Files (.log, .jou from CWD) #####
@@ -495,12 +528,6 @@ class HdlgenProject:
         else:
             print(f"The file {self.impl_log_path} does not exist.")
 
-    #############################################################
-    ###### Generate Jupyter Notebook Only (No Vivado Build) #####
-    #############################################################
-    def generate_jnb(self):
-        # A separate API only for generating JNB
-        pass
 
     ###########################################################
     ########## Update Build Status Page (Full Build) ##########
@@ -528,47 +555,6 @@ class HdlgenProject:
     def build_status_process(self):
         time.sleep(1)
         self.buildstatuspage.increment_time(self.build_running_status_modes)
-
-    def update_build_status(self):
-        # We will need to listen to a number of flags.
-        options = ["gen_tcl", "run_viv", "opn_prj", "bld_bdn", "run_syn", "run_imp", "gen_bit", "gen_jnb", "cpy_out"]
-        last_time_tcl = "00:00"
-        # This function is going to be threaded tfk cos effort.
-
-        modes = ["gen_tcl", "run_viv", "opn_prj", "bld_bdn", "run_syn", "run_imp", "gen_bit", "gen_jnb", "cpy_out"]
-
-        for mode in modes:
-            self.buildstatuspage.set_build_status(mode, 'waiting')
-
-        while self.build_running:
-            time.sleep(1)
-            # Need to simply listen for flags
-            last_build_step = self.current_step
-            if self.current_step == 'opn_prj':
-                self.buildstatuspage.set_build_status('run_viv', 'running')
-            if last_build_step == None:
-                continue
-            self.buildstatuspage.set_build_status(last_build_step, 'running')
-            while self.current_step == last_build_step and self.build_running:
-                time.sleep(1)
-                self.buildstatuspage.increment_time(last_build_step)
-                if self.current_step in ['opn_prj', 'bld_bdn', 'run_syn', 'run_imp', 'gen_bit']:
-                    self.buildstatuspage.increment_time('run_viv')
-
-                if not self.build_running and not self.error_at_build_step:
-                    self.buildstatuspage.set_build_status(last_build_step, 'success')
-                    
-            # print("Do I pass this threshold?")
-
-            if self.error_at_build_step:
-                self.buildstatuspage.set_build_status(last_build_step, 'failed')
-                if self.current_step in ['opn_prj', 'bld_bdn', 'run_syn', 'run_imp', 'gen_bit']:
-                    self.buildstatuspage.set_build_status('run_viv', 'failed')
-                return  # Return from the function completely if this happens.
-            else:
-                if self.current_step == 'cpy_out':
-                    self.buildstatuspage.set_build_status('run_viv', 'success')
-                self.buildstatuspage.set_build_status(last_build_step, 'success')
 
     ################################################
     ########## Add Second to MM:SS string ##########
