@@ -154,6 +154,12 @@ class HdlgenProject:
         #########################################################################
         self.running_build_status_modes = []
 
+        ########################
+        ##### Output Paths #####
+        ########################
+        self.pynq_build_path = os.path.join(self.location, "PYNQBuild")
+        self.pynq_build_output_path = os.path.join(self.pynq_build_path, "output")
+        self.pynq_build_generated_path = os.path.join(self.pynq_build_path, "generated")
 
     ############################################################
     ########## Logger set and add_to_log_box function ##########
@@ -278,7 +284,7 @@ class HdlgenProject:
 
         # Start Build Status Updater Thread
         self.add_to_build_log(f"\nStarting Build Status Updater Thread")
-        thread1 = threading.Thread(target=self.update_build_status)
+        thread1 = threading.Thread(target=self.build_status_process)
         thread1.start()
         # Delete existing Vivado log files
         self.add_to_build_log(f"\nDeleting existing Vivado .log and .jou files")
@@ -342,7 +348,7 @@ class HdlgenProject:
         # We can progress once the program is open.
         with open(vivado_log_path, 'r') as vivado_log:
             while True:
-                if self.app.vivado_force_quit_event.is_set():
+                if self.build_force_quit_event.is_set():
                     self.add_to_build_log("\nQuitting Vivado Logger - Quit flag asserted")
                     return
 
@@ -397,12 +403,12 @@ class HdlgenProject:
                         # waiting_counter += 1
                     elif "write_bitstream completed successfully" in line:
                         self.add_to_build_log("\nBitstream written successfully.")
-                    self.add_to_log_box("\nExit command issued to Vivado. Waiting for Vivado to close.")
+                    elif "exit" in line:
+                        self.add_to_build_log("\nExit command issued to Vivado. Waiting for Vivado to close.")
+                        self.add_to_build_log("\nMoving to next process")
+                        break
                     # Stall the process until the flag is updated by other thread.
-                    while self.app.build_running:
-                        time.sleep(1)
-                        pass
-                    break
+                    
 
 
 
@@ -424,14 +430,14 @@ class HdlgenProject:
         self.end_build_status_process('run_viv')
 
         # Generate JNB
-        # self.start_build_status_process('gen_jnb')
-        # self.generate_jnb()
-        # self.end_build_status_process('gen_jnb')
+        self.start_build_status_process('gen_jnb')
+        self.generate_jnb()
+        self.end_build_status_process('gen_jnb')
 
         # Copy to Directory
-        # self.start_build_status_process('cpy_out')
-        # self.copy_output()
-        # self.end_build_status_process('cpy_out')
+        self.start_build_status_process('cpy_out')
+        self.copy_output()
+        self.end_build_status_process('cpy_out')
 
         # Some cleanup/completion activities
         
@@ -484,6 +490,18 @@ class HdlgenProject:
     ########################################################
     ###### Copy Output Files (Full Build) #####
     ########################################################  
+    def copy_output(self):
+
+        if self.build_force_quit_event.is_set():
+            self.add_to_build_log("\n\nCopy Output cancelled as force quit flag asserted!")
+            print("\n\nCopy Output cancelled as force quit flag asserted!")
+            return # Return to leave function
+
+        try:
+            self.pm_obj.copy_to_dir()
+        except Exception as e:
+            self.add_to_build_log(f"\nError: {e}")
+
 
     ##########################################################
     ###### Delete Vivado Log Files (.log, .jou from CWD) #####
@@ -537,11 +555,13 @@ class HdlgenProject:
 
         # Check that the mode exists.
         try:
-            self.buildstatuspage.self.obj_dict[mode]
+            self.buildstatuspage.obj_dict[mode]
         except KeyError:
             print("Mode not found in start_build_status_process")
+            return
         except Exception as e:
-            print(e)
+            print(f"start_build_status_process: {e}")
+            return
 
         # Add the dictionary to the list of processes currently running.    
         self.running_build_status_modes.append(mode)
@@ -551,10 +571,12 @@ class HdlgenProject:
     def end_build_status_process(self, mode):
         if mode in self.running_build_status_modes:
             self.running_build_status_modes.remove(mode)
+        self.buildstatuspage.set_build_status(mode, 'success')
+        
 
     def build_status_process(self):
         time.sleep(1)
-        self.buildstatuspage.increment_time(self.build_running_status_modes)
+        self.buildstatuspage.increment_time(self.running_build_status_modes)
 
     ################################################
     ########## Add Second to MM:SS string ##########

@@ -7,14 +7,38 @@ import os
 import application.xml_manager as xmlman
 
 # Function to generate JNB, takes HDLGen file path and notebook name as parameters
-def create_jnb(path_to_hdlgen_file, output_filename=None, generic=False, io_map=None):
+def create_jnb(hdlgen_prj, add_to_log_box, force_gen=False):
     
-    # io_map == True is indicator to read from XML file
+    # Read from XML.
+    proj_config = hdlgen_prj.pynqbuildxml.read_proj_config()
+    io_map = hdlgen_prj.pynqbuildxml.read_io_config()
+
+    # Try to load from XML and sanitize the response
+    use_board_io = False
+    try:
+        use_board_io = proj_config['use_board_io']
+    except Exception as e:
+        add_to_log_box("\nCouldn't load use_board_io setting from XML - using default: False")
+    finally:
+        if not isinstance(use_board_io, bool): # Check if the value is a boolean when finishing 
+            use_board_io = False
+            add_to_log_box("\nuse_board_io not loaded as boolean, ignoring and using default: False")
+
+    # Try to load from XML and sanitize the response
+    use_testplan = False
+    try:
+        use_testplan = proj_config['use_tstpln']
+    except Exception as e:
+        add_to_log_box("\nCouldn't load use_tstpln setting from XML - using default: False")
+    finally:
+        if not isinstance(use_board_io, bool): # Check if the value is a boolean when finishing 
+            use_testplan = False
+            add_to_log_box("\nuse_tstpln not loaded as boolean, ignoring and using default: False")
+
     # io_map == None means do not configure for IO
-    # io_map == io_map means an io_map dictionary was passed and it should be used.
-    if io_map == True:
-        # This means we need to read from file
-        io_map = xmlman.Xml_Manager(path_to_hdlgen_file).read_io_config()
+    # io_map == dictionary with io mapping, configure as such.
+    if not use_board_io:
+        io_map = None
 
     py_file_contents = ""   # This file is used to store the accompanying Python code for GUI controller, test APIs etc.
 
@@ -29,8 +53,15 @@ def create_jnb(path_to_hdlgen_file, output_filename=None, generic=False, io_map=
     py_file_contents += "\nimport os"
     py_file_contents += "\nimport threading"
 
+    ###############################################################################################################################
+    ###### Whilst it is less efficient to let the Notebook Generator parse the HDLGen XML itself, it will take too long       #####
+    ###### to update it to use hdlgen_prj object as there is a LOT of custom parsing which is only needed by the Notebook Gen #####
+    ###### Therefore, for now, this is going to be left. It could be updated in the future although their may not be any need #####
+    ###############################################################################################################################
+
+
     # Open HDLGen xml and get root node.
-    hdlgen = xml.dom.minidom.parse(path_to_hdlgen_file)
+    hdlgen = xml.dom.minidom.parse(hdlgen_prj.hdlgen_path)
     root = hdlgen.documentElement
 
     # Project Manager - Settings
@@ -90,12 +121,12 @@ def create_jnb(path_to_hdlgen_file, output_filename=None, generic=False, io_map=
         TBNote = testbench.getElementsByTagName("TBNote")[0]
         TBNoteData = TBNote.firstChild.data
     except Exception:
-        print("No TBNoteData - asserting generic generation")
-        generic = True
+        print("No TBNoteData - asserting no testplan generation")
+        use_testplan = False
     
     
     # Test bench parsing code
-    if not generic:
+    if use_testplan:
         # Parsing TB data into variables
         # Convert HTML entities into their coorresponding characters
         decoded_string = html.unescape(TBNoteData)
@@ -331,7 +362,7 @@ def create_jnb(path_to_hdlgen_file, output_filename=None, generic=False, io_map=
     ##### Break here if only dealing with skeleton code.
     # Possible To-do here is a "example" cell showing how to use signals
 
-    if not generic:
+    if use_testplan:
 
         # Testbench Plan Title Cell
         markdown_cell = nbf.v4.new_markdown_cell("# Test Plan")
@@ -673,7 +704,7 @@ def create_jnb(path_to_hdlgen_file, output_filename=None, generic=False, io_map=
     #     code_cell = nbf.v4.new_code_cell(code_cell_contents)
     #     notebook.cells.append(code_cell)
 
-    output_file = f'{output_filename}\{name}.ipynb'
+    output_file = f'{hdlgen_prj.pynq_build_output_path}\{name}.ipynb'
     # if output_filename is not None:
     #     output_file = output_filename
 
@@ -682,7 +713,7 @@ def create_jnb(path_to_hdlgen_file, output_filename=None, generic=False, io_map=
         
     print(f"Notebook Generated at: {output_file}")
 
-    output_py_file = f'{output_filename}\{name}.py'
+    output_py_file = f'{hdlgen_prj.pynq_build_output_path}\{name}.py'
     py_file_contents = py_file_contents.replace("\t", "    ")
     with open(output_py_file, 'w') as pyf:
         pyf.write(py_file_contents)

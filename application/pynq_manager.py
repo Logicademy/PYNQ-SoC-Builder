@@ -188,7 +188,6 @@ class Pynq_Manager:
         except FileExistsError:
             print("PYNQBuild/generated exists already.")
 
-    def generate_jnb(self, generic=False, io_map=False):
+    def generate_jnb(self, hdlgen_prj, add_to_log_box, force_gen=False):
         self.check_path_and_mkdir()
-        dest_path = self.pynq_build_output_path
-        nbg.create_jnb(self.hdlgen_project_path, generic=generic, output_filename=dest_path, io_map=io_map)
+        nbg.create_jnb(hdlgen_prj, add_to_log_box, force_gen=force_gen)
