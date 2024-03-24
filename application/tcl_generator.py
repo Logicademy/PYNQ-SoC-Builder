@@ -425,7 +425,7 @@ def generate_tcl(hdlgen_prj, add_to_log_box):
         img_bd_name = "image_bd"
         path_to_img_bd = hdlgen_prj.path_to_bd + "/" + img_bd_name + "/" + img_bd_name + ".bd"
 
-        file_contents += f"\ndelete_file_safely {hdlgen_prj.path_to_bd + '/' + img_bd_name + '/' + img_bd_name} .bd"
+        file_contents += f"\ndelete_file_safely {hdlgen_prj.path_to_bd + '/' + img_bd_name} /{img_bd_name}.bd"    # + '/' + img_bd_name removed to fix bug
 
         # Create block design, import the 
         file_contents += f"\ncreate_bd_file {img_bd_name}"
@@ -704,10 +704,12 @@ def generate_connections(module_source, all_ports_parsed, io_map, location, add_
         occurences = []
         if io_map:
             for key, value in io_map.items():
-                if gpio_name == io_map[key].split('[')[0]:
+                if gpio_name == io_map[key][0]:
                     occurences.append([key, io_map[key]])
-                elif  gpio_name == io_map[key]: # Might be redundant 
-                    occurences.append([key, io_map[key]])
+                # elif gpio_name == io_map[key].split('[')[0]:
+                #     occurences.append([key, io_map[key]])
+                # elif  gpio_name == io_map[key]: # Might be redundant 
+                #     occurences.append([key, io_map[key]])
             
         # Now we need to know: Target IO port (i.e. LED0) and the bit that is to be connected.
         # Lets assume ONLY 1 can be configured right now.

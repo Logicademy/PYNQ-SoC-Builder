@@ -34,7 +34,7 @@ def make_copy_and_inject(hdlgen_prj):
         new_port_name = f"int_{signal[0]}"
         internal_name = signal[0]
         gpio_wdith = signal[1]
-        if hdlgen_prj.project_language == "VHDL":
+        if hdlgen_prj.project_language == 'VHDL':
             make_internal_vhdl_signal_external(model_file, new_port_name, internal_name, gpio_wdith)
         elif hdlgen_prj.project_language == "Verilog":
             print("VERILOG NOT SUPPORTED YET")
@@ -60,7 +60,7 @@ def restore(hdlgen_prj):
 def restore_backup(original_filename, backup_filename):
     try:
         shutil.copy(backup_filename, original_filename)
-        os.remove(backup_filename)
+        # os.remove(backup_filename)    # Don't delete backup for debugging purposes
         print(f"Backup '{backup_filename}' restored as '{original_filename}' and deleted.")
     except FileNotFoundError:
         print("Error: Backup file not found.")

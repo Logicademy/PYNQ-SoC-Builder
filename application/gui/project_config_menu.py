@@ -268,6 +268,8 @@ class ConfigTabView(ctk.CTkTabview):
         # Save IO Config Connections
         self.ioconfigpage.save_io_config(xml_manager_instance)
 
+        # Save Internal Connections Config
+        self.ioconfigpage.save_int_sig_config(xml_manager_instance)
 
 class BuildStatusTab(ctk.CTkScrollableFrame):
     def __init__(self, parent, tabview):
@@ -707,6 +709,19 @@ class PortConfigTab(ctk.CTkScrollableFrame):
 
         xml_instance.write_io_config(io_config)
 
+    def save_int_sig_config(self, xml_instance):
+        # Internal Sigs are saved as [signal, width]
+        write_me = []
+        # self.switches_values -> Dictionary containing all the enabled configurations
+        for value in self.switches_values:
+            if value == [None] or value == None:
+                continue 
+            print(f"Key: {value[0]}, Value: {value[1]}")
+            write_me.append(value)
+
+        xml_instance.write_internal_to_port_config(write_me)
+        print("Successfully written Internal Signal Config")
+
     def load_project(self):
         self.hdlgen_prj = self.tabview.hdlgen_prj
         
@@ -725,6 +740,7 @@ class PortConfigTab(ctk.CTkScrollableFrame):
             self.switches.append(switch_to_create)
             index += 1
 
+        
         self.switches_values = [None] * len(self.switches)
 
         try:

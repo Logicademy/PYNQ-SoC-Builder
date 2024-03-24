@@ -70,7 +70,17 @@ class HdlgenProject:
         self.model_folder_rel_path = model_folder.firstChild.data
 
         # Model Full Path
-        self.model_file = self.environment + "/" + self.model_folder_rel_path + "/" + self.name
+        # self.model_file = self.environment + "/" + self.model_folder_rel_path + "/" + self.name   # This is where VHD file is copied into the Vivado project.
+        # Vivado COPIES the file in, it is not the model file itself.
+
+        # We need to take the last two directories off of the location dir
+        head, tail1 = os.path.split(self.location)
+        head, tail2 = os.path.split(head)
+        result = os.path.join(tail2, tail1)
+
+        self.model_file = self.environment + "/" + self.AMDproj_folder_rel_path + "/" + self.name + ".srcs/sources_1/imports/" + tail2 + "/" + self.model_folder_rel_path + "/" + self.name
+
+
 
         ###################################
         ###### Parse Entity IO Ports ######
@@ -280,10 +290,6 @@ class HdlgenProject:
         
         self.save_project(self.pynqbuildxml)
 
-        print("Saved and not building")
-
-        
-
         self.add_to_build_log(f"\nBuild project commencing @ {time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))}")
 
         # Try change current tab to the Build Status tab
@@ -346,7 +352,8 @@ class HdlgenProject:
 
         finally:
             # Clean up our backups.
-            hdl_modifier.restore(self)
+            # hdl_modifier.restore(self)
+            pass
         
 
     def get_generate_conn_signals(self):
@@ -476,6 +483,7 @@ class HdlgenProject:
         self.end_build_status_process('cpy_out')
 
         # Some cleanup/completion activities
+        # hdl_modifier.restore(self)
         
         # Complete.
 

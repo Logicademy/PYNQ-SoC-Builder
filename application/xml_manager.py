@@ -103,7 +103,7 @@ class Xml_Manager:
         for connection in connections:
             io = connection.getElementsByTagName("io")[0].firstChild.data
             signal = connection.getElementsByTagName("signal")[0].firstChild.data
-            pin = connection.getElementByTagName("pin")[0].firstChild.data
+            pin = connection.getElementsByTagName("pin")[0].firstChild.data
             # If the connection goes nowhere, ignore it.
             if signal == None or io == "None":
                 continue
@@ -292,9 +292,11 @@ class Xml_Manager:
         except Exception as e:
             print(f"No elements to delete {e}")
 
-        for internal_signal_name, gpio_width in internal_signal_config.items():
+        for sig in internal_signal_config:
+            internal_signal_name = sig[0]
+            gpio_width = sig[1]
 
-            entry = buildconfig.createElement("entry")
+            entry = buildconfig.createElement("signal")
 
             name = buildconfig.createElement("name")
             name_text = buildconfig.createTextNode(str(internal_signal_name))
@@ -327,7 +329,7 @@ class Xml_Manager:
         intSignals = root.getElementsByTagName("internalSignals")
         # Scan connections, return updated IO Map
         try:
-            for entry in intSignals[0].getElementsByTagName('entry'):
+            for entry in intSignals[0].getElementsByTagName('signal'):
                 try:
                     name = entry.getElementsByTagName("name")[0].firstChild.data
                     width = int(entry.getElementsByTagName("width")[0].firstChild.data)
