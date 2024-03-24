@@ -286,3 +286,28 @@ class Xml_Manager:
             buildconfig.writexml(xml_file, addindent="  ", newl='\n', encoding='')
 
         self.remove_blank_lines(self.pynq_build_path + "/PYNQBuildConfig.xml")
+
+    def read_internal_to_port_config(self):
+        loaded_config = []
+        # Load file
+        buildconfig = xml.dom.minidom.parse(self.pynq_build_path + "/PYNQBuildConfig.xml")
+        # Load root node <PYNQBuild>
+        root = buildconfig.documentElement
+        # Find ioConfig node
+        intSignals = root.getElementsByTagName("internalSignals")
+        # Scan connections, return updated IO Map
+        try:
+            for entry in intSignals[0].getElementsByTagName('entry'):
+                try:
+                    name = entry.getElementsByTagName("name")[0].firstChild.data
+                    width = entry.getElementsByTagName("width")[0].firstChild.data
+                    loaded_config.append([name, width])
+                except:
+                    print("No entries")
+                    continue
+
+        except Exception as e: 
+            print(f"Error reading internal signals config - Skipping: {e}")
+
+        print(f"Loaded internal signal config: {loaded_config}")
+        return loaded_config
