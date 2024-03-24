@@ -107,7 +107,6 @@ class Xml_Manager:
         return io_config
     
     def write_io_config(self, io_config):
-        print("Perhaps im not called at all?")
         # Load File
         buildconfig = xml.dom.minidom.parse(self.pynq_build_path + "/PYNQBuildConfig.xml")
         # Find root
@@ -125,7 +124,6 @@ class Xml_Manager:
 
         for pynq_io, comp_io in io_config.items():
             if comp_io == None or comp_io == "None" or comp_io == ['', 0]:
-                print("Do I do any running?")
                 continue    # Skip empty connections
 
             connection = buildconfig.createElement("connection")
@@ -141,10 +139,9 @@ class Xml_Manager:
             io = buildconfig.createElement("io")
             io_text = buildconfig.createTextNode(str(pynq_io))
             io.appendChild(io_text)
-
-            print("AMM I RUNNING???????")
-            connection.appendChild(signal)
+            
             connection.appendChild(io)
+            connection.appendChild(signal)
             connection.appendChild(pin)
 
             root.getElementsByTagName("ioConfig")[0].appendChild(connection)
