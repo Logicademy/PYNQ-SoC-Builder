@@ -3,6 +3,9 @@ import os
 import xml.etree.ElementTree as ET
 
 class Xml_Manager:
+    ########################################
+    ##### Initalize Xml_Manager Object #####
+    ########################################
     def __init__(self, hdlgen_path):
         self.hdlgen_path = hdlgen_path
         # The very first thing we want to do is check
@@ -27,6 +30,9 @@ class Xml_Manager:
 
         self.check_project_xml_exists()
 
+    ###########################################################
+    ##### Check Project XML Exists (if not, generate one) #####
+    ###########################################################
     def check_project_xml_exists(self):
         pynq_build_dir_exists = os.path.exists(self.pynq_build_path)
         pynq_build_config_exists = os.path.exists(self.pynq_build_path + "/PYNQBuildConfig.xml")
@@ -43,6 +49,9 @@ class Xml_Manager:
             self.create_config_xml()
 
 
+    #########################################
+    ##### Create Config XML - Empty XML #####
+    #########################################
     def create_config_xml(self):
         # Create root element
         root = ET.Element("PYNQBuild")
@@ -60,6 +69,9 @@ class Xml_Manager:
         tree = ET.ElementTree(root)
         tree.write(self.pynq_build_path + "/PYNQBuildConfig.xml")
 
+    #########################################
+    ##### Read the PYNQ Board IO Config #####
+    #########################################
     def read_io_config(self, io_configuration=None):
         io_config = {}
         if io_configuration==None:
@@ -109,6 +121,9 @@ class Xml_Manager:
         print(f"Loaded the following io config from file: \n{io_config}")
         return io_config
     
+    #######################################
+    ##### Write PYNQ Boarfd IO Config #####
+    #######################################
     def write_io_config(self, io_config):
         # Load File
         buildconfig = xml.dom.minidom.parse(self.pynq_build_path + "/PYNQBuildConfig.xml")
@@ -154,6 +169,9 @@ class Xml_Manager:
 
         self.remove_blank_lines(self.pynq_build_path + "/PYNQBuildConfig.xml")
 
+    ###########################################
+    ##### Read SoC Builder Project Config #####
+    ###########################################
     def read_proj_config(self):
         # Load our default config dictionary
         proj_config = {
@@ -201,6 +219,9 @@ class Xml_Manager:
         print(f"Loaded the following proj config from file: \n{proj_config}")
         return proj_config
     
+    ############################################
+    ##### Write SoC Builder Project Config #####
+    ############################################
     def write_proj_config(self, proj_config):
         # Load File
         buildconfig = xml.dom.minidom.parse(self.pynq_build_path + "/PYNQBuildConfig.xml")
@@ -237,6 +258,9 @@ class Xml_Manager:
 
         self.remove_blank_lines(self.pynq_build_path + "/PYNQBuildConfig.xml")
 
+    #####################################################################
+    ##### Remove Blank Lines from XML File (Makes XML more legible) #####
+    #####################################################################
     def remove_blank_lines(self, file):
         # Read in all lines
         with open(file, 'r') as f_in:
@@ -247,6 +271,9 @@ class Xml_Manager:
                 if line.strip():  # Check if the line is not blank
                     f_out.write(line)
 
+    ######################################################################################
+    ##### Write Internal Signals to Connect to Port (name without _int prefix/width) #####
+    ######################################################################################
     def write_internal_to_port_config(self, internal_signal_config):
         # Write internal signal mapping to XML.
         # <portName>int_ExampleSig</portName>
@@ -287,6 +314,9 @@ class Xml_Manager:
 
         self.remove_blank_lines(self.pynq_build_path + "/PYNQBuildConfig.xml")
 
+    #####################################################################################
+    ##### Read Internal Signals to Connect to Port (name without _int prefix/width) #####
+    #####################################################################################
     def read_internal_to_port_config(self):
         loaded_config = []
         # Load file
