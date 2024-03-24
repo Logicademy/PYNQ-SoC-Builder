@@ -55,9 +55,9 @@ class LogTabView(ctk.CTkTabview):
         self.implLog.resize(event)
 
         # As sample data, add event data to the log boxes.
-        self.builderLog.add_to_log_box(str(event)+"\n")
-        self.synthesisLog.add_to_log_box(str(event)+"\n")
-        self.implLog.add_to_log_box(str(event)+"\n")
+        # self.builderLog.add_to_log_box(str(event)+"\n")
+        # self.synthesisLog.add_to_log_box(str(event)+"\n")
+        # self.implLog.add_to_log_box(str(event)+"\n")
 
     def load_project(self):
         self.hdlgen_prj = self.parent.hdlgen_prj
