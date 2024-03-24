@@ -79,17 +79,17 @@ class ConfigTabView(ctk.CTkTabview):
 
         self.open_viv_var = ctk.StringVar(value="on")
         self.open_viv_sw = ctk.CTkSwitch(self.RHS_switch_frame, text="Open Vivado GUI", 
-                                        variable=self.open_viv_var, onvalue="on", offvalue="off", font=text_font)
+                                        variable=self.open_viv_var, font=text_font)
         # self.open_viv_sw.grid(row=1, column=1, padx=5, pady=5, sticky="w")
         
         self.keep_viv_open_var = ctk.StringVar(value="on")
         self.keep_viv_open_sw = ctk.CTkSwitch(self.RHS_switch_frame, text="Keep Vivado Open", 
-                                        variable=self.keep_viv_open_var, onvalue="on", offvalue="off", font=text_font)
+                                        variable=self.keep_viv_open_var, font=text_font)
         # self.keep_viv_open_sw.grid(row=2, column=1, padx=5, pady=5, sticky="w")
     
         self.always_regen_bd_var = ctk.StringVar(value="on")
         self.always_regen_bd_sw = ctk.CTkSwitch(self.RHS_switch_frame, text="Always Regenerate Block Design", 
-                                        variable=self.always_regen_bd_var, onvalue="on", offvalue="off", font=text_font)
+                                        variable=self.always_regen_bd_var, font=text_font)
         # self.always_regen_bd_sw.grid(row=3, column=1, padx=5, pady=5, sticky="w")
 
 
@@ -100,11 +100,11 @@ class ConfigTabView(ctk.CTkTabview):
 
         self.gen_when_build_var = ctk.StringVar(value="on")
         self.gen_when_build_sw = ctk.CTkSwitch(self.RHS_switch_frame, text="Generate when Building", 
-                                        variable=self.gen_when_build_var, onvalue="on", offvalue="off", font=text_font)
+                                        variable=self.gen_when_build_var, font=text_font)
         # self.gen_when_build_sw.grid(row=1, column=2, padx=5, pady=5, sticky="w")
         self.gen_tst_var = ctk.StringVar(value="on")
         self.gen_tst_sw = ctk.CTkSwitch(self.RHS_switch_frame, text="Generate using Testplan", 
-                                        variable=self.gen_tst_var, onvalue="on", offvalue="off", font=text_font)
+                                        variable=self.gen_tst_var, font=text_font)
         # self.gen_tst_sw.grid(row=2, column=2, padx=5, pady=5, sticky="w")
 
         # PYNQ Board Settings
@@ -261,12 +261,13 @@ class ConfigTabView(ctk.CTkTabview):
         config_dict['use_tstpln'] = True if self.gen_tst_sw.get() == 1 else False
         # IO Config Page (not IO connections)
         config_dict['use_board_io'] = True if self.ioconfigpage.on_off_switch.get() == 1 else False
-        
+       
+        # Write Config Dict to XML File
+        xml_manager_instance.write_proj_config(config_dict)
+
         # Save IO Config Connections
         self.ioconfigpage.save_io_config(xml_manager_instance)
 
-        # Write Config Dict to XML File
-        xml_manager_instance.write_proj_config(config_dict)
 
 class BuildStatusTab(ctk.CTkScrollableFrame):
     def __init__(self, parent, tabview):

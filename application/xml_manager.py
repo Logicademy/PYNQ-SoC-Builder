@@ -152,6 +152,8 @@ class Xml_Manager:
         with open(self.pynq_build_path + "/PYNQBuildConfig.xml", "w") as xml_file:
             buildconfig.writexml(xml_file, addindent="  ", newl='\n', encoding='')
 
+        self.remove_blank_lines(self.pynq_build_path + "/PYNQBuildConfig.xml")
+
     def read_proj_config(self):
         # Load our default config dictionary
         proj_config = {
@@ -159,7 +161,8 @@ class Xml_Manager:
             "keep_viv_opn": False,
             "gen_jnb": True,
             "use_tstpln": True,
-            "use_board_io": True
+            "use_board_io": True,
+            "regen_bd": True
         }
 
         # Load file
@@ -188,7 +191,9 @@ class Xml_Manager:
                     before = proj_config[name] # Do this to raise a key error if the IO doesn't exist in IO Map
                     proj_config[name] = value
                 except KeyError:
-                    print(f"The IO ({name}) could not be found in IO map provided. Ignoring setting value: {value}")
+                    print(f"Adding new key to dictionary {name} with value {value}")
+                    proj_config[name] = value
+
         except Exception as e: 
             print(f"Error reading settings, using defaults: {e}")
 
@@ -229,3 +234,15 @@ class Xml_Manager:
 
         with open(self.pynq_build_path + "/PYNQBuildConfig.xml", "w") as xml_file:
             buildconfig.writexml(xml_file, addindent="  ", newl='\n', encoding='')
+
+        self.remove_blank_lines(self.pynq_build_path + "/PYNQBuildConfig.xml")
+
+    def remove_blank_lines(self, file):
+        # Read in all lines
+        with open(file, 'r') as f_in:
+            lines = f_in.readlines()
+        # Write lines that are not blank
+        with open(file, 'w') as f_out:
+            for line in lines:
+                if line.strip():  # Check if the line is not blank
+                    f_out.write(line)
