@@ -466,7 +466,12 @@ def generate_tcl(hdlgen_prj, add_to_log_box):
         if io_map:
             add_to_log_box(f"\nIO Map Present: {io_map}")
 
-        returned_contents, created_signals = generate_connections(hdlgen_prj.name, hdlgen_prj.parsed_ports, io_map, hdlgen_prj.location, add_to_log_box)
+
+        # UPDATE HERE: We ask hdlgen_prj to read the project XML to find the signals that have been made external as well.
+        # hdlgen_prj.parsed_ports
+        # hdlgen_prj.get_generate_conn_signals()
+
+        returned_contents, created_signals = generate_connections(hdlgen_prj.name, hdlgen_prj.get_generate_conn_signals(), io_map, hdlgen_prj.location, add_to_log_box)
         file_contents += returned_contents
 
         file_contents += connect_interconnect_reset_and_run_block_automation(created_signals, add_to_log_box)

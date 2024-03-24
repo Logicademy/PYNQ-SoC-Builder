@@ -5,7 +5,7 @@ import time
 import threading
 import os
 import application.pynq_manager as pm
-import application.tcl_generator as tcl_gen
+import application.hdl_modifier as hdl_modifier
 
 class HdlgenProject:
 
@@ -282,7 +282,7 @@ class HdlgenProject:
 
         print("Saved and not building")
 
-        return
+        
 
         self.add_to_build_log(f"\nBuild project commencing @ {time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))}")
 
@@ -303,7 +303,6 @@ class HdlgenProject:
         self.add_to_build_log(f"\nDeleting existing Vivado .log and .jou files")
         self.remove_vivado_log_jou_files()
 
-
         # Create PYNQ Manager Object
         self.add_to_build_log(f"\nLaunching PYNQ Manager")
         self.pm_obj = pm.Pynq_Manager(self.hdlgen_path)
@@ -316,31 +315,55 @@ class HdlgenProject:
         self.add_to_build_log(f"\nDeleting existing Vivado Project Synthesis and Implementation (runme.log) log files")
         self.remove_vivado_syn_impl_log_files()
 
-        # Start Logger Threads
-        # self.add_to_build_log(f"\nStarting Logger Threads (Build, Synth and Impl loggers)")
-        # self.build_logger_thread = threading.Thread(target=self.run_build_logger)
-        # self.synth_logger_thread = threading.Thread(target=self.run_synth_logger)
-        # self.impl_logger_thread = threading.Thread(target=self.run_impl_logger)
-        # self.build_logger_thread.start()
-        # self.synth_logger_thread.start()
-        # self.impl_logger_thread.start()
+        try:
+            # We are using a try block here so we can use "finally" to clean up our backups.
+            hdl_modifier.make_copy_and_inject(self)
+            # Start Logger Threads
+            # self.add_to_build_log(f"\nStarting Logger Threads (Build, Synth and Impl loggers)")
+            # self.build_logger_thread = threading.Thread(target=self.run_build_logger)
+            # self.synth_logger_thread = threading.Thread(target=self.run_synth_logger)
+            # self.impl_logger_thread = threading.Thread(target=self.run_impl_logger)
+            # self.build_logger_thread.start()
+            # self.synth_logger_thread.start()
+            # self.impl_logger_thread.start()
 
-        self.vivado_logger = threading.Thread(target=self.vivado_state_logger)
+            self.vivado_logger = threading.Thread(target=self.vivado_state_logger)
 
 
-        # Execute Program
-        self.add_to_build_log(f"\nClearing force close threading flag")
-        self.build_force_quit_event.clear()
-        self.add_to_build_log(f"\nCreating Build Thread")
-        build_thread = threading.Thread(target=self.build)
-        self.add_to_build_log(f"\nStarting Build Thread")
-        build_thread.start()
+            # Execute Program
+            self.add_to_build_log(f"\nClearing force close threading flag")
+            self.build_force_quit_event.clear()
+            self.add_to_build_log(f"\nCreating Build Thread")
+            build_thread = threading.Thread(target=self.build)
+            self.add_to_build_log(f"\nStarting Build Thread")
+            build_thread.start()
 
-        # Steps:
-        # 1) Load the XML configuration
-        # 2) Run everything as we need.
-        # 2.5) Update Build Status Flags
-        # 3) Everything handles it self anyways for most part.
+            # Steps:
+            # 1) Load the XML configuration
+            # 2) Run everything as we need.
+            # 2.5) Update Build Status Flags
+            # 3) Everything handles it self anyways for most part.
+
+        finally:
+            # Clean up our backups.
+            hdl_modifier.restore(self)
+        
+
+    def get_generate_conn_signals(self):
+        # 1) Load parse signals
+        # 2) Append internal signals made external.
+        # 3) Return in parsed signals format.
+
+        # 1) Parsed signals is our baseline.
+        returned_signals = self.parsed_ports
+        # 2) Read our internal signals config
+        internal_signals = self.pynqbuildxml.read_internal_to_port_config()
+        # Internal_signals is in form: ['name', int(width)]
+        # parsed_ports in form: ['name', 'in/out', 'width']
+        for signal in internal_signals:
+            returned_signals.append([f"int_{signal[0]}", 'out', signal[1]])  # We know the mode will ALWAYS be out - Not forgetting to add _int prefix.
+
+        return returned_signals
 
     #############################################################
     ###### Used to flag the various stages for Build Status #####
