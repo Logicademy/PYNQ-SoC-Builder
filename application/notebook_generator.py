@@ -13,6 +13,21 @@ def create_jnb(hdlgen_prj, add_to_log_box, force_gen=False):
     proj_config = hdlgen_prj.pynqbuildxml.read_proj_config()
     io_map = hdlgen_prj.pynqbuildxml.read_io_config()
 
+    gen_jnb = True
+    try:
+        gen_jnb = proj_config['gen_jnb']
+    except Exception as e:
+        add_to_log_box("\nCouldn't load gen_jnb setting from XML - using default: True")
+    finally:
+        if not isinstance(gen_jnb, bool): # Check if the value is a boolean when finishing 
+            gen_jnb = True
+            add_to_log_box("\ngen_jnb not loaded as boolean, ignoring and using default: True")
+
+    if not gen_jnb and not force_gen:
+        add_to_log_box("\nGenerate JNB is False, quitting notebook_generate.py")
+        return
+
+
     # Try to load from XML and sanitize the response
     use_board_io = False
     try:
@@ -338,7 +353,7 @@ def create_jnb(hdlgen_prj, add_to_log_box, force_gen=False):
         for pynq_io, comp_io in io_map.items():
             if comp_io == "None" or comp_io == None:
                 continue    # Skip non-connections
-            markdown_cell_contents += f"\n| {pynq_io} | {comp_io} |"
+            markdown_cell_contents += f"\n| {pynq_io} | {comp_io[0]}[{str(comp_io[1])}] |"
 
         markdown_cell = nbf.v4.new_markdown_cell(markdown_cell_contents)
         notebook.cells.append(markdown_cell)
@@ -851,7 +866,7 @@ def generate_io_visuals(io_map):
     already_scanned_signals = []
     for pynq_io, comp_io in io_map.items():
         
-        if comp_io == "None" or None:
+        if comp_io == "None" or comp_io == None or comp_io[0] == '':
             # If the I/O isn't connected, we skip it. 
             # It will still appear in GUI but have no backend code for updating as no connection.
             continue
@@ -860,14 +875,14 @@ def generate_io_visuals(io_map):
         #   -> Add already read signals to an array
         # 2) Get Bit
         # 3) Update button
-        comp_signal_name = comp_io.split('[')[0]
+        comp_signal_name = comp_io[0]
         if comp_signal_name not in already_scanned_signals:
             py_code += f"\n\t\t\tglobal {comp_signal_name}" # Possibly adds reduces chance an inconsistent bug in Jupyter Notebook where {comp_signal_name} cannot be found
             py_code += f"\n\t\t\t{comp_signal_name}_value = {comp_signal_name}.read(0)"
             already_scanned_signals.append(comp_signal_name)
         comp_bit = 0 # Default assignment
         try:
-            comp_bit = comp_io.split('[')[1][:-1]   # We want everything to the right of [] in comp[1] and to drop the tailing ]
+            comp_bit = comp_io[1]   # We want everything to the right of [] in comp[1] and to drop the tailing ]
         except:
             # If there is an index out of bounds error, it means theres no [x] and therefore its a 1-bit signal.
             # comp_bit = 0

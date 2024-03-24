@@ -96,9 +96,9 @@ def make_internal_vhdl_signal_external(vhdl_file, port_name, internal_signal_nam
 def inject_vhdl_port_signal(vhdl_file, port_name, port_size):
     port_definition = ""
     if port_size == 1:
-        port_definition += f"        {port_name} : out std_logic;\n"
+        port_definition += f"\t{port_name} : out std_logic;\n"
     else:
-        port_definition += f"        {port_name} : out std_logic_vector({port_size-1} downto 0);\n"
+        port_definition += f"\t{port_name} : out std_logic_vector({port_size-1} downto 0);\n"
 
     target_line = -1
     lines = None
@@ -128,7 +128,7 @@ def inject_vhdl_assignment_statement(vhdl_file, target_signal, source_signal):
                 break
 
     with open(vhdl_file, 'w') as file:
-        lines.insert(target_line+1, f"    {target_signal} <= {source_signal};\n")
+        lines.insert(target_line+1, f"{target_signal} <= {source_signal};\n")
         file.writelines(lines)
 
 ########################################################################

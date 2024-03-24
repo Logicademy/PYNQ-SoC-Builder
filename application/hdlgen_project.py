@@ -528,6 +528,9 @@ class HdlgenProject:
     ###### Generate Jupyter Notebook (No Vivado Build) #####
     ########################################################
     def generate_jnb_solo(self):
+        # Create PYNQ Manager Object
+        self.add_to_build_log(f"\nLaunching PYNQ Manager")
+        self.pm_obj = pm.Pynq_Manager(self.hdlgen_path)
         # We are gonna need a 'force gen' option in the gen_jnb api as the switch could be deassert in config file.
         self.pm_obj.generate_jnb(self, self.add_to_build_log, force_gen=True)        
 

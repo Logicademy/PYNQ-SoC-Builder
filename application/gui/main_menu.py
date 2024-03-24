@@ -65,6 +65,7 @@ class SidebarMenu(ctk.CTkScrollableFrame):
             command=self.run_build
         )
         self.build_button.grid(row=1, column=0, pady=10)
+
         self.gen_jnb_button = ctk.CTkButton(
             self, 
             text="Create Jupyter Notebook", 
@@ -72,7 +73,8 @@ class SidebarMenu(ctk.CTkScrollableFrame):
             height=40, 
             font=button_font,
             fg_color=green_fg_clr,
-            hover_color=green_hv_clr
+            hover_color=green_hv_clr,
+            command=self.run_notebook
         )
         self.gen_jnb_button.grid(row=2, column=0, pady=10)
 
@@ -141,6 +143,10 @@ class SidebarMenu(ctk.CTkScrollableFrame):
             self.hdlgen_prj.add_to_build_log("\nCancelled Build Operation due to No response to dialog prompt")
             return
         self.hdlgen_prj.build_project()
+
+    def run_notebook(self):
+
+        self.hdlgen_prj.generate_jnb_solo()
 
     def open_project_in_file_explorer(self):
         # Find the directory of the project.
