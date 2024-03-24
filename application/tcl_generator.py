@@ -692,7 +692,7 @@ def generate_connections(module_source, all_ports_parsed, io_map, location, add_
     # io_map in form: "led0": "signal[bit]"
 
     # For now lets assume we are working with a single port from all_ports_pased
-    for signal in all_ports_parsed:
+    for signal in all_ports_parsed: 
         gpio_name = signal[0]
         gpio_mode = signal[1]
         gpio_width = signal[2]
@@ -841,7 +841,15 @@ def generate_connections(module_source, all_ports_parsed, io_map, location, add_
 
         # Split Signal Instances
         
-        elif gpio_width > 0 and len(occurences) > 0 and gpio_width > len(occurences):
+            ###########################################################################
+            ###########################################################################
+            ###########################################################################
+            ###########################################################################
+            ###########################################################################
+            ###########################################################################
+                    
+        # NEEDS URGENT REVIEW
+        elif gpio_width > 0 and len(occurences) > 0 and gpio_width > len(occurences) and gpio_width <= 32:
             # Need to slice signals -> equal case caught above.
 
             # IMPROVEMENT: We could reduce number of IP used by combining neighbouring bits into a single slice IP. I won't for sake of development time right now.

@@ -762,7 +762,7 @@ class PortConfigTab(ctk.CTkScrollableFrame):
         # internal_signal_config is in form of [name, size]
         for switch in self.switches:
             if switch.cget('text') in int_names:
-                switch.select()
+                switch.toggle()
 
 
         # Finally, we load the IO config
@@ -791,7 +791,8 @@ class PortConfigTab(ctk.CTkScrollableFrame):
                 if config[1] > 1:
                     self.led3_entry.delete(0, 'end')  # Clear the current content
                     self.led3_entry.insert(0, str(config[1]))
-
+            
+            self.update_dropdown_values()
             self.io_optionbox_handler(io=pynqio, signal=config[0])
             
                 
