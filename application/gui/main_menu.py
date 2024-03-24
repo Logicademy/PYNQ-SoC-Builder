@@ -131,6 +131,15 @@ class SidebarMenu(ctk.CTkScrollableFrame):
         self.hdlgen_prj = self.parent.hdlgen_prj
 
     def run_build(self):
+        # Call Synthesis Dialog Box
+        self.parent.app.top_level_message = "Have you synthesised your project to ensure there are no HDL errors?"
+        self.parent.app.open_dialog()
+        # Wait for the user to click their response
+        self.parent.app.toplevel_window.wait_window()
+
+        if self.parent.app.dialog_response == "no":
+            self.hdlgen_prj.add_to_build_log("\nCancelled Build Operation due to No response to dialog prompt")
+            return
         self.hdlgen_prj.build_project()
 
     def open_project_in_file_explorer(self):
