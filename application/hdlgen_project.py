@@ -65,7 +65,12 @@ class HdlgenProject:
             model_folder = genFolder.getElementsByTagName("verilog_folder")[0]
             testbench_folder = genFolder.getElementsByTagName("verilog_folder")[1]
             AMDproj_folder = genFolder.getElementsByTagName("verilog_folder")[4]
+
         self.AMDproj_folder_rel_path = AMDproj_folder.firstChild.data
+        self.model_folder_rel_path = model_folder.firstChild.data
+
+        # Model Full Path
+        self.model_file = self.environment + "/" + self.model_folder_rel_path + "/" + self.name
 
         ###################################
         ###### Parse Entity IO Ports ######

@@ -2,6 +2,58 @@ import shutil
 import os
 import re
 
+
+##############################################################
+##### Make Copy and Inject from HDLGen Project (and XML) #####
+##############################################################
+def make_copy_and_inject(hdlgen_prj):
+    if hdlgen_prj.project_language == "VHDL":
+        extension = ".vhd"
+    elif hdlgen_prj.project_language == "Verilog":
+        extension = ".v"
+    # Given HDLGen Project - Make a backup, inject based on XML config.
+    xml_object = hdlgen_prj.pynqbuildxml
+    # Signals to inject
+    list_of_int_sigs = xml_object.read_internal_to_port_config()
+    # We now have a list of signals in the following form:
+    # list_of_int_sigs = [
+    #   ['name', width],
+    #   ['signal_name', 8],     # NOTE: int_ prefix isn't attached.
+    #   ['signal_name1', 4]
+    # ]
+    
+    # Get Filepaths for Backup
+    model_file = hdlgen_prj.model_file + extension
+    backup_file = hdlgen_prj.model_file + ".socbuilder"
+
+    # Create Backup
+    make_backup(model_file, backup_file)
+    
+    # Inject VHDL to the originally named file.
+    for signal in list_of_int_sigs:
+        new_port_name = f"int_{signal[0]}"
+        internal_name = signal[0]
+        gpio_wdith = signal[1]
+        if hdlgen_prj.project_language == "VHDL":
+            make_internal_vhdl_signal_external(model_file, new_port_name, internal_name, gpio_wdith)
+        elif hdlgen_prj.project_language == "Verilog":
+            print("VERILOG NOT SUPPORTED YET")
+            # make_internal_verilog_signal_external(model_file, new_port_name, internal_name, gpio_wdith)
+
+##############################################
+##### Restore from HDLGen Project Object #####
+##############################################
+def restore(hdlgen_prj):
+    if hdlgen_prj.project_language == "VHDL":
+        extension = ".vhd"
+    elif hdlgen_prj.project_language == "Verilog":
+        extension = ".v"
+    # Derive the filepaths
+    model_file = hdlgen_prj.model_file + extension
+    backup_file = hdlgen_prj.model_file + ".socbuilder"
+    # Restore backup
+    restore_backup(model_file, backup_file)
+
 ########################################################
 ##### Backup Original File (Verilog/VHDL/anything) #####
 ########################################################

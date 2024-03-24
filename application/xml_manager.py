@@ -330,8 +330,10 @@ class Xml_Manager:
             for entry in intSignals[0].getElementsByTagName('entry'):
                 try:
                     name = entry.getElementsByTagName("name")[0].firstChild.data
-                    width = entry.getElementsByTagName("width")[0].firstChild.data
+                    width = int(entry.getElementsByTagName("width")[0].firstChild.data)
                     loaded_config.append([name, width])
+                except ValueError:
+                    print(f"Invalid value error when loading internal signal {name} with width {width} - Skipping.")
                 except:
                     print("No entries")
                     continue
