@@ -53,6 +53,9 @@ class Xml_Manager:
         # ioConfig Child Element
         ioConfig = ET.SubElement(root, "ioConfig")
 
+        # internalSignal Child Element
+        internalSignals = ET.SubElement(root, "internalSignals")
+
         # Create XML tree
         tree = ET.ElementTree(root)
         tree.write(self.pynq_build_path + "/PYNQBuildConfig.xml")
@@ -139,7 +142,7 @@ class Xml_Manager:
             io = buildconfig.createElement("io")
             io_text = buildconfig.createTextNode(str(pynq_io))
             io.appendChild(io_text)
-            
+
             connection.appendChild(io)
             connection.appendChild(signal)
             connection.appendChild(pin)
@@ -168,7 +171,6 @@ class Xml_Manager:
         root = buildconfig.documentElement
         # Find ioConfig node
         settings = root.getElementsByTagName("settings")
-        print(settings)
         # Scan connections, return updated IO Map
         try:
             for entry in settings[0].getElementsByTagName('entry'):
@@ -193,9 +195,10 @@ class Xml_Manager:
 
         except Exception as e: 
             print(f"Error reading settings, using defaults: {e}")
+            print(f"XML has invalid format - Regenerating a fresh XML.")
+            self.create_config_xml()
 
-
-        print(f"Loaded the following io config from file: \n{proj_config}")
+        print(f"Loaded the following proj config from file: \n{proj_config}")
         return proj_config
     
     def write_proj_config(self, proj_config):
@@ -243,3 +246,43 @@ class Xml_Manager:
             for line in lines:
                 if line.strip():  # Check if the line is not blank
                     f_out.write(line)
+
+    def write_internal_to_port_config(self, internal_signal_config):
+        # Write internal signal mapping to XML.
+        # <portName>int_ExampleSig</portName>
+        # <portWidth>int_ExampleSig</portWidth>
+
+        # Load File
+        buildconfig = xml.dom.minidom.parse(self.pynq_build_path + "/PYNQBuildConfig.xml")
+        # Find root
+        root = buildconfig.documentElement
+        # Find settings
+        internalSigs = root.getElementsByTagName("internalSignals")
+        # Delete all existing connections
+        try:
+            for entry in internalSigs[0].getElementsByTagName("signal"):
+                internalSigs[0].removeChild(entry)
+        except Exception as e:
+            print(f"No elements to delete {e}")
+
+        for internal_signal_name, gpio_width in internal_signal_config.items():
+
+            entry = buildconfig.createElement("entry")
+
+            name = buildconfig.createElement("name")
+            name_text = buildconfig.createTextNode(str(internal_signal_name))
+            name.appendChild(name_text)
+
+            width = buildconfig.createElement("width")
+            width_text = buildconfig.createTextNode(str(gpio_width))
+            width.appendChild(width_text)
+
+            entry.appendChild(name)
+            entry.appendChild(width)
+
+            root.getElementsByTagName("internalSignals")[0].appendChild(entry)
+
+        with open(self.pynq_build_path + "/PYNQBuildConfig.xml", "w") as xml_file:
+            buildconfig.writexml(xml_file, addindent="  ", newl='\n', encoding='')
+
+        self.remove_blank_lines(self.pynq_build_path + "/PYNQBuildConfig.xml")
