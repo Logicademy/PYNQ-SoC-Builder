@@ -622,8 +622,13 @@ class HdlgenProject:
         
 
     def build_status_process(self):
-        time.sleep(1)
-        self.buildstatuspage.increment_time(self.running_build_status_modes)
+        # Need this to keep running for as long as the build is running.
+        while True:
+            time.sleep(1)
+            self.buildstatuspage.increment_time(self.running_build_status_modes)
+
+        # TODO: Make this exit.
+
 
     ################################################
     ########## Add Second to MM:SS string ##########
