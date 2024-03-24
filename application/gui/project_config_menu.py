@@ -667,11 +667,6 @@ class PortConfigTab(ctk.CTkScrollableFrame):
             "led5_r":"None"
         }
 
-        led0_value = self.led0_dropdown.get()
-        led1_value = self.led1_dropdown.get()
-        led2_value = self.led2_dropdown.get()
-        led3_value = self.led3_dropdown.get()
-
         led0_array = []
         led1_array = []
         led2_array = []
@@ -726,7 +721,7 @@ class PortConfigTab(ctk.CTkScrollableFrame):
         self.hdlgen_prj = self.tabview.hdlgen_prj
         
 
-        # This is a deadend so we can just set all the variables
+        # This is a dead-end so we can just set all the variables
         hdlgen_prj_proj_config = self.hdlgen_prj.pynqbuildxml.read_proj_config()
 
         # Need to parse the internal signals
@@ -756,6 +751,51 @@ class PortConfigTab(ctk.CTkScrollableFrame):
 
         self.update_dropdown_values()
         # This is where the IO-Config will be read. But it needs to be updated to store config in a different way.
+
+        # Load the internal signal config.
+        internal_signal_config = self.hdlgen_prj.pynqbuildxml.read_internal_to_port_config()
+        int_names = []
+        for sig in internal_signal_config:
+            int_names.append(sig[0])
+
+
+        # internal_signal_config is in form of [name, size]
+        for switch in self.switches:
+            if switch.cget('text') in int_names:
+                switch.select()
+
+
+        # Finally, we load the IO config
+        io_config = self.hdlgen_prj.pynqbuildxml.read_io_config()
+        for pynqio, config in io_config.items():
+            if config == "None" or config == None or config[0] == '':
+                continue    # Skip blank configs
+
+            if pynqio == 'led0':
+                self.led0_dropdown.set(config[0])
+                if config[1] > 1:
+                    self.led0_entry.delete(0, 'end')  # Clear the current content
+                    self.led0_entry.insert(0, str(config[1]))
+            elif pynqio == 'led1':
+                self.led1_dropdown.set(config[0])
+                if config[1] > 1:
+                    self.led1_entry.delete(0, 'end')  # Clear the current content
+                    self.led1_entry.insert(0, str(config[1]))
+            elif pynqio == 'led2':
+                self.led2_dropdown.set(config[0])
+                if config[1] > 1:
+                    self.led2_entry.delete(0, 'end')  # Clear the current content
+                    self.led2_entry.insert(0, str(config[1]))
+            elif pynqio == 'led3':
+                self.led3_dropdown.set(config[0])
+                if config[1] > 1:
+                    self.led3_entry.delete(0, 'end')  # Clear the current content
+                    self.led3_entry.insert(0, str(config[1]))
+
+            self.io_optionbox_handler(io=pynqio, signal=config[0])
+            
+                
+
 
     def switch_handler(self, internal_signal, index):
         if self.switches[index].get() == 1:

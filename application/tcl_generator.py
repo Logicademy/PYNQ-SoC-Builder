@@ -854,7 +854,8 @@ def generate_connections(module_source, all_ports_parsed, io_map, location, add_
             
             for occur in occurences:
                 board_io = occur[0]
-                signal_pin = occur[1]
+                signal_name = occur[1][0]
+                signal_pin = occur[1][1]
                 if gpio_mode == "in" and pynq_constraints_mode[board_io]=="in":
                     # Do not know yet what happens if you have two drivers.
                     
@@ -864,25 +865,25 @@ def generate_connections(module_source, all_ports_parsed, io_map, location, add_
                 elif gpio_mode == "in" and pynq_constraints_mode[board_io]=="out":
                     # think LED on selOPALU
                     
-                    # Define the regular expression pattern
-                    pattern = r'\[(\d+)\]'
-                    # Use re.search to find the pattern in the string
-                    match = re.search(pattern, signal_pin)
+                    # # Define the regular expression pattern
+                    # pattern = r'\[(\d+)\]'
+                    # # Use re.search to find the pattern in the string
+                    # match = re.search(pattern, signal_pin)
 
                     # Check if the pattern is found
-                    if match:
+                    # if match:
                         # Extract the number from the matched group
-                        extracted_number = match.group(1)
-                        print("Extracted number:", extracted_number)
-                    else:
-                        print("No match found - Assuming bit 0.")
+                        # extracted_number = match.group(1)
+                        # print("Extracted number:", extracted_number)
+                    # else:
+                        # print("No match found - Assuming bit 0.")
                         
                     
-                    bit = 0
-                    try:
-                        bit = int(extracted_number)
-                    except Exception:
-                        add_to_log_box("\nCould not find specifed bit, assuming bit 0.")
+                    # bit = 0
+                    # try:
+                        # bit = int(extracted_number)
+                    # except Exception:
+                        # add_to_log_box("\nCould not find specifed bit, assuming bit 0.")
                     
                     # Procedure
                     # 1) Do GPIO connection as normal.
@@ -890,9 +891,9 @@ def generate_connections(module_source, all_ports_parsed, io_map, location, add_
                     # 3) make it external.
 
                     # Just like normal, make the inital connection.
-                    file_contents += connect_slice_to_gpio(bit, gpio_mode, gpio_name, gpio_width, slice_number, module_source)
+                    file_contents += connect_slice_to_gpio(signal_pin, gpio_mode, gpio_name, gpio_width, slice_number, module_source)
                     # Add External Port to XDC.
-                    xdc_contents += add_line_to_xdc(board_io, signal_pin.split('[')[0]+"_"+str(slice_number)+"_ext")
+                    xdc_contents += add_line_to_xdc(board_io, signal_name+"_"+str(slice_number)+"_ext")
 
                     slice_number += 1   # must be called every time above API is used to ensure there is never any name collisions
                     pass
@@ -905,26 +906,26 @@ def generate_connections(module_source, all_ports_parsed, io_map, location, add_
                 elif gpio_mode == "out" and pynq_constraints_mode[board_io]=="out":
                     # think LED on count
                     
-                    # Define the regular expression pattern
-                    pattern = r'\[(\d+)\]'
-                    # Use re.search to find the pattern in the string
-                    match = re.search(pattern, signal_pin)
+                    # # Define the regular expression pattern
+                    # pattern = r'\[(\d+)\]'
+                    # # Use re.search to find the pattern in the string
+                    # match = re.search(pattern, signal_pin)
 
                     # Check if the pattern is found
-                    if match:
-                        # Extract the number from the matched group
-                        extracted_number = match.group(1)
-                        print("Extracted number:", extracted_number)
-                    else:
-                        print("No match found - Assuming bit 0.")
+                    # if match:
+                    #     # Extract the number from the matched group
+                    #     extracted_number = match.group(1)
+                    #     print("Extracted number:", extracted_number)
+                    # else:
+                    #     print("No match found - Assuming bit 0.")
                         
                     
-                    bit = 0
-                    try:
-                        bit = int(extracted_number)
-                    except Exception:
+                    # bit = 0
+                    # try:
+                    #     bit = int(extracted_number)
+                    # except Exception:
                         
-                        add_to_log_box("\nCould not find specifed bit, assuming bit 0.")
+                    #     add_to_log_box("\nCould not find specifed bit, assuming bit 0.")
                     
                     # Procedure
                     # 1) Do GPIO connection as normal.
@@ -932,9 +933,9 @@ def generate_connections(module_source, all_ports_parsed, io_map, location, add_
                     # 3) make it external.
 
                     # Just like normal, make the inital connection.
-                    file_contents += connect_slice_to_gpio(bit, gpio_mode, gpio_name, gpio_width, slice_number, module_source)
+                    file_contents += connect_slice_to_gpio(signal_pin, gpio_mode, gpio_name, gpio_width, slice_number, module_source)
                     # Add External Port to XDC.
-                    xdc_contents += add_line_to_xdc(board_io, signal_pin.split('[')[0]+"_"+str(slice_number)+"_ext")
+                    xdc_contents += add_line_to_xdc(board_io, signal_name+"_"+str(slice_number)+"_ext")
 
                     slice_number += 1   # must be called every time above API is used to ensure there is never any name collisions
                     pass
@@ -980,22 +981,24 @@ def generate_connections(module_source, all_ports_parsed, io_map, location, add_
             for occur in occurences:
                 # Extract info from occurence.
                 board_io = occur[0]
-                signal_pin = occur[1]
-                # Locate the target bit from occurence map.
-                pattern = r'\[(\d+)\]'
-                match = re.search(pattern, signal_pin)
-                if match:
-                    # Extract the number from the matched group
-                    extracted_number = match.group(1)
-                    print("Extracted number:", extracted_number)
-                else:
-                    print("No match found - Assuming bit 0.")
-                bit = 0
-                try:
-                    bit = int(extracted_number)
-                except Exception:
+                signal_signal_name = occur[1][0]
+                signal_pin = occur[1][1]
+
+                # # Locate the target bit from occurence map.
+                # pattern = r'\[(\d+)\]'
+                # match = re.search(pattern, signal_pin)
+                # if match:
+                #     # Extract the number from the matched group
+                #     extracted_number = match.group(1)
+                #     print("Extracted number:", extracted_number)
+                # else:
+                #     print("No match found - Assuming bit 0.")
+                # bit = 0
+                # try:
+                #     bit = int(extracted_number)
+                # except Exception:
                     
-                    add_to_log_box("\nCould not find specifed bit, assuming bit 0.") 
+                #     add_to_log_box("\nCould not find specifed bit, assuming bit 0.") 
 
 
                 # Now that we have extracted the necessary info, we target our specific application
@@ -1027,12 +1030,12 @@ def generate_connections(module_source, all_ports_parsed, io_map, location, add_
 
                     # Here, we now have an array of ["signal_0_31", "signal_32_63", "signal_64_95"] # We can assume that desired bit is NOT out of range.
                     # Now we need to align the bit with the subsignal and offset the bit.
-                    sub_signal_index = bit // 32    #   0-31 = 0, 32-63 = 1, 64-95 = 2 and so on.
+                    sub_signal_index = signal_pin // 32    #   0-31 = 0, 32-63 = 1, 64-95 = 2 and so on.
 
                     sub_signal = gpio_split[sub_signal_index][0]   # sub_signal
                     sub_width = gpio_split[sub_signal_index][1]
                     sub_bit_offset = 32*sub_signal_index        #  0-31 = -0, 32-63 = -32, 64-95 = -64 offset and so on
-                    sub_bit = bit - sub_bit_offset
+                    sub_bit = signal_pin - sub_bit_offset
                     # We now operate as if we are in <32 bit mode as we know the GPIO to target.
 
 
@@ -1056,7 +1059,7 @@ def generate_connections(module_source, all_ports_parsed, io_map, location, add_
                     add_to_log_box(f"\n{signal_pin} mapping to ({board_io}) ")
                     
                     # Output is routed, just add the slice pin.
-                    file_contents += connect_slice_to_gpio(bit, gpio_mode, gpio_name, gpio_width, slice_number, module_source)
+                    file_contents += connect_slice_to_gpio(signal_pin, gpio_mode, gpio_name, gpio_width, slice_number, module_source)
                     # Add External Port to XDC.
                     xdc_contents += add_line_to_xdc(board_io, gpio_name+"_"+str(slice_number)+"_ext")
 

@@ -322,7 +322,8 @@ class HdlgenProject:
         self.remove_vivado_syn_impl_log_files()
 
         try:
-            # We are using a try block here so we can use "finally" to clean up our backups.
+
+            # First things first - Make copy and inject
             hdl_modifier.make_copy_and_inject(self)
             # Start Logger Threads
             # self.add_to_build_log(f"\nStarting Logger Threads (Build, Synth and Impl loggers)")
