@@ -292,7 +292,7 @@ class MainPage(ctk.CTkFrame):
         self.sidebarMenu.load_project()
 
         # Assuming all has been run to load the project, I can now call the function to write to log box
-        self.hdlgen_prj.add_to_build_log("Add a load project message running through the hdlgenprj object!!\n")
+        # self.hdlgen_prj.add_to_build_log("Add a load project message running through the hdlgenprj object!!\n")
 
     def hide(self):
         self.pack_forget()

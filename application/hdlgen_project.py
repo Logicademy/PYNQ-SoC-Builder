@@ -6,6 +6,7 @@ import threading
 import os
 import application.pynq_manager as pm
 import application.hdl_modifier as hdl_modifier
+import html
 
 class HdlgenProject:
 
@@ -130,6 +131,8 @@ class HdlgenProject:
         try:
             TBNote = testbench.getElementsByTagName("TBNote")[0]
             self.TBNoteData = TBNote.firstChild.data
+            self.TBNoteData = html.unescape(self.TBNoteData)    
+            # Convert HTML encoded elements into string
         except Exception:
             self.TBNoteData = None
 
