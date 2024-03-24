@@ -296,7 +296,7 @@ class BuildStatusTab(ctk.CTkScrollableFrame):
 
         ### Generate Tcl
         self.gen_tcl_frame = ctk.CTkFrame(self)
-        self.gen_tcl_est_lbl = ctk.CTkLabel(self.gen_tcl_frame, text="Est. <5 seconds", font=est_font, width=160)
+        self.gen_tcl_est_lbl = ctk.CTkLabel(self.gen_tcl_frame, text="Est. <<1 seconds", font=est_font, width=160)
         self.gen_tcl_time_lbl = ctk.CTkLabel(self.gen_tcl_frame, text="00:00", font=time_font, width=50)
         self.gen_tcl_status_lbl = ctk.CTkLabel(self.gen_tcl_frame, text="Idle", font=time_font, width=70)
         self.gen_tcl_statusbar = ctk.CTkProgressBar(self.gen_tcl_frame, width=50, mode='indeterminate', determinate_speed=1)
@@ -380,7 +380,7 @@ class BuildStatusTab(ctk.CTkScrollableFrame):
         self.run_viv4_name_lbl.grid(row=0, padx=5, pady=5, column=4)
         ### Gen JNB
         self.gen_jnb_frame = ctk.CTkFrame(self)
-        self.gen_jnb_est_lbl = ctk.CTkLabel(self.gen_jnb_frame, text="Est. <5 seconds", font=est_font, width=160)
+        self.gen_jnb_est_lbl = ctk.CTkLabel(self.gen_jnb_frame, text="Est. <<1 seconds", font=est_font, width=160)
         self.gen_jnb_time_lbl = ctk.CTkLabel(self.gen_jnb_frame, text="00:00", font=time_font, width=50)
         self.gen_jnb_status_lbl = ctk.CTkLabel(self.gen_jnb_frame, text="Idle", font=time_font, width=70)
         self.gen_jnb_statusbar = ctk.CTkProgressBar(self.gen_jnb_frame, width=50, mode='indeterminate', determinate_speed=1)
@@ -392,7 +392,7 @@ class BuildStatusTab(ctk.CTkScrollableFrame):
         self.gen_jnb_name_lbl.grid(row=0, padx=5, pady=5, column=4)
         ### Cpy Out
         self.cpy_dir_frame = ctk.CTkFrame(self)
-        self.cpy_dir_est_lbl = ctk.CTkLabel(self.cpy_dir_frame, text="Est. <1 seconds", font=est_font, width=160)
+        self.cpy_dir_est_lbl = ctk.CTkLabel(self.cpy_dir_frame, text="Est. <<1 seconds", font=est_font, width=160)
         self.cpy_dir_time_lbl = ctk.CTkLabel(self.cpy_dir_frame, text="00:00", font=time_font, width=50)
         self.cpy_dir_status_lbl = ctk.CTkLabel(self.cpy_dir_frame, text="Idle", font=time_font, width=70)
         self.cpy_dir_statusbar = ctk.CTkProgressBar(self.cpy_dir_frame, width=50, mode='indeterminate', determinate_speed=1)
