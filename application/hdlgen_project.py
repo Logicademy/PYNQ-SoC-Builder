@@ -483,7 +483,7 @@ class HdlgenProject:
         self.end_build_status_process('cpy_out')
 
         # Some cleanup/completion activities
-        # hdl_modifier.restore(self)
+        hdl_modifier.restore(self)
         
         # Complete.
 
