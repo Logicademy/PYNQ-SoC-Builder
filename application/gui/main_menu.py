@@ -111,13 +111,13 @@ class SidebarMenu(ctk.CTkScrollableFrame):
 
         self.close_button = ctk.CTkButton(
             self,
-            text="Close Project", 
+            text="Quit", 
             width=225, 
             height=40, 
             font=button_font,
             fg_color=red_fg_clr,
             hover_color=red_hv_clr,
-            command=self.parent.close_project
+            command=self.parent.app.close_application   # This can be changed to close_project another time.
         )
         self.close_button.grid(row=7, column=0, pady=10)
 
