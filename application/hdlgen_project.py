@@ -152,9 +152,13 @@ class HdlgenProject:
         # Fortunately Implementation does not have this issue.
         self.impl_log_path = self.environment + "/" + self.AMDproj_folder_rel_path + "/" + self.name + ".runs/impl_1/runme.log"
 
-        self.syn_log_path = self.environment + "/" + self.AMDproj_folder_rel_path + "/" + self.name + ".runs/" + self.name + "_bd_" + self.name + "_0_0_synth_1/runme.log"
+        # I have not yet figured out how to locate Out-of-context (OOC) Synthesis log files. synth_1/runme.log will update everything at the end.
+
+        # self.syn_log_path = self.environment + "/" + self.AMDproj_folder_rel_path + "/" + self.name + ".runs/" + self.name + "_bd_" + self.name + "_0_0_synth_1/runme.log"
                                                                                                                         #  + "_bd_" + self.name + "_0_0_synth_1/runme.log"
                                                                                                                         #  + "_bd_processing_system7_0_0_synth_1/runme.log"
+        
+        self.syn_log_path = self.environment + "/" + self.AMDproj_folder_rel_path + "/" + self.name + ".runs/synth_1/runme.log"
 
         ######################################
         ##### Threading force quit flags #####
@@ -234,7 +238,7 @@ class HdlgenProject:
 
         while not os.path.exists(path_to_log):
             dots = "."*(waiting_counter//2%5)
-            self.add_to_syn_log("\nWaiting for synthesis job to start" + dots, True)
+            self.add_to_syn_log("\nSynthesis is running" + dots, True)
             time.sleep(0.5)
             waiting_counter += 1
 
