@@ -170,6 +170,15 @@ class HdlgenProject:
         ##### Threading force quit flags #####
         ######################################
         self.build_force_quit_event = threading.Event()
+        self.generate_tcl_fail_event = threading.Event()
+        self.execute_vivado_fail_event = threading.Event()
+        self.open_project_fail_event = threading.Event()
+        self.build_block_design_fail_event = threading.Event()
+        self.run_synthesis_fail_event = threading.Event()
+        self.run_implementation_fail_event = threading.Event()
+        self.generate_bitstream_fail_event = threading.Event()
+        self.generate_jupyter_notebook_fail_event = threading.Event()
+        self.copy_output_fail_event = threading.Event()
 
         ##########################################
         ##### Generate Tcl Derived Variables #####
@@ -275,7 +284,7 @@ class HdlgenProject:
                         # If the line starts with error, print all the remaining lines in the buffer really then quit.
                         self.add_to_syn_log("\n"+line)
                         self.build_force_quit_event.set()   # An error has been detected - Raise quit event.
-                        
+
                         self.fail_build_status_process('run_syn')
 
                         # Read out the remainder of the file
@@ -357,6 +366,7 @@ class HdlgenProject:
                     elif line.startswith("ERROR"):
                         # If the line starts with error, print all the remaining lines in the buffer really then quit.
                         self.add_to_impl_log("\n"+line)
+                        self.fail_build_status_process('run_imp')
                         self.build_force_quit_event.set()   # An error has been detected - Raise quit event.
                         
                         # Read out the remainder of the file
@@ -366,6 +376,9 @@ class HdlgenProject:
                                 break
                             self.add_to_impl_log("\n"+line)
                             time.sleep(0.05)
+
+                    elif "0 Errors encountered." in line:
+                        self.end_build_status_process('run_imp')
 
                     else:
                         self.add_to_impl_log("\n" + line)
@@ -652,6 +665,11 @@ class HdlgenProject:
     def build(self):
         # Will need to be setting flags or something along the way here.
         
+
+
+
+
+
         # Generate TCL
         self.start_build_status_process('gen_tcl')
         self.generate_tcl()
