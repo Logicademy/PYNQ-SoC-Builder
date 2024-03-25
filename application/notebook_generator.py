@@ -5,6 +5,7 @@ from io import StringIO
 import html
 import os
 import application.xml_manager as xmlman
+import copy 
 
 # Function to generate JNB, takes HDLGen file path and notebook name as parameters
 def create_jnb(hdlgen_prj, add_to_log_box, force_gen=False):
@@ -128,7 +129,14 @@ def create_jnb(hdlgen_prj, add_to_log_box, force_gen=False):
         else:
             print("Line 59 NBG: Invalid Port")
 
-    parsed_all_ports = parse_all_ports(all_ports)
+    # parsed_all_ports = parse_all_ports(all_ports)
+    # Being extra careful, I want to copy the values
+            # next_var = copy.deepcopy(object.its_var)
+    parsed_all_ports = copy.deepcopy(hdlgen_prj.parsed_internal_sigs)
+
+    parsed_all_ports.append(parse_all_ports(all_ports))
+
+
 
     # Retrieve TB Data from HDLGen
     testbench = root.getElementsByTagName("testbench")[0]
@@ -249,23 +257,28 @@ def create_jnb(hdlgen_prj, add_to_log_box, force_gen=False):
     small_output_signals = []   # Smaller signals that can be stored alone.
     small_input_signals = []    # Smaller signals that can be stored alone (<32 bits)
     
-    for io in all_ports:
-        gpio_name = io[0]   # GPIO Name
-        gpio_mode = io[1]   # GPIO Mode (in/out)
-        gpio_type = io[2]   # GPIO Type (single bit/bus/array)
-        # Parse GPIO Width 
-        if (gpio_type == "single bit"):
-                gpio_width = 1
-        elif (gpio_type[:3] == "bus"):
-            # <type>bus(31 downto 0)</type>     ## Example Type Value
-            substring = gpio_type[4:]           # substring = '31 downto 0)'
-            words = substring.split()           # words = ['31', 'downto', '0)']
-            gpio_width = int(words[0]) + 1           # words[0] = 31
-        elif (gpio_type[:5] == "array"):
-            print("ERROR: Array mode type is not yet supported :(")
-        else:
-            print("ERROR: Unknown GPIO Type")
-            print(gpio_type)
+    # for io in all_ports:
+    #     gpio_name = io[0]   # GPIO Name
+    #     gpio_mode = io[1]   # GPIO Mode (in/out)
+    #     gpio_type = io[2]   # GPIO Type (single bit/bus/array)
+    #     # Parse GPIO Width 
+    #     if (gpio_type == "single bit"):
+    #             gpio_width = 1
+    #     elif (gpio_type[:3] == "bus"):
+    #         # <type>bus(31 downto 0)</type>     ## Example Type Value
+    #         substring = gpio_type[4:]           # substring = '31 downto 0)'
+    #         words = substring.split()           # words = ['31', 'downto', '0)']
+    #         gpio_width = int(words[0]) + 1           # words[0] = 31
+    #     elif (gpio_type[:5] == "array"):
+    #         print("ERROR: Array mode type is not yet supported :(")
+    #     else:
+    #         print("ERROR: Unknown GPIO Type")
+    #         print(gpio_type)
+
+    for io in parsed_all_ports:
+        gpio_name = io[0]
+        gpio_mode = io[1]
+        gpio_width = io[2]
 
         if gpio_width <= 32:
             # If less than 32, declare signal as normal.
@@ -372,6 +385,11 @@ def create_jnb(hdlgen_prj, add_to_log_box, force_gen=False):
         notebook.cells.append(code_cell)
 
         # Here we need to write the GUI based code and add it to the py_code_contents
+
+        # FIX: This needs to contain the UPDATED parsed ports including internal signals.
+        # NOTE: It would be better to convert this script to use hdlgen_prj only but I'm not doing that right now.
+ 
+
         py_file_contents += generate_gui_controller(compName, parsed_all_ports, location)
 
     ##### Break here if only dealing with skeleton code.
