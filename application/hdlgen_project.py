@@ -16,7 +16,7 @@ class HdlgenProject:
         # if not path_to_hdlgen:
         #     self.hdlgen = "C:\\hdlgen\\March\\DSPProc_Threshold_Luke\\DSPProc\\HDLGenPrj\\DSPProc.hdlgen"
         self.hdlgen_path = self.hdlgen.replace("\\", "/")
-
+        
         self.pynqbuildxml = xmlm.Xml_Manager(self.hdlgen_path)  # This is accessible object we can always call on.
 
         # Load root
@@ -176,6 +176,7 @@ class HdlgenProject:
         ##### Threading force quit flags #####
         ######################################
         self.build_force_quit_event = threading.Event()
+        self.build_running = False
         # self.build_success_event = threading.Event()
         # self.generate_tcl_fail_event = threading.Event()
         # self.execute_vivado_fail_event = threading.Event()
@@ -221,7 +222,6 @@ class HdlgenProject:
     
     def set_impl_logger(self, impl_logger):
         self.impl_logger = impl_logger
-
 
     def add_to_build_log(self, msg, set=False):
         if self.build_logger:
@@ -392,8 +392,9 @@ class HdlgenProject:
 
                     elif "0 Errors encountered." in line:
                         self.end_build_status_process('run_imp')
-                            
+                        self.start_build_status_process('gen_bit')
                         while True:
+                            line = file.readline()
                             if not line:    # not line if end of file is reached
                                 break
                             self.add_to_impl_log("\n"+line)
@@ -779,18 +780,29 @@ class HdlgenProject:
             self.add_to_build_log("\n\nGenerate JNB cancelled as force quit flag asserted!")
             print("\n\nGenerate JNB cancelled as force quit flag asserted!")
             return # Return to leave function
+        try:
+            self.pm_obj.generate_jnb(self, self.add_to_build_log)
+        except Exception as e:
+            self.add_to_build_log(f"\nNotebook Generation failed due to the following error:{e.with_traceback}")
+            self.build_force_quit_event.set()   
 
-        self.pm_obj.generate_jnb(self, self.add_to_build_log)
 
     ########################################################
     ###### Generate Jupyter Notebook (No Vivado Build) #####
     ########################################################
     def generate_jnb_solo(self):
+        self.lock_sidebar()
         # Create PYNQ Manager Object
         self.add_to_build_log(f"\nLaunching PYNQ Manager")
         self.pm_obj = pm.Pynq_Manager(self.hdlgen_path)
         # We are gonna need a 'force gen' option in the gen_jnb api as the switch could be deassert in config file.
-        self.pm_obj.generate_jnb(self, self.add_to_build_log, force_gen=True)        
+        
+        try:
+            self.pm_obj.generate_jnb(self, self.add_to_build_log, force_gen=True)
+        except Exception as e:
+            self.add_to_build_log(f"\nNotebook Generation failed due to the following error:{e.with_traceback}")
+            self.build_force_quit_event.set()
+        self.unlock_sidebar()
 
     ########################################################
     ###### Copy Output Files (Full Build) #####
