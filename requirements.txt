@@ -4,3 +4,4 @@ customtkinter
 pyperclip
 tkinter-tooltip
 tkhtmlview
+psutil
