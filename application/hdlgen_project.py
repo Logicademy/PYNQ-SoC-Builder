@@ -151,6 +151,11 @@ class HdlgenProject:
         self.syn_log_path = self.environment + "/" + self.AMDproj_folder_rel_path + "/" + self.name + ".runs/" + self.name + "_bd_processing_system7_0_0_synth_1/runme.log"
         # Fortunately Implementation does not have this issue.
         self.impl_log_path = self.environment + "/" + self.AMDproj_folder_rel_path + "/" + self.name + ".runs/impl_1/runme.log"
+
+        self.syn_log_path = self.environment + "/" + self.AMDproj_folder_rel_path + "/" + self.name + ".runs/" + self.name + "_bd_" + self.name + "_0_0_synth_1/runme.log"
+                                                                                                                        #  + "_bd_" + self.name + "_0_0_synth_1/runme.log"
+                                                                                                                        #  + "_bd_processing_system7_0_0_synth_1/runme.log"
+
         ######################################
         ##### Threading force quit flags #####
         ######################################
@@ -209,6 +214,150 @@ class HdlgenProject:
             self.impl_logger.add_to_log_box(msg, set)
         else:
             print("No implementation logger set")
+
+
+    ######################################
+    ########## Synthesis Logger ##########
+    #####################################
+    def run_synth_logger(self):
+
+        # Log Paths are derived that the initalising.
+        path_to_log = self.syn_log_path # Set the log path.
+        
+        # Quit Synthesis Logger flag - Available to whole class.
+        self.quit_synthesis_logger = False
+
+        # Local variable just for running ...
+        waiting_counter = 0
+
+        # The logger is always started before the runme.log is available - we wait for the file to appear then go.
+
+        while not os.path.exists(path_to_log):
+            dots = "."*(waiting_counter//2%5)
+            self.add_to_syn_log("\nWaiting for synthesis job to start" + dots, True)
+            time.sleep(0.5)
+            waiting_counter += 1
+
+            # If the quit flag is asserted, we return exiting the function.
+            if self.quit_synthesis_logger:
+                self.add_to_syn_log("\nQuit Synthesis Logger Asserted...stopping.")
+                return
+
+        # Start the Status Process
+        self.start_build_status_process('run_syn')
+            
+        with open(path_to_log, 'r') as file:
+            while True:
+                line = file.readline()
+                if not line:
+                    time.sleep(1)   # No line in buffer, wait 1 sec and read again
+                else:
+                    # Handle line
+
+                    if line == "":
+                        time.sleep(0.5)     # Wait 0.5 seconds just to stop infinite loop
+                        continue            # If blank line, just skip to next line
+
+                    elif line.startswith("CRITICAL WARNING"):
+                        self.add_to_syn_log("\n"+line)
+                    elif line.startswith("ERROR"):
+                        # If the line starts with error, print all the remaining lines in the buffer really then quit.
+                        self.add_to_syn_log("\n"+line)
+                        self.build_force_quit_event.set()   # An error has been detected - Raise quit event.
+                        
+                        # Read out the remainder of the file
+                        while True:
+                            line = file.readline()
+                            if not line:    # not line if end of file is reached
+                                break
+                            self.add_to_syn_log("\n"+line)
+                            time.sleep(0.05)
+
+                    else:
+                        self.add_to_syn_log("\n" + line)
+                
+                if self.build_force_quit_event and self.build_force_quit_event.is_set():
+                    print("Quitting synthesis due to quit event.")
+                    break
+
+                elif not self.build_running:
+                    print("Logger closing as build is completed.")
+                    break
+                time.sleep(0.05)
+
+    ###########################################
+    ########## Implementation Logger ##########
+    ###########################################
+    def run_impl_logger(self):
+
+        # Log Paths are derived that the initalising.
+        path_to_log = self.impl_log_path # Set the log path.
+        
+        # Quit Synthesis Logger flag - Available to whole class.
+        self.quit_impl_logger = False
+
+        # Local variable just for running ...
+        waiting_counter = 0
+
+        # The logger is always started before the runme.log is available - we wait for the file to appear then go.
+
+        while not os.path.exists(path_to_log):
+            dots = "."*(waiting_counter//2%5)
+            self.add_to_impl_log("\nWaiting for implementation job to start" + dots, True)
+            time.sleep(0.5)
+            waiting_counter += 1
+
+            # If the quit flag is asserted, we return exiting the function.
+            if self.quit_impl_logger:
+                self.add_to_impl_log("\nQuit Implementation Logger Asserted...stopping.")
+                return
+
+        # Start the Status Process
+        self.start_build_status_process('run_imp')
+            
+        with open(path_to_log, 'r') as file:
+            while True:
+                line = file.readline()
+                if not line:
+                    time.sleep(1)   # No line in buffer, wait 1 sec and read again
+                else:
+                    # Handle line
+
+                    if line == "":
+                        time.sleep(0.5)     # Wait 0.5 seconds just to stop infinite loop
+                        continue            # If blank line, just skip to next line
+
+                    elif line.startswith("CRITICAL WARNING"):
+                        self.add_to_impl_log("\n"+line)
+                    elif line.startswith("ERROR"):
+                        # If the line starts with error, print all the remaining lines in the buffer really then quit.
+                        self.add_to_impl_log("\n"+line)
+                        self.build_force_quit_event.set()   # An error has been detected - Raise quit event.
+                        
+                        # Read out the remainder of the file
+                        while True:
+                            line = file.readline()
+                            if not line:    # not line if end of file is reached
+                                break
+                            self.add_to_impl_log("\n"+line)
+                            time.sleep(0.05)
+
+                    else:
+                        self.add_to_syn_log("\n" + line)
+                
+                # if self.build_force_quit_event and self.build_force_quit_event.is_set():
+                #     self.end_build_status_process('run_imp')
+                #     print("Quitting implementation due to quit event.")
+                #     break
+
+                # elif not self.build_running:
+                #     print("Implementation Logger closing as build is completed.")
+                #     self.end_build_status_process('run_imp')
+                #     break
+                time.sleep(0.05)
+
+    
+
 
     ########################################################################
     ########## Parse all ports format from XML into useful format ##########
@@ -329,13 +478,17 @@ class HdlgenProject:
             # First things first - Make copy and inject
             hdl_modifier.make_copy_and_inject(self)
             # Start Logger Threads
+
+            # Delete old log files
+            self.delete_runme_logs()
+            
             # self.add_to_build_log(f"\nStarting Logger Threads (Build, Synth and Impl loggers)")
             # self.build_logger_thread = threading.Thread(target=self.run_build_logger)
-            # self.synth_logger_thread = threading.Thread(target=self.run_synth_logger)
-            # self.impl_logger_thread = threading.Thread(target=self.run_impl_logger)
+            self.synth_logger_thread = threading.Thread(target=self.run_synth_logger)
+            self.impl_logger_thread = threading.Thread(target=self.run_impl_logger)
             # self.build_logger_thread.start()
-            # self.synth_logger_thread.start()
-            # self.impl_logger_thread.start()
+            self.synth_logger_thread.start()
+            self.impl_logger_thread.start()
 
             self.vivado_logger = threading.Thread(target=self.vivado_state_logger)
 
@@ -355,11 +508,13 @@ class HdlgenProject:
             # 3) Everything handles it self anyways for most part.
 
         finally:
-            # Clean up our backups.
-            # hdl_modifier.restore(self)
+            # self.build_running = False    # Flag that build has stopped for loggers
             pass
+            
         
-
+    ##############################################################
+    ###### API for Tcl Generator to know what signals to use #####
+    ##############################################################
     def get_generate_conn_signals(self):
         # 1) Load parse signals
         # 2) Append internal signals made external.
@@ -448,6 +603,8 @@ class HdlgenProject:
                         # self.add_to_build_log(self.log_data + dots, True)
                         # time.sleep(0.5)
                         # waiting_counter += 1
+                    # elif "" in line:
+                        # pass
                     elif "write_bitstream completed successfully" in line:
                         self.add_to_build_log("\nBitstream written successfully.")
                     elif "exit" in line:
@@ -648,3 +805,21 @@ class HdlgenProject:
         new_time_str = new_time_obj.strftime("%M:%S")
         
         return new_time_str
+    
+    #######################################################################
+    ########## Delete existing runme.log files (synth/impl logs) ##########
+    #######################################################################
+    def delete_runme_logs(self):
+        if os.path.exists(self.syn_log_path):
+            # Delete the file
+            os.remove(self.syn_log_path)
+            print(f"File '{self.syn_log_path}' deleted successfully.")
+        else:
+            print(f"File '{self.impl_log_path}' does not exist.")
+
+        if os.path.exists(self.impl_log_path):
+            # Delete the file
+            os.remove(self.impl_log_path)
+            print(f"File '{self.impl_log_path}' deleted successfully.")
+        else:
+            print(f"File '{self.impl_log_path}' does not exist.")
