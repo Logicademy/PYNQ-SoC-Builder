@@ -21,8 +21,8 @@ class Application:
         # self.root.protocol("WM_DELETE_WINDOW", self.on_close) # Set function to handle close
 
         # Shared Variables (Shared between all pages)
-        self.build_running = False      # Flag - True build is running, False build not running
-        self.build_force_quit_event = threading.Event()     # Event to trigger Build threads to quit
+        # self.build_running = False      # Flag - True build is running, False build not running
+        # self.build_force_quit_event = threading.Event()     # Event to trigger Build threads to quit
         self.dialog_response = None     # Stores response from Dialog Pop-Up
         self.toplevel_message = None   # Set top_level_message to be presented by dialog/alert
         self.toplevel_window = None    # Var for top level window objects
@@ -96,7 +96,7 @@ class Application:
     #####################################
     def close_application(self):
         # Is a build currently running?
-        if self.build_running:
+        if self.hdlgen_prj.build_running:
             # Prompt user if they are sure:
             self.top_level_message = "A build is currently running and will force quit. Are you sure?"
             self.open_dialog()
@@ -108,7 +108,7 @@ class Application:
             response = self.dialog_response
             if response == "yes":
                 # terminate process, by continuing past this if block
-                self.build_force_quit_event.set()
+                self.hdlgen_prj.build_force_quit_event.set()
                 pass
             elif response == "no":
                 # leave and take no action

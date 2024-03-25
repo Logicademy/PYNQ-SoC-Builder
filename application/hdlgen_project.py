@@ -266,8 +266,10 @@ class HdlgenProject:
 
             # If the quit flag is asserted, we return exiting the function.
             if self.quit_synthesis_logger:
-                self.add_to_syn_log("\nQuit Synthesis Logger Asserted...stopping.")
-                return
+                try:
+                    self.add_to_syn_log("\nQuit Synthesis Logger Asserted...stopping.")
+                finally:
+                    return
 
         # Start the Status Process
         self.start_build_status_process('run_syn')
@@ -931,5 +933,5 @@ class HdlgenProject:
     def set_sidebar_lock_function(self, lock):
         self.lock_sidebar = lock
 
-    def set_sidebar_lock_function(self, unlock):
+    def set_sidebar_unlock_function(self, unlock):
         self.unlock_sidebar = unlock
