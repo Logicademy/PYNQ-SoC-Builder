@@ -679,9 +679,11 @@ class HdlgenProject:
     ###################################################################################
     def build_start(self):
         self.build_running = True
+        self.buildstatuspage.build_running = True
 
     def build_end(self):
         # Some cleanup/completion activities
+        self.buildstatuspage.build_running = False
         hdl_modifier.restore(self)
         self.build_running = False
         # Complete.
