@@ -662,7 +662,7 @@ class HdlgenProject:
                         # waiting_counter += 1
                     # elif "" in line:
                         pass
-                    elif "Writing bitstream " in line:
+                    elif "Command: write_bitstream -force" in line:
                         self.add_to_build_log("\nGenerating Bitstream")
                         self.start_build_status_process('gen_bit')    
                     elif "write_bitstream completed successfully" in line:
@@ -674,13 +674,25 @@ class HdlgenProject:
                         return # All dun
                     # Stall the process until the flag is updated by other thread.
                     
+    ###################################################################################
+    ##### Code to run before commencing a build and to run before closing a build #####
+    ###################################################################################
+    def build_start(self):
+        self.build_running = True
 
+    def build_end(self):
+        # Some cleanup/completion activities
+        hdl_modifier.restore(self)
+        self.build_running = False
+        # Complete.
 
 
     ########################################################
     ###### Build thread - Called by build_project func #####
     ########################################################
     def build(self):
+        
+        self.build_start()
 
         # Generate TCL
         self.start_build_status_process('gen_tcl')
@@ -689,7 +701,7 @@ class HdlgenProject:
 
         if self.build_force_quit_event.is_set():
             self.fail_build_status_process('gen_tcl')
-            hdl_modifier.restore(self)
+            self.build_end()
             return
 
         # Run Vivado
@@ -700,7 +712,7 @@ class HdlgenProject:
 
         if self.build_force_quit_event.is_set():
             self.fail_build_status_process('run_viv')
-            hdl_modifier.restore(self)
+            self.build_end()
             return
 
         # Generate JNB
@@ -710,7 +722,7 @@ class HdlgenProject:
 
         if self.build_force_quit_event.is_set():
             self.fail_build_status_process('gen_jnb')
-            hdl_modifier.restore(self)
+            self.build_end()
             return
 
         # Copy to Directory
@@ -720,13 +732,10 @@ class HdlgenProject:
 
         if self.build_force_quit_event.is_set():
             self.fail_build_status_process('cpy_out')
-            hdl_modifier.restore(self)
+            self.build_end()
             return
 
-        # Some cleanup/completion activities
-        hdl_modifier.restore(self)
-        
-        # Complete.
+        self.build_end()
 
     ################################################
     ###### Generate Tcl - Called by build func #####
