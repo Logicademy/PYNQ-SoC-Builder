@@ -65,6 +65,9 @@ class Xml_Manager:
         # internalSignal Child Element
         internalSignals = ET.SubElement(root, "internalSignals")
 
+        # flags Child Element
+        flags = ET.SubElement(root, "flags")
+
         # Create XML tree
         tree = ET.ElementTree(root)
         tree.write(self.pynq_build_path + "/PYNQBuildConfig.xml")
@@ -345,3 +348,84 @@ class Xml_Manager:
 
         print(f"Loaded internal signal config: {loaded_config}")
         return loaded_config
+    
+    ##################################
+    ##### Read HDL Modified Flag #####
+    ##################################
+    # This flag is set to True if the HDL is modified (and a backup is not restored).
+    def read_hdl_modified_flag(self):
+        return self.read_flag_value('hdl_modified')
+
+    ###################################
+    ##### Clear HDL Modified Flag #####
+    ###################################
+    def clear_hdl_modified_flag(self):
+        self.set_flag_and_value('hdl_modified', 'False')
+
+    #################################
+    ##### Set HDL Modified Flag #####
+    #################################
+    def clear_hdl_modified_flag(self):
+        self.set_flag_and_value('hdl_modified', 'True')
+
+    ##############################
+    ##### Set Flag and Value #####
+    ##############################
+    def set_flag_and_value(self, flag, value):
+        # Under the <flags> node, set a flag for "hdl_modified"
+        flag_name = flag
+        flag_value = value
+
+        # Load File
+        buildconfig = xml.dom.minidom.parse(self.pynq_build_path + "/PYNQBuildConfig.xml")
+        # Find root
+        root = buildconfig.documentElement
+        # Find flags
+        flags = root.getElementsByTagName("flags")
+        # Delete all existing hdl_modified flags (should only ever be one anyways).
+        try:
+            for flag in flags[0].getElementsByTagName(flag_name):
+                flags[0].removeChild(flag)
+        except Exception as e:
+            print(f"No elements to delete {e}")
+
+        # Create a new tag and give it value "True"
+
+
+        new_flag = buildconfig.createElement(flag_name)
+        new_flag_value = buildconfig.createTextNode(flag_value)
+        new_flag.appendChild(new_flag_value)
+
+        root.getElementsByTagName("flags")[0].appendChild(new_flag)
+
+        with open(self.pynq_build_path + "/PYNQBuildConfig.xml", "w") as xml_file:
+            buildconfig.writexml(xml_file, addindent="  ", newl='\n', encoding='')
+
+        self.remove_blank_lines(self.pynq_build_path + "/PYNQBuildConfig.xml")
+
+
+    #####################
+    ##### Read Flag #####
+    #####################
+    def read_flag_value(self, flag):
+        buildconfig = xml.dom.minidom.parse(self.pynq_build_path + "/PYNQBuildConfig.xml")
+        # Load root node <PYNQBuild>
+        root = buildconfig.documentElement
+        # Find flags node
+        flags = root.getElementsByTagName("flags")
+
+        try:
+            for entry in flags[0].getElementsByTagName(flag):
+                try:
+                    value = entry.firstChild.data
+                    return value
+                except ValueError:
+                    print(f"Error reading {flag} flag from file, assuming False.")
+                    return False
+                except:
+                    print("No entries")
+                    continue
+
+        except Exception as e: 
+            print(f"Couldn't read {flag}: {e} - returning False")
+        return False
