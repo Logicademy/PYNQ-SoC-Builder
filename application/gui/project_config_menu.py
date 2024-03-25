@@ -506,7 +506,7 @@ class BuildStatusTab(ctk.CTkScrollableFrame):
         # mode = ["gen_tcl", "opn_prj", "bld_bdn", "run_syn", "run_imp", "gen_bit", "gen_jnb", "cpy_out"]
         # state = ["idle", "waiting", "running", "failed", "success"]
 
-        idle_color = "#424949 "
+        idle_color = "#424949"
         waiting_color = "#2980b9"
         running_color = "#2980b9"
         failed_color = "#e74c3c" 
@@ -552,7 +552,6 @@ class BuildStatusTab(ctk.CTkScrollableFrame):
             target_task['progbar'].configure(mode="determinate", progress_color=failed_color)
             target_task['progbar'].stop()
             target_task['progbar'].set(1)
-            
         elif state == 'success':
             # 1) Set text to success.
             # 2) No need to update the time.
@@ -563,7 +562,9 @@ class BuildStatusTab(ctk.CTkScrollableFrame):
             target_task['progbar'].stop()
             target_task['progbar'].set(1)
 
-
+    ####################################################################################
+    ########## Increment Mode eg 'run_viv' or Modes eg ['run_viv', 'opn_prj'] ##########
+    ####################################################################################
     def increment_time(self, modes):
         try:
             if isinstance(modes, str):
