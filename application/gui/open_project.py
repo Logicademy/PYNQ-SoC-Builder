@@ -19,7 +19,7 @@ class OpenProjectPage(ctk.CTkFrame):
         self.title_text = ctk.CTkLabel(inner_frame, text="PYNQ SoC Builder", font=self.title_font)
         self.sub_text = ctk.CTkLabel(inner_frame, text="Open a HDLGen-ChatGPT project to continue.", font=self.sub_text_font)
         self.browse_button = ctk.CTkButton(inner_frame, text="Browse", command=self.browse_projects, font=self.button_font)
-        self.help_button = ctk.CTkButton(inner_frame, text="Help", command=self.show_help_popup, font=self.button_font)
+        self.help_button = ctk.CTkButton(inner_frame, text="Help", command=self.open_help, font=self.button_font)
         self.file_not_found_lbl = ctk.CTkLabel(inner_frame, text="HDLGen project could not be found.", font=self.sub_text_font, text_color='#e74c3c')
         self.file_not_hdlgen_lbl = ctk.CTkLabel(inner_frame, text="File is not a HDLGen (.hdlgen) project file.", font=self.sub_text_font, text_color='#e74c3c')
 
@@ -30,10 +30,11 @@ class OpenProjectPage(ctk.CTkFrame):
 
         inner_frame.pack()
 
-    def show_help_popup(self):
-        # This API might be the exact same as the help button inside project menu. 
-        # API call will be at higher level (application level) 
-        print("Help Button Pressed")
+    # This API might be the exact same as the help button inside project menu. 
+    # API call will be at higher level (application level) 
+    def open_help(self):
+        self.app.path_to_markdown = "README.md"
+        self.app.open_markdown()
 
     def browse_projects(self):
         file_path = ctk.filedialog.askopenfilename(filetypes=[("HDLGen Files", "*.hdlgen")])
