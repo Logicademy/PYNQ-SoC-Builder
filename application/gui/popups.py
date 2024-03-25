@@ -196,3 +196,12 @@ class Remote_Window(ctk.CTkToplevel):
         # On return button we dont need to do anything
         # except to destroy the window
         self.destroy()
+
+class Launch_FPGA_Window(ctk.CTkToplevel):
+
+    def __init__(self, app):
+        ctk.CTkToplevel.__init__(self, app.root)
+        self.app = app
+        self.title("Launch PYNQ FPGA")
+        self.grab_set() # This makes the pop-up the primary window and doesn't allow interaction with main menu
+        self.geometry("300x100")
