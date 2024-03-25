@@ -254,20 +254,33 @@ class HdlgenProject:
             while True:
                 line = file.readline()
                 if not line:
-                    time.sleep(1)   # No line in buffer, wait 1 sec and read again
+                    time.sleep(0.5)   # No line in buffer, wait 0.5 sec and read again
                 else:
                     # Handle line
 
                     if line == "":
-                        time.sleep(0.5)     # Wait 0.5 seconds just to stop infinite loop
+                        time.sleep(0.05)    # Wait 0.05 seconds just to stop infinite loop
                         continue            # If blank line, just skip to next line
 
                     elif line.startswith("CRITICAL WARNING"):
                         self.add_to_syn_log("\n"+line)
                     elif line.startswith("ERROR"):
+                        # Build failed, set error and change build status page to failed
                         # If the line starts with error, print all the remaining lines in the buffer really then quit.
                         self.add_to_syn_log("\n"+line)
                         self.build_force_quit_event.set()   # An error has been detected - Raise quit event.
+                        
+                        self.fail_build_status_process('run_syn')
+
+                        # Read out the remainder of the file
+                        while True:
+                            line = file.readline()
+                            if not line:    # not line if end of file is reached
+                                break
+                            self.add_to_syn_log("\n"+line)
+                            time.sleep(0.05)
+                    elif line.startswith("Synthesis finished with 0 errors,"):
+                        # Build successful!!
                         
                         # Read out the remainder of the file
                         while True:
@@ -276,7 +289,8 @@ class HdlgenProject:
                                 break
                             self.add_to_syn_log("\n"+line)
                             time.sleep(0.05)
-
+                        # Set the build status page flag as completed, and return from the logger.
+                        self.end_build_status_process('run_syn')
                     else:
                         self.add_to_syn_log("\n" + line)
                 
@@ -318,6 +332,7 @@ class HdlgenProject:
 
         # Start the Status Process
         self.start_build_status_process('run_imp')
+        self.buildstatuspage.obj_dict['gen_bit']['status'].configure(text="Waiting")
             
         with open(path_to_log, 'r') as file:
             while True:
@@ -347,7 +362,7 @@ class HdlgenProject:
                             time.sleep(0.05)
 
                     else:
-                        self.add_to_syn_log("\n" + line)
+                        self.add_to_impl_log("\n" + line)
                 
                 # if self.build_force_quit_event and self.build_force_quit_event.is_set():
                 #     self.end_build_status_process('run_imp')
@@ -595,21 +610,26 @@ class HdlgenProject:
                         self.add_to_build_log("\n"+line)
                     elif "_0_0_synth_1" in line:
                         self.end_build_status_process('bld_bdn')
+                        self.buildstatuspage.obj_dict['run_syn']['status'].configure(text="Preparing")
                         self.add_to_build_log("\nStarting Synthesis of Design")
                         self.add_to_build_log("\n"+line.strip())
                     elif "Launched impl_1..." in line:
                         self.add_to_build_log("\nLaunching Implementation\n" +line)
                         self.add_to_build_log(vivado_log.readline())
                     elif "Waiting for impl_1 to finish..." in line:
-                        dots = "."*(waiting_counter//2%5)
+                        # dots = "."*(waiting_counter//2%5)
                         # if waiting_counter == 0:
                             # self.log_data = self.log_data + "\nWaiting for synthesis & implementation to complete, see syn/impl log tabs for more details"
                         # self.add_to_build_log(self.log_data + dots, True)
                         # time.sleep(0.5)
                         # waiting_counter += 1
                     # elif "" in line:
-                        # pass
+                        pass
+                    elif "Writing bitstream " in line:
+                        self.add_to_build_log("\nGenerating Bitstream")
+                        self.start_build_status_process('gen_bit')    
                     elif "write_bitstream completed successfully" in line:
+                        self.end_build_status_process('gen_bit')
                         self.add_to_build_log("\nBitstream written successfully.")
                     elif "exit" in line:
                         self.add_to_build_log("\nExit command issued to Vivado. Waiting for Vivado to close.")
@@ -785,6 +805,10 @@ class HdlgenProject:
             self.running_build_status_modes.remove(mode)
         self.buildstatuspage.set_build_status(mode, 'success')
         
+    def fail_build_status_process(self, mode):
+        if mode in self.running_build_status_modes:
+            self.running_build_status_modes.remove(mode)
+        self.buildstatuspage.set_build_status(mode, 'failed')
 
     def build_status_process(self):
         # Need this to keep running for as long as the build is running.
