@@ -79,9 +79,15 @@ class HdlgenProject:
         head, tail2 = os.path.split(head)
         result = os.path.join(tail2, tail1)
 
-        self.model_file = self.environment + "/" + self.AMDproj_folder_rel_path + "/" + self.name + ".srcs/sources_1/imports/" + tail2 + "/" + self.model_folder_rel_path + "/" + self.name
+        imported_model_file = self.environment + "/" + self.AMDproj_folder_rel_path + "/" + self.name + ".srcs/sources_1/imports/" + tail2 + "/" + self.model_folder_rel_path + "/" + self.name
 
+        model_folder_model_file = self.environment + "/" + self.model_folder_rel_path + "/" + self.name   # This is where VHD file is copied into the Vivado project.
 
+        # Check if the model file was imported or not
+        if os.path.exists(imported_model_file):
+            self.model_file = imported_model_file       
+        else:
+            self.model_file = model_folder_model_file
 
         ###################################
         ###### Parse Entity IO Ports ######
