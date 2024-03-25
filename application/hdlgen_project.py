@@ -680,12 +680,14 @@ class HdlgenProject:
     def build_start(self):
         self.build_running = True
         self.buildstatuspage.build_running = True
+        self.lock_sidebar()
 
     def build_end(self):
         # Some cleanup/completion activities
         self.buildstatuspage.build_running = False
         hdl_modifier.restore(self)
         self.build_running = False
+        self.unlock_sidebar()
         # Complete.
 
 
@@ -920,3 +922,14 @@ class HdlgenProject:
             print(f"File '{self.impl_log_path}' deleted successfully.")
         else:
             print(f"File '{self.impl_log_path}' does not exist.")
+
+
+    ################################
+    ##### Sidebar Menu Options #####
+    ################################
+    # Used to lock the build button when the program is running.
+    def set_sidebar_lock_function(self, lock):
+        self.lock_sidebar = lock
+
+    def set_sidebar_lock_function(self, unlock):
+        self.unlock_sidebar = unlock

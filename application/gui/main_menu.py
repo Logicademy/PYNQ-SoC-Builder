@@ -131,6 +131,16 @@ class SidebarMenu(ctk.CTkScrollableFrame):
 
     def load_project(self):
         self.hdlgen_prj = self.parent.hdlgen_prj
+        self.hdlgen_prj.set_sidebar_lock_function(self.lock_build)
+        self.hdlgen_prj.set_sidebar_unlock_function(self.unlock_build)
+
+    def lock_build(self):
+        self.build_button.configure(state='disabled')
+        self.gen_jnb_button.configure(state='disabled')
+
+    def unlock_build(self):
+        self.build_button.configure(state='normal')
+        self.gen_jnb_button.configure(state='normal')
 
     def run_build(self):
         # Call Synthesis Dialog Box
