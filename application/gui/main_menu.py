@@ -7,7 +7,7 @@ import application.hdlgen_project as hdlgenprj
 import webbrowser
 
 
-ctk.set_appearance_mode("System")       # 'Light' 'Dark' or 'System
+ctk.set_appearance_mode("Dark")       # 'Light' 'Dark' or 'System
 ctk.set_default_color_theme("blue")
 
 #######################################################################

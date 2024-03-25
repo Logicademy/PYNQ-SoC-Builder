@@ -289,8 +289,8 @@ class BuildStatusTab(ctk.CTkScrollableFrame):
         
         ### Overall Status:
         self.title_status_frame = ctk.CTkFrame(self)
-        self.title_text = ctk.CTkLabel(self.title_status_frame, text="Current State:", font=name_font, width=160)
-        self.title_text_val = ctk.CTkLabel(self.title_status_frame, text="Builder is Idle", font=(default_font, 20), width=160)
+        self.title_text = ctk.CTkLabel(self.title_status_frame, text="", font=name_font, width=160)
+        self.title_text_val = ctk.CTkLabel(self.title_status_frame, text="", font=(default_font, 20), width=160)
         self.title_text.grid(row=0, column=0, padx=5, pady=5)
         self.title_text_val.grid(row=0, column=1, padx=5, pady=5, sticky='e')
 
