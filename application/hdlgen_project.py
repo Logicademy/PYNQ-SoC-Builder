@@ -33,8 +33,14 @@ class HdlgenProject:
         self.name = projectManagerSettings.getElementsByTagName("name")[0].firstChild.data
         environment = projectManagerSettings.getElementsByTagName("environment")[0].firstChild.data
         location = projectManagerSettings.getElementsByTagName("location")[0].firstChild.data
+
         self.environment = environment.replace("\\", "/")   # Make dir safe for use
         self.location = location.replace("\\", "/")
+
+
+        # HOTFIX: To fix location bug, we are going to pop the last directory from the location variable instead.
+        new_path = os.path.dirname(self.location)
+        self.environment = new_path
 
 
         # Project Manager - EDA
@@ -170,15 +176,16 @@ class HdlgenProject:
         ##### Threading force quit flags #####
         ######################################
         self.build_force_quit_event = threading.Event()
-        self.generate_tcl_fail_event = threading.Event()
-        self.execute_vivado_fail_event = threading.Event()
-        self.open_project_fail_event = threading.Event()
-        self.build_block_design_fail_event = threading.Event()
-        self.run_synthesis_fail_event = threading.Event()
-        self.run_implementation_fail_event = threading.Event()
-        self.generate_bitstream_fail_event = threading.Event()
-        self.generate_jupyter_notebook_fail_event = threading.Event()
-        self.copy_output_fail_event = threading.Event()
+        # self.build_success_event = threading.Event()
+        # self.generate_tcl_fail_event = threading.Event()
+        # self.execute_vivado_fail_event = threading.Event()
+        # self.open_project_fail_event = threading.Event()
+        # self.build_block_design_fail_event = threading.Event()
+        # self.run_synthesis_fail_event = threading.Event()
+        # self.run_implementation_fail_event = threading.Event()
+        # self.generate_bitstream_fail_event = threading.Event()
+        # self.generate_jupyter_notebook_fail_event = threading.Event()
+        # self.copy_output_fail_event = threading.Event()
 
         ##########################################
         ##### Generate Tcl Derived Variables #####
@@ -294,6 +301,9 @@ class HdlgenProject:
                                 break
                             self.add_to_syn_log("\n"+line)
                             time.sleep(0.05)
+
+                        return # quit thread as process is complete#
+                    
                     elif line.startswith("Synthesis finished with 0 errors,"):
                         # Build successful!!
                         
@@ -306,16 +316,15 @@ class HdlgenProject:
                             time.sleep(0.05)
                         # Set the build status page flag as completed, and return from the logger.
                         self.end_build_status_process('run_syn')
+                        return # quit thread as process is complete.
                     else:
                         self.add_to_syn_log("\n" + line)
                 
-                if self.build_force_quit_event and self.build_force_quit_event.is_set():
-                    print("Quitting synthesis due to quit event.")
+                if self.build_force_quit_event.is_set():
+                    print("Quitting syn as force quit event set.")
+                    self.add_to_syn_log("\nQuitting syn as force quit event set.")
                     break
 
-                elif not self.build_running:
-                    print("Logger closing as build is completed.")
-                    break
                 time.sleep(0.05)
 
     ###########################################
@@ -368,7 +377,7 @@ class HdlgenProject:
                         self.add_to_impl_log("\n"+line)
                         self.fail_build_status_process('run_imp')
                         self.build_force_quit_event.set()   # An error has been detected - Raise quit event.
-                        
+
                         # Read out the remainder of the file
                         while True:
                             line = file.readline()
@@ -377,12 +386,21 @@ class HdlgenProject:
                             self.add_to_impl_log("\n"+line)
                             time.sleep(0.05)
 
+                        return # quit thread as logging complete.
+
                     elif "0 Errors encountered." in line:
                         self.end_build_status_process('run_imp')
+                            
+                        while True:
+                            if not line:    # not line if end of file is reached
+                                break
+                            self.add_to_impl_log("\n"+line)
+                            time.sleep(0.05)
 
+                        return # quit thread as logging complete.
                     else:
                         self.add_to_impl_log("\n" + line)
-                
+
                 # if self.build_force_quit_event and self.build_force_quit_event.is_set():
                 #     self.end_build_status_process('run_imp')
                 #     print("Quitting implementation due to quit event.")
@@ -653,7 +671,7 @@ class HdlgenProject:
                     elif "exit" in line:
                         self.add_to_build_log("\nExit command issued to Vivado. Waiting for Vivado to close.")
                         self.add_to_build_log("\nMoving to next process")
-                        break
+                        return # All dun
                     # Stall the process until the flag is updated by other thread.
                     
 
@@ -663,17 +681,16 @@ class HdlgenProject:
     ###### Build thread - Called by build_project func #####
     ########################################################
     def build(self):
-        # Will need to be setting flags or something along the way here.
-        
-
-
-
-
 
         # Generate TCL
         self.start_build_status_process('gen_tcl')
         self.generate_tcl()
         self.end_build_status_process('gen_tcl')
+
+        if self.build_force_quit_event.is_set():
+            self.fail_build_status_process('gen_tcl')
+            hdl_modifier.restore(self)
+            return
 
         # Run Vivado
         self.start_build_status_process('run_viv')
@@ -681,15 +698,30 @@ class HdlgenProject:
         self.run_vivado()
         self.end_build_status_process('run_viv')
 
+        if self.build_force_quit_event.is_set():
+            self.fail_build_status_process('run_viv')
+            hdl_modifier.restore(self)
+            return
+
         # Generate JNB
         self.start_build_status_process('gen_jnb')
         self.generate_jnb()
         self.end_build_status_process('gen_jnb')
 
+        if self.build_force_quit_event.is_set():
+            self.fail_build_status_process('gen_jnb')
+            hdl_modifier.restore(self)
+            return
+
         # Copy to Directory
         self.start_build_status_process('cpy_out')
         self.copy_output()
         self.end_build_status_process('cpy_out')
+
+        if self.build_force_quit_event.is_set():
+            self.fail_build_status_process('cpy_out')
+            hdl_modifier.restore(self)
+            return
 
         # Some cleanup/completion activities
         hdl_modifier.restore(self)
@@ -705,9 +737,11 @@ class HdlgenProject:
             self.add_to_build_log("\n\nTcl Generation cancelled as force quit flag asserted!")
             print("\n\nTcl Generation cancelled as force quit flag asserted!")
             return # Return to leave function
-
-        self.pm_obj.generate_tcl(self, self.add_to_build_log)
-
+        try:
+            self.pm_obj.generate_tcl(self, self.add_to_build_log)
+        except Exception as e:
+            self.add_to_build_log(f"\nTcl Generation failed due to the following error:{e.with_traceback}")
+            self.build_force_quit_event.set()
 
     ################################################
     ###### Run Vivado - Called by build func #####
