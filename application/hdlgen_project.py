@@ -830,7 +830,7 @@ class HdlgenProject:
             return # Return to leave function
 
         try:
-            self.pm_obj.copy_to_dir()
+            self.pm_obj.copy_to_dir(self)
         except Exception as e:
             self.add_to_build_log(f"\nError: {e}")
 

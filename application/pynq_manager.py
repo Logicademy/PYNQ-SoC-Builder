@@ -167,7 +167,8 @@ class Pynq_Manager:
     def upload_to_pynq(self):
         pass
 
-    def copy_to_dir(self, destination=None):
+    def copy_to_dir(self, hdlgen_prj):
+        destination = hdlgen_prj.pynq_build_output_path
         ftp = file_manager.File_Manager(self.hdlgen_project_path)
         res = ftp.copy_bitstream_to_dir(destination)
         print(f"Copied Bitsteam Output to: /PYNQBuild/output")

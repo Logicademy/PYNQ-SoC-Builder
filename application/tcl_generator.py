@@ -8,6 +8,7 @@ import application.xml_manager as xmlman
 # Author: Luke Canny
 # Date: 12/10/23
 
+
 # Run this in the Vivado Tcl Command Line
 # source C:/masters/masters_automation/generate_script.tcl
 
@@ -434,7 +435,6 @@ def generate_tcl(hdlgen_prj, add_to_log_box):
         file_contents += "\nset_property source_mgmt_mode All [current_project]"    # Setting automatic mode for source management
         file_contents += f"\nadd_module {hdlgen_prj.name} {hdlgen_prj.name}_0"  # Import the user-created module
 
-
     if generate_new_bd_design:
         add_to_log_box("\nGenerating New Block Design")
         created_signals = [] # This is an array of all signals that are created (this is cos >32 bit signals are divided)
@@ -448,6 +448,12 @@ def generate_tcl(hdlgen_prj, add_to_log_box):
         file_contents += "\nset_property source_mgmt_mode All [current_project]"    # Setting automatic mode for source management
         file_contents += f"\nadd_module {hdlgen_prj.name} {hdlgen_prj.name}_0"  # Import the user-created module
         add_to_log_box(f"\nImporting Module: {hdlgen_prj.name}")
+
+        if generate_svg:
+            file_contents += "\nupdate_module_reference { " + hdlgen_prj.bd_filename + "_" + hdlgen_prj.name + " _0_0 " + img_bd_name + "_" + hdlgen_prj.name + "_0_0  }" # Refresh model (important if injecting to port map)
+        else:
+            file_contents += "\nupdate_module_reference { " + hdlgen_prj.bd_filename + "_" + hdlgen_prj.name + " _0_0 }" # Refresh model (important if injecting to port map)
+
 
 
         # (5) Add Processor to BD
