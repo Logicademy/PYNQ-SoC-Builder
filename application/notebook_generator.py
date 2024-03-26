@@ -9,12 +9,10 @@ import copy
 
 # Function to generate JNB, takes HDLGen file path and notebook name as parameters
 def create_jnb(hdlgen_prj, add_to_log_box, force_gen=False):
-    
     # Read from XML.
     proj_config = hdlgen_prj.pynqbuildxml.read_proj_config()
     io_map = hdlgen_prj.pynqbuildxml.read_io_config()
 
-    gen_jnb = True
     try:
         gen_jnb = proj_config['gen_jnb']
     except Exception as e:
@@ -39,6 +37,8 @@ def create_jnb(hdlgen_prj, add_to_log_box, force_gen=False):
         if not isinstance(use_board_io, bool): # Check if the value is a boolean when finishing 
             use_board_io = False
             add_to_log_box("\nuse_board_io not loaded as boolean, ignoring and using default: False")
+
+
 
     # Try to load from XML and sanitize the response
     use_testplan = False
@@ -134,7 +134,9 @@ def create_jnb(hdlgen_prj, add_to_log_box, force_gen=False):
             # next_var = copy.deepcopy(object.its_var)
     parsed_all_ports = []
 
-    parsed_internal_sigs = copy.deepcopy(hdlgen_prj.parsed_internal_sigs)
+    # parsed_internal_sigs = copy.deepcopy(hdlgen_prj.parsed_internal_sigs)
+    parsed_internal_sigs = hdlgen_prj.pynqbuildxml.read_internal_to_port_config()
+
 
     original_ports = parse_all_ports(all_ports)
 
@@ -748,11 +750,11 @@ def create_jnb(hdlgen_prj, add_to_log_box, force_gen=False):
     # else: # I think this is doubling %run {compName}.py cell
     #     code_cell = nbf.v4.new_code_cell(code_cell_contents)
     #     notebook.cells.append(code_cell)
-
+    
     output_file = f'{hdlgen_prj.pynq_build_output_path}\{name}.ipynb'
     # if output_filename is not None:
     #     output_file = output_filename
-
+    print(output_file)  
     with open(output_file, 'w') as f:
         nbf.write(notebook, f)
         
