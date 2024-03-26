@@ -88,9 +88,14 @@ class HdlgenProject:
         imported_model_file = self.environment + "/" + self.AMDproj_folder_rel_path + "/" + self.name + ".srcs/sources_1/imports/" + tail2 + "/" + self.model_folder_rel_path + "/" + self.name
 
         model_folder_model_file = self.environment + "/" + self.model_folder_rel_path + "/" + self.name   # This is where VHD file is copied into the Vivado project.
+        ext = ""
+        if self.project_language == "VHDL":
+            ext = ".vhd"
+        elif self.project_language == "Verilog":
+            ext = ".v"
 
         # Check if the model file was imported or not
-        if os.path.exists(imported_model_file):
+        if os.path.exists(imported_model_file + ext):
             self.model_file = imported_model_file       
         else:
             self.model_file = model_folder_model_file
@@ -207,9 +212,12 @@ class HdlgenProject:
         ########################
         ##### Output Paths #####
         ########################
-        self.pynq_build_path = os.path.join(self.location, "PYNQBuild")
-        self.pynq_build_output_path = os.path.join(self.pynq_build_path, "output")
-        self.pynq_build_generated_path = os.path.join(self.pynq_build_path, "generated")
+        self.environment = new_path
+
+
+        self.pynq_build_path = self.environment + "/" + self.name + "/PYNQBuild"
+        self.pynq_build_output_path = self.pynq_build_path + "/output"
+        self.pynq_build_generated_path = self.pynq_build_path + "/generated"
 
     ############################################################
     ########## Logger set and add_to_log_box function ##########
@@ -263,7 +271,11 @@ class HdlgenProject:
             self.add_to_syn_log("\nSynthesis is running" + dots, True)
             time.sleep(0.5)
             waiting_counter += 1
-
+            if self.build_force_quit_event.is_set():
+                try:
+                    self.add_to_syn_log("\nQuit Synthesis Logger Asserted...stopping.")
+                finally:
+                    return
             # If the quit flag is asserted, we return exiting the function.
             if self.quit_synthesis_logger:
                 try:
@@ -350,7 +362,11 @@ class HdlgenProject:
             self.add_to_impl_log("\nWaiting for implementation job to start" + dots, True)
             time.sleep(0.5)
             waiting_counter += 1
-
+            if self.build_force_quit_event.is_set():
+                try:
+                    self.add_to_impl_log("\nQuit Implementation Logger Asserted...stopping.")
+                finally:
+                    return
             # If the quit flag is asserted, we return exiting the function.
             if self.quit_impl_logger:
                 self.add_to_impl_log("\nQuit Implementation Logger Asserted...stopping.")
@@ -637,6 +653,11 @@ class HdlgenProject:
                                 break
                             self.add_to_build_log("\n"+line.strip())
                             time.sleep(0.05)
+                        # Build failed, set error and change build status page to failed
+                        # If the line starts with error, print all the remaining lines in the buffer really then quit.
+                        self.build_force_quit_event.set()   # An error has been detected - Raise quit event.
+
+                        self.fail_build_status_process('bld_bdn')
                         self.add_to_build_log("\n\nVivado raised an error and the build could not complete. Please check the log above for more details")
                         self.add_to_build_log("\nBuild is quitting.")
                     elif "open_project" in line:
@@ -675,7 +696,8 @@ class HdlgenProject:
                         self.add_to_build_log("\nExit command issued to Vivado. Waiting for Vivado to close.")
                         self.add_to_build_log("\nMoving to next process")
                         return # All dun
-                    # Stall the process until the flag is updated by other thread.
+                if not self.build_running:
+                    return # all dun
                     
     ###################################################################################
     ##### Code to run before commencing a build and to run before closing a build #####
@@ -692,7 +714,6 @@ class HdlgenProject:
         self.build_running = False
         self.unlock_sidebar()
         # Complete.
-
 
     ########################################################
     ###### Build thread - Called by build_project func #####
@@ -727,10 +748,6 @@ class HdlgenProject:
         self.generate_jnb()
         self.end_build_status_process('gen_jnb')
 
-        if self.build_force_quit_event.is_set():
-            self.fail_build_status_process('gen_jnb')
-            self.build_end()
-            return
 
         # Copy to Directory
         self.start_build_status_process('cpy_out')
@@ -756,7 +773,7 @@ class HdlgenProject:
         try:
             self.pm_obj.generate_tcl(self, self.add_to_build_log)
         except Exception as e:
-            self.add_to_build_log(f"\nTcl Generation failed due to the following error:{e.with_traceback}")
+            self.add_to_build_log(f"\nTcl Generation failed due to the following error:{e}")
             self.build_force_quit_event.set()
 
     ################################################
@@ -783,8 +800,9 @@ class HdlgenProject:
         try:
             self.pm_obj.generate_jnb(self, self.add_to_build_log)
         except Exception as e:
-            self.add_to_build_log(f"\nNotebook Generation failed due to the following error:{e.with_traceback}")
-            self.build_force_quit_event.set()   
+            self.add_to_build_log(f"\nNotebook Generation failed due to the following error:{e}")
+            # self.build_force_quit_event.set()     # Generate JNB shouldn't assert this because it doesn't imped other functions
+            self.fail_build_status_process('gen_jnb')
 
 
     ########################################################
@@ -800,7 +818,7 @@ class HdlgenProject:
         try:
             self.pm_obj.generate_jnb(self, self.add_to_build_log, force_gen=True)
         except Exception as e:
-            self.add_to_build_log(f"\nNotebook Generation failed due to the following error:{e.with_traceback}")
+            self.add_to_build_log(f"\nNotebook Generation failed due to the following error:{e}")
             self.build_force_quit_event.set()
         self.unlock_sidebar()
 
@@ -808,14 +826,15 @@ class HdlgenProject:
     ###### Copy Output Files (Full Build) #####
     ########################################################  
     def copy_output(self):
-
+        print("now copying output...")
         if self.build_force_quit_event.is_set():
             self.add_to_build_log("\n\nCopy Output cancelled as force quit flag asserted!")
             print("\n\nCopy Output cancelled as force quit flag asserted!")
             return # Return to leave function
 
         try:
-            self.pm_obj.copy_to_dir()
+            print("all abord the copy ")
+            self.pm_obj.copy_to_dir(self)
         except Exception as e:
             self.add_to_build_log(f"\nError: {e}")
 
@@ -901,7 +920,8 @@ class HdlgenProject:
             time.sleep(1)
             self.buildstatuspage.increment_time(self.running_build_status_modes)
 
-        # TODO: Make this exit.
+            if not self.build_running or self.build_force_quit_event.is_set():
+                return
 
 
     ################################################

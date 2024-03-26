@@ -51,6 +51,9 @@ def restore(hdlgen_prj):
     # Derive the filepaths
     model_file = hdlgen_prj.model_file + extension
     backup_file = hdlgen_prj.model_file + ".socbuilder"
+    modified_file_backup = hdlgen_prj.model_file + ".modified"
+
+    make_backup(backup_file, modified_file_backup)
     # Restore backup
     restore_backup(model_file, backup_file)
 
