@@ -132,11 +132,23 @@ def create_jnb(hdlgen_prj, add_to_log_box, force_gen=False):
     # parsed_all_ports = parse_all_ports(all_ports)
     # Being extra careful, I want to copy the values
             # next_var = copy.deepcopy(object.its_var)
-    parsed_all_ports = copy.deepcopy(hdlgen_prj.parsed_internal_sigs)
+    parsed_all_ports = []
 
-    parsed_all_ports.append(parse_all_ports(all_ports))
+    parsed_internal_sigs = copy.deepcopy(hdlgen_prj.parsed_internal_sigs)
 
+    original_ports = parse_all_ports(all_ports)
 
+    for int in parsed_internal_sigs:
+        gpio_name = int[0]
+        gpio_mode = "out"
+        gpio_width = int[1]
+        parsed_all_ports.append([gpio_name, gpio_mode, gpio_width])
+
+    for port in original_ports:
+        gpio_name = port[0]
+        gpio_mode = port[1]
+        gpio_width = port[2]
+        parsed_all_ports.append([gpio_name, gpio_mode, gpio_width])
 
     # Retrieve TB Data from HDLGen
     testbench = root.getElementsByTagName("testbench")[0]
