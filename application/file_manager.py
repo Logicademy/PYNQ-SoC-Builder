@@ -61,7 +61,11 @@ class File_Manager:
             self.check_path_and_mkdir()
             dest_path = self.pynq_build_output_path
 
-        tcl_location = self.environment + "/" + self.AMDproj_folder_path # path hotfix
+
+        # HOTFIX: To fix location bug, we are going to pop the last directory from the location variable instead.
+        base = os.path.dirname(self.location)
+
+        tcl_location = base + "/" + self.AMDproj_folder_path # path hotfix
         hwh_location = tcl_location + "/" + self.name + ".srcs/sources_1/bd/" + self.name + "_bd/hw_handoff"
         hwh_location_2023 = tcl_location + "/" + self.name + ".gen/sources_1/bd/" + self.name + "_bd/hw_handoff"
         bit_location = tcl_location + "/" + self.name + ".runs/impl_1"
@@ -91,8 +95,12 @@ class File_Manager:
 
         if os.path.exists(bit_full_path):
             shutil.copy(bit_full_path, dest_path+"/"+self.name+".bit")
+            print(bit_full_path)
+            print(dest_path+"/"+self.name+".bit")
+            print("Bit copy passed")
             return True
         else:
+            print("Binary Copy Failed")
             return False
         
     def check_path_and_mkdir(self):
@@ -110,7 +118,7 @@ class File_Manager:
     #     print(sftp.pwd)
 
     def check_bitstream_exists(self):
-        tcl_location = self.environment + "/" + self.AMDproj_folder_path # path hotfix
+        tcl_location = os.path.dirname(self.location) + "/" + self.AMDproj_folder_path # path hotfix
         # hwh_location = tcl_location + "/" + self.name + ".srcs/sources_1/bd/" + self.name + "_bd/hw_handoff"
         bit_location = tcl_location + "/" + self.name + ".runs/impl_1"
 

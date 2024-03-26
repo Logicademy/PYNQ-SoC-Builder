@@ -212,9 +212,12 @@ class HdlgenProject:
         ########################
         ##### Output Paths #####
         ########################
-        self.pynq_build_path = os.path.join(self.location, "PYNQBuild")
-        self.pynq_build_output_path = os.path.join(self.pynq_build_path, "output")
-        self.pynq_build_generated_path = os.path.join(self.pynq_build_path, "generated")
+        self.environment = new_path
+
+
+        self.pynq_build_path = self.environment + "/" + self.name + "/PYNQBuild"
+        self.pynq_build_output_path = self.pynq_build_path + "/output"
+        self.pynq_build_generated_path = self.pynq_build_path + "/generated"
 
     ############################################################
     ########## Logger set and add_to_log_box function ##########
@@ -693,7 +696,8 @@ class HdlgenProject:
                         self.add_to_build_log("\nExit command issued to Vivado. Waiting for Vivado to close.")
                         self.add_to_build_log("\nMoving to next process")
                         return # All dun
-                    # Stall the process until the flag is updated by other thread.
+                if not self.build_running:
+                    return # all dun
                     
     ###################################################################################
     ##### Code to run before commencing a build and to run before closing a build #####
@@ -710,7 +714,6 @@ class HdlgenProject:
         self.build_running = False
         self.unlock_sidebar()
         # Complete.
-
 
     ########################################################
     ###### Build thread - Called by build_project func #####
@@ -823,13 +826,14 @@ class HdlgenProject:
     ###### Copy Output Files (Full Build) #####
     ########################################################  
     def copy_output(self):
-
+        print("now copying output...")
         if self.build_force_quit_event.is_set():
             self.add_to_build_log("\n\nCopy Output cancelled as force quit flag asserted!")
             print("\n\nCopy Output cancelled as force quit flag asserted!")
             return # Return to leave function
 
         try:
+            print("all abord the copy ")
             self.pm_obj.copy_to_dir(self)
         except Exception as e:
             self.add_to_build_log(f"\nError: {e}")
