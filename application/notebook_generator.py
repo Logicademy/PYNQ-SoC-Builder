@@ -927,7 +927,7 @@ def generate_io_visuals(io_map):
 
     py_code += "\n\n\thbox_layout = widgets.Layout(display='flex', justify_content='center', align_items='center', flex_flow='row')"
     
-    py_code += "\n\n\thbox_led = widgets.HBox([leds_label, led0_button, led1_button, led2_button, led3_button])"
+    py_code += "\n\n\thbox_led = widgets.HBox([leds_label, led3_button, led2_button, led1_button, led0_button])"
     py_code += "\n\thbox_led.layout = hbox_layout"
     
     py_code += "\n\thbox_led4 = widgets.HBox([led4_label, led4_r_button, led4_g_button, led4_b_button])"
