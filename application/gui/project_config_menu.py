@@ -6,7 +6,6 @@ from datetime import datetime, timedelta
 class ConfigTabView(ctk.CTkTabview):
     def __init__(self, parent):
         super().__init__(parent)
-
         self.parent = parent
         self.hdlgen_path = self.parent.parent.app.hdlgen_path
 
@@ -650,6 +649,7 @@ class PortConfigTab(ctk.CTkScrollableFrame):
         self.led3_dropdown = ctk.CTkOptionMenu(self.RHS_frame, font=self.switch_font, variable=ctk.StringVar(), width=200, command=lambda signal, io="led3": self.io_optionbox_handler(signal, io))
         self.led3_entry = ctk.CTkEntry(self.RHS_frame, width=60, font=self.switch_font)
         self.led3_entry_placeholder = ctk.CTkLabel(self.RHS_frame,text="")
+        self.switches = []  # Initalise
 
         self.led_optionboxes = [self.led0_dropdown, self.led1_dropdown, self.led2_dropdown, self.led3_dropdown]
 
