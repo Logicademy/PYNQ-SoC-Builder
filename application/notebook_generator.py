@@ -141,7 +141,7 @@ def create_jnb(hdlgen_prj, add_to_log_box, force_gen=False):
     original_ports = parse_all_ports(all_ports)
 
     for int in parsed_internal_sigs:
-        gpio_name = int[0]
+        gpio_name = f"int_{int[0]}"
         gpio_mode = "out"
         gpio_width = int[1]
         parsed_all_ports.append([gpio_name, gpio_mode, gpio_width])
