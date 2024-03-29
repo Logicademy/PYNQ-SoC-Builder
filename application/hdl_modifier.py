@@ -187,7 +187,7 @@ def inject_verilog_port_definition(verilog_file, port_name, size):
         if size == 1:
             lines.insert(target_line+1, f"output {port_name};\n")
         elif size > 1:
-            lines.insert(target_line+1, f"output [{size-1}:0] {port_name}")
+            lines.insert(target_line+1, f"output [{size-1}:0] {port_name};\n")
         file.writelines(lines)
 
 ###############################################
