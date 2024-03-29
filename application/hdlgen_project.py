@@ -17,7 +17,6 @@ class HdlgenProject:
         #     self.hdlgen = "C:\\hdlgen\\March\\DSPProc_Threshold_Luke\\DSPProc\\HDLGenPrj\\DSPProc.hdlgen"
         self.hdlgen_path = self.hdlgen.replace("\\", "/")
         
-        self.pynqbuildxml = xmlm.Xml_Manager(self.hdlgen_path)  # This is accessible object we can always call on.
 
         # Load root
         hdlgen = xml.dom.minidom.parse(self.hdlgen_path)
@@ -99,6 +98,12 @@ class HdlgenProject:
             self.model_file = imported_model_file       
         else:
             self.model_file = model_folder_model_file
+
+        ########################################
+        ##### Create PYNQ Build XML Object #####   
+        ########################################
+        self.pynqbuildxml = xmlm.Xml_Manager(self, self.hdlgen_path)  # This is accessible object we can always call on.
+        self.pynqbuildxml.check_hdl_modifed_and_handle()
 
         ###################################
         ###### Parse Entity IO Ports ######

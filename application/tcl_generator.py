@@ -276,7 +276,7 @@ verbose_prints = False # Not implemented yet.
 def generate_tcl(hdlgen_prj, add_to_log_box):
     # io_map = True   # Force true for testing purposes
     # This is the instruction to load from file.
-    xmlmanager = xmlman.Xml_Manager(hdlgen_prj.hdlgen_path)
+    xmlmanager = xmlman.Xml_Manager(hdlgen_prj, hdlgen_prj.hdlgen_path)
     io_map = xmlmanager.read_io_config()
     proj_config = xmlmanager.read_proj_config()
 

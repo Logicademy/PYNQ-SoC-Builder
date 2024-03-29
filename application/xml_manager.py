@@ -1,12 +1,14 @@
 import xml.dom.minidom
 import os
 import xml.etree.ElementTree as ET
+import application.hdl_modifier as hdlm
 
 class Xml_Manager:
     ########################################
     ##### Initalize Xml_Manager Object #####
     ########################################
-    def __init__(self, hdlgen_path):
+    def __init__(self, hdlgen_prj, hdlgen_path):
+        self.hdlgen_prj = hdlgen_prj
         self.hdlgen_path = hdlgen_path
         # The very first thing we want to do is check
         #   0) Read the HDLGen XML for relevant filepaths
@@ -28,6 +30,7 @@ class Xml_Manager:
         self.pynq_build_path = self.location + "/PYNQBuild"
         self.pynq_build_path = self.pynq_build_path.replace("\\", "/")
 
+        # Check the XML exists
         self.check_project_xml_exists()
 
     ###########################################################
@@ -48,7 +51,21 @@ class Xml_Manager:
             print("Creating Project XML")
             self.create_config_xml()
 
-
+    #############################################
+    #############################################
+    ##### Check XML Modifed Flag and Handle #####
+    def check_hdl_modifed_and_handle(self):
+        # Read the HDL Modified Parameter and then 
+        hdl_is_modified = False
+        try:    
+            hdl_is_modified = bool(self.read_hdl_modified_flag())
+        except Exception as e:
+            print(f"No HDL Modified flag to read: {e}")
+        print(hdl_is_modified)
+        if hdl_is_modified:
+            hdlm.restore(self.hdlgen_prj)
+        else:
+            print("HDL Modifed is False - No restore")
     #########################################
     ##### Create Config XML - Empty XML #####
     #########################################
@@ -365,7 +382,7 @@ class Xml_Manager:
     #################################
     ##### Set HDL Modified Flag #####
     #################################
-    def clear_hdl_modified_flag(self):
+    def set_hdl_modified_flag(self):
         self.set_flag_and_value('hdl_modified', 'True')
 
     ##############################

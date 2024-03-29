@@ -7,6 +7,8 @@ import re
 ##### Make Copy and Inject from HDLGen Project (and XML) #####
 ##############################################################
 def make_copy_and_inject(hdlgen_prj):
+    hdlgen_prj.pynqbuildxml.set_hdl_modified_flag()
+
     if hdlgen_prj.project_language == "VHDL":
         extension = ".vhd"
     elif hdlgen_prj.project_language == "Verilog":
@@ -56,6 +58,8 @@ def restore(hdlgen_prj):
     make_backup(backup_file, modified_file_backup)
     # Restore backup
     restore_backup(model_file, backup_file)
+
+    hdlgen_prj.pynqbuildxml.clear_hdl_modified_flag()
 
 ########################################################
 ##### Backup Original File (Verilog/VHDL/anything) #####
