@@ -342,7 +342,7 @@ def generate_tcl(hdlgen_prj, add_to_log_box):
     # Try to load from XML and sanitize the response
     regenerate_bd = True
     try:
-        regenerate_bd = proj_config['alwys_gen_bd']
+        regenerate_bd = proj_config['regen_bd']
     except Exception as e:
         add_to_log_box("\nCouldn't load alwys_gen_bd setting from XML - using default: True")
     finally:
@@ -828,7 +828,7 @@ def generate_connections(module_source, all_ports_parsed, io_map, location, add_
                 # Interconnect is completed already
                 # Generate XDC
                 for occur in occurences:
-                    xdc_contents += add_line_to_xdc(occur[0], occur[1][0]+"_ext["+occur[1][0]+"]")
+                    xdc_contents += add_line_to_xdc(occur[0], occur[1][0]+"_ext["+str(occur[1][1])+"]")
 
             elif gpio_mode == "out" and last_occur_io_mode=="in":
                 # This mode is not possible, and should be ignored.
@@ -842,7 +842,7 @@ def generate_connections(module_source, all_ports_parsed, io_map, location, add_
                 # Interconnect is completed already
                 # Generate XDC
                 for occur in occurences:
-                    xdc_contents += add_line_to_xdc(occur[0], occur[1][0]+"_ext["+occur[1][1]+"]")
+                    xdc_contents += add_line_to_xdc(occur[0], occur[1][0]+"_ext["+str(occur[1][1])+"]")
             
 
         # Split Signal Instances
