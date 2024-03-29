@@ -58,11 +58,11 @@ class Xml_Manager:
         # Read the HDL Modified Parameter and then 
         hdl_is_modified = False
         try:    
-            hdl_is_modified = bool(self.read_hdl_modified_flag())
+            hdl_is_modified = self.read_hdl_modified_flag()
         except Exception as e:
             print(f"No HDL Modified flag to read: {e}")
         print(hdl_is_modified)
-        if hdl_is_modified:
+        if hdl_is_modified == True:
             hdlm.restore(self.hdlgen_prj)
         else:
             print("HDL Modifed is False - No restore")

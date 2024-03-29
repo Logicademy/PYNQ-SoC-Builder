@@ -2,9 +2,10 @@ import pysftp
 import xml.dom.minidom
 import shutil
 import os
+import application.hdlgen_project as hdlgenproject
 
-other_host_name = "192.168.0.53"
-host_name = "pynq"
+host_name = "192.168.2.99"
+# host_name = "pynq"
 user_name = "xilinx"
 pass_word = "xilinx"
 
@@ -157,57 +158,173 @@ class File_Manager:
 
         
     def upload_bitstream(self, remote_path="jupyter_notebooks/live_directory"):
-        tcl_location = self.location + "/" + self.AMDproj_folder_path
+
+
+        # HOTFIX: To fix location bug, we are going to pop the last directory from the location variable instead.
+        base = os.path.dirname(self.location)
+
+        tcl_location = base + "/" + self.AMDproj_folder_path # path hotfix
         hwh_location = tcl_location + "/" + self.name + ".srcs/sources_1/bd/" + self.name + "_bd/hw_handoff"
+        hwh_location_2023 = tcl_location + "/" + self.name + ".gen/sources_1/bd/" + self.name + "_bd/hw_handoff"
         bit_location = tcl_location + "/" + self.name + ".runs/impl_1"
 
         bit_filename = self.name + "_bd_wrapper.bit"
         hwh_filename = self.name + "_bd.hwh"
-        tcl_filename = self.name + ".tcl"
+        tcl_filename = self.name + "_bd.tcl"
         
         tcl_full_path = tcl_location + "/" + tcl_filename
         hwh_full_path = hwh_location + "/" + hwh_filename
+        hwh_full_path_2023 = hwh_location_2023 + "/" + hwh_filename
         bit_full_path = bit_location + "/" + bit_filename
 
-        self.upload_file(tcl_full_path, remote_path+"/"+self.name+".tcl") # local_path, remote_path
-        self.upload_file(hwh_full_path, remote_path+"/"+self.name+".hwh") # local_path, remote_path
-        self.upload_file(bit_full_path, remote_path+"/"+self.name+".bit") # local_path, remote_path
+        # Perm temp fix lol
+        tcl_full_path = tcl_full_path.replace("\\", "/")
+        hwh_full_path = hwh_full_path.replace("\\", "/")
+        bit_full_path = bit_full_path.replace("\\", "/")
 
-        # with sftp.cd('/allcode'):           # temporarily chdir to allcode
-        #     sftp.put('/pycode/filename')  	# upload file to allcode/pycode on remote
-        #     sftp.get('remote_file')         # get a remote file
+        if os.path.exists(tcl_full_path):
+            self.upload_file(tcl_full_path, remote_path+"/"+self.name+".tcl") # local_path, remote_path
+
+        if os.path.exists(hwh_full_path):
+            self.upload_file(hwh_full_path, remote_path+"/"+self.name+".hwh") # local_path, remote_path
+
+        if os.path.exists(hwh_full_path_2023):
+            self.upload_file(hwh_full_path_2023, remote_path+"/"+self.name+".hwh") # local_path, remote_path
 
 
-        # hdlgen = xml.dom.minidom.parse(path_to_hdlgen_project)
-        # root = hdlgen.documentElement
+        if os.path.exists(bit_full_path):
+            self.upload_file(bit_full_path, remote_path+"/"+self.name+".bit") # local_path, remote_path
+            print(bit_full_path)
+            print("Bit Upload passed")
+            return True
+        else:
+            print("Binary Upload Failed")
+            return False
 
-        # # Project Manager - Settings
-        # projectManager = root.getElementsByTagName("projectManager")[0]
-        # projectManagerSettings = projectManager.getElementsByTagName("settings")[0]
-        # name = projectManagerSettings.getElementsByTagName("name")[0].firstChild.data
-        # environment = projectManagerSettings.getElementsByTagName("environment")[0].firstChild.data
-        # location = projectManagerSettings.getElementsByTagName("location")[0].firstChild.data
 
-        # # genFolder - VHDL Folders
-        # genFolder = root.getElementsByTagName("genFolder")[0]
-        # model_folder = genFolder.getElementsByTagName("vhdl_folder")[0]
-        # testbench_folder = genFolder.getElementsByTagName("vhdl_folder")[1]
-        # # ChatGPT_folder = genFolder.getElementsByTagName("vhdl_folder")[2]             # Commented as not needed
-        # # ChatGPT_Backups_folder = genFolder.getElementsByTagName("vhdl_folder")[3]     # Commented as not needed
-        # AMDproj_folder = genFolder.getElementsByTagName("vhdl_folder")[4]
-        # AMDproj_folder_rel_path = AMDproj_folder.firstChild.data
 
-        # # hdlDesign - entityIOPorts
-        # hdlDesign = root.getElementsByTagName("hdlDesign")[0]
-        # entityIOPorts = hdlDesign.getElementsByTagName("entityIOPorts")[0]
-        # signals = entityIOPorts.getElementsByTagName("signal")
 
-        # all_ports = []
-        # for sig in signals:
-        #     signame = sig.getElementsByTagName("name")[0]
-        #     mode = sig.getElementsByTagName("mode")[0]
-        #     type = sig.getElementsByTagName("type")[0]
-        #     desc = sig.getElementsByTagName("description")[0]
-        #     all_ports.append(
-        #         [signame.firstChild.data, mode.firstChild.data, type.firstChild.data, desc.firstChild.data]
-        #     )
+
+
+
+    # Script ran directly - run this test code:
+    # file_manager = File_Manager("C:/repo1/March27/DSPProc/DSPProc/HDLGenPrj/DSPProc.hdlgen")
+
+
+    # # with pysftp.Connection(host=host_name, username=user_name, password=pass_word, port=22) as sftp:
+    # with pysftp.Connection(host=host_name, username=user_name, password=pass_word, cnopts=cnopts) as sftp:
+
+    #     print("Connection established")
+
+    #     # Change to the remote directory
+    #     sftp.chdir("jupyter_notebooks/")
+
+    #     print(sftp.getcwd())
+
+    #     # Create a new folder
+    #     try:
+    #         sftp.mkdir("live_directory")
+    #         print(f"Folder 'live_directory' created")
+    #     except OSError as oserror:
+    #         print(oserror)
+    #         print("fodler prolly existing")
+    #     except Exception as e:
+    #         print(e)
+
+    #     # # Change permissions of the newly created folder (e.g., setting permissions to 755)
+    #     # permissions = 0o777
+    #     sftp.chmod("live_directory", '755')
+    #     print(f"Permissions of 'live_directory' changed to 0o755")
+
+
+    # file_manager.upload_bitstream()
+    
+    
+def upload_output_folder_to_direct_connect_pynq(hdlgen_prj):
+    host_name = "192.168.2.99"  # Default Consignment Always
+    user_name = "xilinx"        # Default Username
+    pass_word = "xilinx"        # Default Password
+
+    # NOTE: This two cnopts lines are probably big security problems if used in production
+    #       according to pysftp documentation.
+    cnopts = pysftp.CnOpts()
+    cnopts.hostkeys = None
+    try:
+        with pysftp.Connection(host=host_name, username=user_name, password=pass_word, cnopts=cnopts) as pynq_ftp:
+            print("Connected to FPGA!")
+            hdlgen_prj.add_to_build_log("\nConnected to FPGA!")
+            
+            print("Moved to Jupyter Notebook folder")
+            hdlgen_prj.add_to_build_log("\nMoved to Jupyter Notebook folder")
+            pynq_ftp.chdir("jupyter_notebooks/")
+
+            if pynq_ftp.exists('SoC-Builder-Uploads'):
+                hdlgen_prj.add_to_build_log("\nSoC-Builder-Uploads folder exists")
+                print("SoC-Builder-Uploads folder exists")
+
+                permissions = pynq_ftp.stat('SoC-Builder-Uploads').st_mode & 0o777
+
+                if permissions == 0o755:
+                    print("SoC-Builder-Uploads permissions are configured correctly.")
+                    hdlgen_prj.add_to_build_log("\nSoC-Builder-Uploads permissions are configured correctly.")
+                else:
+                    print("SoC-Builder-Uploads permissions are NOT configured correctly - Please delete folder and allow SoC Builder to create it automatically.")
+                    hdlgen_prj.add_to_build_log("\nSoC-Builder-Uploads permissions are NOT configured correctly - Please delete folder and allow SoC Builder to create it automatically.")
+                    return # Leave function
+
+            else:
+                # Create the folder
+
+                print("Attempting to create SoC-Builder-Uploads folder")
+                hdlgen_prj.add_to_build_log("\nAttempting to create SoC-Builder-Uploads folder")
+
+                pynq_ftp.mkdir("SoC-Builder-Uploads")
+                pynq_ftp.chmod("SoC-Builder-Uploads", '755')
+                print(f"Permissions of 'SoC-Builder-Uploads' changed to 0o755")
+                hdlgen_prj.add_to_build_log(f"\nPermissions of 'SoC-Builder-Uploads' changed to 0o755")
+    
+            hdlgen_prj.add_to_build_log(f"\nMoving to SoC-Builder-Uploads folder")
+            print(f"Moving to SoC-Builder-Uploads folder")         
+            pynq_ftp.chdir("SoC-Builder-Uploads/")
+
+            hdlgen_prj.add_to_build_log("\nCreating Project Folder")
+            print("Creating Project Folder")         
+            # pynq_ftp.chdir("SoC-Builder-Uploads/")
+            extension_integer = 0
+            prj_name = hdlgen_prj.name.replace(" ", "")
+            folder_name = prj_name
+            while pynq_ftp.exists(folder_name):
+                # Folder exists, try the next folder name
+                folder_name = f"{prj_name}_{extension_integer}"
+                extension_integer += 1
+
+            # Once we leave this loop we finally have a good name for our folder.
+            hdlgen_prj.add_to_build_log(f"\nCreating {folder_name} directory, setting permissions and moving into it.")
+            print(f"\nCreating {folder_name} directory, setting permissions and moving into it.")   
+            pynq_ftp.mkdir(folder_name)
+            pynq_ftp.chmod(folder_name, '755')
+            pynq_ftp.chdir(folder_name)
+
+
+            # Folder is now created and ready.
+            # We need to find the PYNQBuild/output folder locally, then transfer all of it to the board.
+            build_output_path = hdlgen_prj.pynq_build_output_path
+            hdlgen_prj.add_to_build_log(f"\nLoading {build_output_path} folder contents")
+            print(f"Loading {build_output_path} folder contents")
+
+            for filename in os.listdir(build_output_path):
+                local_file = os.path.join(build_output_path, filename)
+                hdlgen_prj.add_to_build_log(f"\nFound {filename}")
+                print(f"Found {filename}")
+            
+                if os.path.isfile(local_file):
+                    hdlgen_prj.add_to_build_log(f"\nUploading {filename}")
+                    print(f"Uploading {filename}")
+                    pynq_ftp.put(local_file)
+                else:
+                    hdlgen_prj.add_to_build_log(f"\n{filename} isn't a file - skipping")
+                    print(f"{filename} isn't a file - skipping")
+
+    except Exception as e:
+        print(f"Could not upload to PYNQ - {e}")
+
