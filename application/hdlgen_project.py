@@ -717,7 +717,7 @@ class HdlgenProject:
         self.buildstatuspage.build_running = False
         hdl_modifier.restore(self)
         self.build_running = False
-        self.unlock_sidebar()
+        # self.unlock_sidebar()         # Don't unlock sidebar until reset runs are fixed.
         # Complete.
 
     ########################################################
