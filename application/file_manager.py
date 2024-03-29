@@ -3,6 +3,7 @@ import xml.dom.minidom
 import shutil
 import os
 import application.hdlgen_project as hdlgenproject
+import webbrowser
 
 host_name = "192.168.2.99"
 # host_name = "pynq"
@@ -324,6 +325,10 @@ def upload_output_folder_to_direct_connect_pynq(hdlgen_prj):
                 else:
                     hdlgen_prj.add_to_build_log(f"\n{filename} isn't a file - skipping")
                     print(f"{filename} isn't a file - skipping")
+
+            url = f"http://{host_name}:9090/tree/SoC-Builder-Uploads/{folder_name}/{hdlgen_prj.name}.ipynb"
+            webbrowser.open(url)
+
 
     except Exception as e:
         print(f"Could not upload to PYNQ - {e}")
