@@ -39,8 +39,7 @@ def make_copy_and_inject(hdlgen_prj):
         if hdlgen_prj.project_language == 'VHDL':
             make_internal_vhdl_signal_external(model_file, new_port_name, internal_name, gpio_wdith)
         elif hdlgen_prj.project_language == "Verilog":
-            print("VERILOG NOT SUPPORTED YET")
-            # make_internal_verilog_signal_external(model_file, new_port_name, internal_name, gpio_wdith)
+            make_internal_verilog_signal_external(model_file, new_port_name, internal_name, hdlgen_prj.name, gpio_wdith)
 
 ##############################################
 ##### Restore from HDLGen Project Object #####
@@ -141,5 +140,70 @@ def inject_vhdl_assignment_statement(vhdl_file, target_signal, source_signal):
 ########################################################################
 ##### Make an internal signal in Verilog model available as a port #####
 ########################################################################
-def make_verilog_internal_signal_an_output():
-    pass
+def make_internal_verilog_signal_external(verilog_file, port_name, internal_signal_name, module_name, size):
+
+    # First, we add to module definition.
+    inject_verilog_module_definition(verilog_file, module_name, port_name)
+
+    # Second, we add the port definition 
+    inject_verilog_port_definition(verilog_file, port_name, size)
+
+    # Then we add the assignation
+    inject_verilog_assignment_statement(verilog_file, port_name, internal_signal_name)
+
+####################################################
+##### Add Port to Module Definition in Verilog #####
+####################################################
+def inject_verilog_module_definition(verilog_file, module_name, port_name):
+    target_line = -1
+    lines = None
+    with open(verilog_file, 'r') as file:
+        lines = file.readlines()
+    
+        for line in lines:
+            if f"module {module_name}(" in line:
+                target_line = lines.index(line)
+                break
+
+    with open(verilog_file, 'w') as file:
+        lines.insert(target_line+1, f"\t{port_name},\n")
+        file.writelines(lines)
+
+##########################################
+##### Add Port Definition to Verilog #####
+##########################################
+def inject_verilog_port_definition(verilog_file, port_name, size):
+    target_line = -1
+    lines = None
+    with open(verilog_file, 'r') as file:
+        lines = file.readlines()
+    
+        for line in lines:
+            if f"// Port definitions" in line:
+                target_line = lines.index(line)
+                break
+
+    with open(verilog_file, 'w') as file:
+        if size == 1:
+            lines.insert(target_line+1, f"output {port_name};\n")
+        elif size > 1:
+            lines.insert(target_line+1, f"output [{size-1}:0] {port_name}")
+        file.writelines(lines)
+
+###############################################
+##### Inject Verilog Assignment Statement #####
+###############################################
+def inject_verilog_assignment_statement(verilog_file, target_signal, source_signal):
+    target_line = -1
+    lines = None
+    with open(verilog_file, 'r') as file:
+        lines = file.readlines()
+    
+        for line in lines:
+            if f"endmodule" in line:
+                target_line = lines.index(line)
+                break
+
+    with open(verilog_file, 'w') as file:
+        lines.insert(target_line-1, f"assign {target_signal} = {source_signal};\n")
+        file.writelines(lines)
