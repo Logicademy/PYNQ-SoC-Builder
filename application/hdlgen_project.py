@@ -7,6 +7,7 @@ import os
 import application.pynq_manager as pm
 import application.hdl_modifier as hdl_modifier
 import html
+import copy
 
 class HdlgenProject:
 
@@ -601,7 +602,7 @@ class HdlgenProject:
         # 3) Return in parsed signals format.
 
         # 1) Parsed signals is our baseline.
-        returned_signals = self.parsed_ports
+        returned_signals = copy.deepcopy(self.parsed_ports)
         # 2) Read our internal signals config
         internal_signals = self.pynqbuildxml.read_internal_to_port_config()
         # Internal_signals is in form: ['name', int(width)]
