@@ -768,28 +768,37 @@ class PortConfigTab(ctk.CTkScrollableFrame):
 
         # Finally, we load the IO config
         io_config = self.hdlgen_prj.pynqbuildxml.read_io_config()
+        
+
         for pynqio, config in io_config.items():
             if config == "None" or config == None or config[0] == '':
                 continue    # Skip blank configs
+            
+            # This generates a dictionary of name:width
+            signal_dictionary = {signal[0] : signal[2] for signal in self.hdlgen_prj.get_generate_conn_signals()}
 
             if pynqio == 'led0':
                 self.led0_dropdown.set(config[0])
-                if config[1] > 1:
+                if signal_dictionary[config[0]] > 1:           # This check is incorrect and needs to be changed.....how?
+                    print(f"Setting LED0 Entry: {str(config[1])}")
                     self.led0_entry.delete(0, 'end')  # Clear the current content
                     self.led0_entry.insert(0, str(config[1]))
             elif pynqio == 'led1':
                 self.led1_dropdown.set(config[0])
-                if config[1] > 1:
+                if signal_dictionary[config[0]] > 1:
+                    print(f"Setting LED1 Entry: {str(config[1])}")
                     self.led1_entry.delete(0, 'end')  # Clear the current content
                     self.led1_entry.insert(0, str(config[1]))
             elif pynqio == 'led2':
                 self.led2_dropdown.set(config[0])
-                if config[1] > 1:
+                if signal_dictionary[config[0]] > 1:
+                    print(f"Setting LED2 Entry: {str(config[1])}")
                     self.led2_entry.delete(0, 'end')  # Clear the current content
                     self.led2_entry.insert(0, str(config[1]))
             elif pynqio == 'led3':
                 self.led3_dropdown.set(config[0])
-                if config[1] > 1:
+                if signal_dictionary[config[0]] > 1:
+                    print(f"Setting LED3 Entry: {str(config[1])}")
                     self.led3_entry.delete(0, 'end')  # Clear the current content
                     self.led3_entry.insert(0, str(config[1]))
             
