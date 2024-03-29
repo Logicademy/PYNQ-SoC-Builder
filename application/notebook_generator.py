@@ -1215,7 +1215,7 @@ def generate_gui_controller(compName, parsed_all_ports, location):
     py_code += "\n\n\t# Define Grid Layout"
     grid_depth = max(num_input, num_output)
     if num_input > num_output:
-        grid_depth += 1
+        grid_depth += 2
     py_code += f"\n\tgrid = GridspecLayout({grid_depth},3)"
 
     
