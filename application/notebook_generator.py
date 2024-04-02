@@ -174,7 +174,9 @@ def create_jnb(hdlgen_prj, add_to_log_box, force_gen=False):
         
         tsv_data_filtered = []
         for row in tsv_reader:
-            if row == []:
+            if all(element == "" for element in row):
+                pass    # Skip empty lines
+            elif row == []:
                 pass
             elif row and row[0] and row[0][0] == '#':
                 pass
