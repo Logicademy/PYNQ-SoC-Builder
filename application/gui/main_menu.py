@@ -5,7 +5,7 @@ import application.gui.project_config_menu as pcm
 import application.gui.log_menu as logm
 import application.hdlgen_project as hdlgenprj
 import webbrowser
-
+import application.file_manager as fm
 
 ctk.set_appearance_mode("Dark")       # 'Light' 'Dark' or 'System
 ctk.set_default_color_theme("blue")
@@ -83,7 +83,8 @@ class SidebarMenu(ctk.CTkScrollableFrame):
             text="Launch FPGA",
             width=225,
             height=40,
-            font=button_font
+            font=button_font,
+            command=self.launch_fpga
         )
         self.fpga_button.grid(row=3, column=0, pady=10)
 
@@ -120,6 +121,9 @@ class SidebarMenu(ctk.CTkScrollableFrame):
             command=self.parent.app.close_application   # This can be changed to close_project another time.
         )
         self.close_button.grid(row=7, column=0, pady=10)
+
+    def launch_fpga(self):
+        fm.upload_output_folder_to_direct_connect_pynq(self.hdlgen_prj)
 
     def resize(self, event):
         # print("SidebarMenu Menu is called")

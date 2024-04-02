@@ -326,7 +326,7 @@ def upload_output_folder_to_direct_connect_pynq(hdlgen_prj):
                     hdlgen_prj.add_to_build_log(f"\n{filename} isn't a file - skipping")
                     print(f"{filename} isn't a file - skipping")
 
-            url = f"http://{host_name}:9090/tree/SoC-Builder-Uploads/{folder_name}/{hdlgen_prj.name}.ipynb"
+            url = f"http://{host_name}:9090/tree/SoC-Builder-Uploads/{folder_name}"
             webbrowser.open(url)
 
 
