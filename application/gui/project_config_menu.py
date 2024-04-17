@@ -68,9 +68,21 @@ class ConfigTabView(ctk.CTkTabview):
         self.project_config_scrollable.pack()
 
         self.RHS_switch_frame = ctk.CTkFrame(self.project_config_scrollable)
-        self.LHS_explaination_frame = ctk.CTkFrame(self.RHS_switch_frame, width=500)
-        self.LHS_explaination_frame.grid(row=0, column=0, rowspan=100, padx=5, sticky="news")
+        # self.LHS_explaination_frame = ctk.CTkFrame(self.RHS_switch_frame, width=500)
+        # self.LHS_explaination_frame.grid(row=0, column=0, rowspan=100, padx=5, sticky="news")
     
+
+        # self.LHS_title = ctk.CTkLabel(self.LHS_explaination_frame, text="")
+
+
+
+
+
+
+
+
+
+
         # Vivado Settings
         self.vivado_settings_var = ctk.StringVar(value="on")
         self.vivado_settings_lbl = ctk.CTkLabel(self.RHS_switch_frame, text="Vivado Settings", font=bold_text_font)
@@ -122,13 +134,15 @@ class ConfigTabView(ctk.CTkTabview):
 
     def resize(self, event):
         # Default
+        print(f"resize event: {event}")
         self.buildstatuspage.resize(event)
         self.ioconfigpage.resize(event)
         # self.LHS_explaination_frame.configure(width=(event.width-310)/2)
-        self.LHS_explaination_frame.configure(width=(event.width/2)-280)
-        self.LHS_explaination_frame.grid(row=0, column=0, rowspan=100, padx=5, sticky="news")
-
-        if (event.width-310)/2 > 685:
+        # self.LHS_explaination_frame.configure(width=(event.width/2)-280)
+        # self.LHS_explaination_frame.grid(row=0, column=0, rowspan=100, padx=5, sticky="news")
+        # 1050 - 310 = 740/2 = 
+        print(f"Event calculation: {(event.width-310)/2}")
+        if (event.width-310)/2 > 350:
             ### 2 Columns
 
             # Vivado Settings
@@ -143,28 +157,28 @@ class ConfigTabView(ctk.CTkTabview):
             # PYNQ Board Settings
             # self.pynq_board_settings_lbl.grid(row=4, column=1, padx=5, pady=5, sticky="news")
             # self.gen_io_sw.grid(row=5, column=1, padx=5, pady=5, sticky="w")     
-        elif (event.width-310)/2 > 425:
-            # This is one column too?
-            # Vivado Settings
+        # elif (event.width-310)/2 > 425:
+        #     # This is one column too?
+        #     # Vivado Settings
 
 
-            self.vivado_settings_lbl.grid(row=0, column=1, padx=5, pady=5, sticky="news")
-            self.open_viv_sw.grid(row=1, column=1, padx=5, pady=5, sticky="w")
-            self.keep_viv_open_sw.grid(row=2, column=1, padx=5, pady=5, sticky="w")
-            self.always_regen_bd_sw.grid(row=3, column=1, padx=5, pady=5, sticky="w")
-            # Jupyter Notebook Settings
-            self.jupyter_settings_lbl.grid(row=4, column=1, padx=5, pady=5, sticky="news")
-            self.gen_when_build_sw.grid(row=5, column=1, padx=5, pady=5, sticky="w")
-            self.gen_tst_sw.grid(row=6, column=1, padx=5, pady=5, sticky="w")
-            # PYNQ Board Settings
-            # self.pynq_board_settings_lbl.grid(row=7, column=1, padx=5, pady=5, sticky="news")
-            # self.gen_io_sw.grid(row=8, column=1, padx=5, pady=5, sticky="w")
+        #     self.vivado_settings_lbl.grid(row=0, column=1, padx=5, pady=5, sticky="news")
+        #     self.open_viv_sw.grid(row=1, column=1, padx=5, pady=5, sticky="w")
+        #     self.keep_viv_open_sw.grid(row=2, column=1, padx=5, pady=5, sticky="w")
+        #     self.always_regen_bd_sw.grid(row=3, column=1, padx=5, pady=5, sticky="w")
+        #     # Jupyter Notebook Settings
+        #     self.jupyter_settings_lbl.grid(row=4, column=1, padx=5, pady=5, sticky="news")
+        #     self.gen_when_build_sw.grid(row=5, column=1, padx=5, pady=5, sticky="w")
+        #     self.gen_tst_sw.grid(row=6, column=1, padx=5, pady=5, sticky="w")
+        #     # PYNQ Board Settings
+        #     # self.pynq_board_settings_lbl.grid(row=7, column=1, padx=5, pady=5, sticky="news")
+        #     # self.gen_io_sw.grid(row=8, column=1, padx=5, pady=5, sticky="w")
         else:
             # Single Coloumn
 
             # In this event, we just wanna have everything on top and make it get as wide as it needs.
-            self.LHS_explaination_frame.configure(width=(event.width-330))
-            self.LHS_explaination_frame.grid(row=110, column=0, padx=5, pady=5, sticky="news")
+            # self.LHS_explaination_frame.configure(width=(event.width-330))
+            # self.LHS_explaination_frame.grid(row=110, column=0, padx=5, pady=5, sticky="news")
 
             # Vivado Settings
             self.vivado_settings_lbl.grid(row=101, column=0, padx=5, pady=5, sticky="news")
