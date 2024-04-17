@@ -30,33 +30,47 @@ python main.py
 
 To open a HDLGen project use the browse option to find the project's .hdlgen file.
 
-![Main Menu GUI](docs/main_menu_gui.png)
+### Open Project Prompt
 
-### Options
+![Open Project Prompt](docs/open_project_page.png)
+
+### Main Menu
+
+![Main Menu GUI](docs/main_menu.png)
+
+#### Options
+
+**Vivado Settings**
 
 - **Open Vivado GUI**: Should the Vivado GUI be visable whilst build is executing. (Headless mode may improve performance)
 - **Keep Vivado Open:** This flag keeps Vivado open after bitstream generation has completed, user must manually close Vivado to complete SoC Builder process.
-- **Generate JNB:** This flag enables Jupyter Notebook generation.
-- **Use Testplan:**  If not enabled, a generic .ipynb project is generated. If enabled, code to execute each individual testcase is generated as cells in JNB project.
+
+**Jupyter Notebook Settings**
+
+- **Generate when Building:** This flag enables Jupyter Notebook generation.
+- **Generate using Testplan:**  If not enabled, a generic .ipynb project is generated. If enabled, code to execute each individual testcase is generated as cells in JNB project.
+
+### IO Config Menu
+
+From the Configure I/O config menu, any HDLGen port may be connected to PYNQ ports.
+
+![IO Config GUI](docs/IO_Config_Menu.png)
+
 - **Use Board I/O:** If disabled, no I/O connections to PYNQ ports are made. If enabled, configuration defined in configuration pop-up menu is applied (select Configure I/O button to set)
 
 **_Please note_** more I/O ports available on PYNQ are to be added shortly 
 
-![IO Config GUI](docs/IO_Config_Menu_2.png)
 
-![IO Config GUI](docs/IO_Config_Menu_3.png)
+## Running a Build
 
-![IO Config GUI](docs/IO_Config_Menu.png)
 
-From the Configure Board I/O menu, any HDLGen port may be connected to PYNQ ports.
+Once configured, the program may be run. Once the build has been completed, all output files are available at ```<SoC-Builder-Directory>\output\```, this folder can be reached using the "Open Project Directory" button on the sidebar.
 
-Once configured, the program may be run. Once the build has been completed, all output files are available at ```<SoC-Builder-Directory>\output\```
-
-![In Progress](docs/in_progress.png)
+![In Progress](docs/build_status.png)
 
 Once the build has completed and you are ready to use PYNQ Z2 remote lab, select the "Remote Lab" option on the Main Menu. You will have an opportunity to select online boards or a livestream of the boards (for viewing LED I/O output).
 
-![Remote Menu](docs/open_remote_lab.png)
+<!-- ![Remote Menu](docs/open_remote_lab.png) -->
 
 Selecting an option will open the corresponding board's Jupyter Notebook environment in your default web-browser.
 
