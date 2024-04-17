@@ -74,15 +74,6 @@ class ConfigTabView(ctk.CTkTabview):
 
         # self.LHS_title = ctk.CTkLabel(self.LHS_explaination_frame, text="")
 
-
-
-
-
-
-
-
-
-
         # Vivado Settings
         self.vivado_settings_var = ctk.StringVar(value="on")
         self.vivado_settings_lbl = ctk.CTkLabel(self.RHS_switch_frame, text="Vivado Settings", font=bold_text_font)
@@ -844,7 +835,7 @@ class PortConfigTab(ctk.CTkScrollableFrame):
             return
 
 
-        dropdown_options = []
+        dropdown_options = [""]
         self.dropdown_dict = {}
         for port in self.hdlgen_prj.parsed_ports:
             dropdown_options.append(port[0])
@@ -865,8 +856,26 @@ class PortConfigTab(ctk.CTkScrollableFrame):
                 optionbox.cget('variable').set("")
 
     def io_optionbox_handler(self, signal, io):
-        print(signal)
-        if self.dropdown_dict[signal] > 1:
+        print(f"io_optionbox_handler: signal - {signal}, io - {io}")
+        if signal == '':
+            # We need to forgot the box
+            print("Forgot box")
+            if io == "led0":
+                self.led0_entry.grid_forget()
+                self.led0_entry.delete(0, ctk.END)
+            elif io == "led1":
+                self.led1_entry.grid_forget()
+                self.led1_entry.delete(0, ctk.END)
+
+            elif io == "led2":
+                self.led2_entry.grid_forget()
+                self.led2_entry.delete(0, ctk.END)
+
+            elif io == "led3":
+                self.led3_entry.grid_forget()
+                self.led3_entry.delete(0, ctk.END)
+
+        elif self.dropdown_dict[signal] > 1:
             print("Add box")
             if io == "led0":
                 self.led0_entry.grid(row=4, column=2, padx=5, pady=5, sticky='w')
@@ -884,12 +893,18 @@ class PortConfigTab(ctk.CTkScrollableFrame):
             print("Forgot box")
             if io == "led0":
                 self.led0_entry.grid_forget()
+                self.led0_entry.delete(0, ctk.END)
             elif io == "led1":
                 self.led1_entry.grid_forget()
+                self.led1_entry.delete(0, ctk.END)
+
             elif io == "led2":
                 self.led2_entry.grid_forget()
+                self.led2_entry.delete(0, ctk.END)
+
             elif io == "led3":
                 self.led3_entry.grid_forget()
+                self.led3_entry.delete(0, ctk.END)
 
 
     def resize(self, event):
