@@ -5,3 +5,4 @@ pyperclip
 tkinter-tooltip
 tkhtmlview
 psutil
+markdown
