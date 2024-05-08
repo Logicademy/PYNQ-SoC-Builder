@@ -280,6 +280,13 @@ def generate_tcl(hdlgen_prj, add_to_log_box):
     io_map = xmlmanager.read_io_config()
     proj_config = xmlmanager.read_proj_config()
 
+    try: 
+        if proj_config['use_board_io'] == False:
+            io_map = None
+    except Exception as e:
+        print(f"Found exception {e} in Tcl_Gen @ line 287")
+
+
     add_to_log_box(f"\nRunning Generate Tcl Program")
 
     file_contents = ""
@@ -471,11 +478,6 @@ def generate_tcl(hdlgen_prj, add_to_log_box):
 
         if io_map:
             add_to_log_box(f"\nIO Map Present: {io_map}")
-
-
-        # UPDATE HERE: We ask hdlgen_prj to read the project XML to find the signals that have been made external as well.
-        # hdlgen_prj.parsed_ports
-        # hdlgen_prj.get_generate_conn_signals()
 
         returned_contents, created_signals = generate_connections(hdlgen_prj.name, hdlgen_prj.get_generate_conn_signals(), io_map, hdlgen_prj.location, add_to_log_box)
         file_contents += returned_contents
