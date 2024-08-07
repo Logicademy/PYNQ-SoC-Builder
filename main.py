@@ -127,5 +127,6 @@ class Application:
 #######################################
 if __name__ == "__main__":
     root = ctk.CTk()
+    ctk.deactivate_automatic_dpi_awareness()
     app = Application(root)
     root.mainloop()
