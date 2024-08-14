@@ -123,7 +123,9 @@ class SidebarMenu(ctk.CTkScrollableFrame):
         self.close_button.grid(row=7, column=0, pady=10)
 
     def launch_fpga(self):
-        fm.upload_output_folder_to_direct_connect_pynq(self.hdlgen_prj)
+        # fm.upload_output_folder_to_direct_connect_pynq(self.hdlgen_prj)
+        self.parent.app.open_fpga_popup()
+
 
     def resize(self, event):
         # print("SidebarMenu Menu is called")

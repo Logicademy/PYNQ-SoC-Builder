@@ -63,6 +63,9 @@ class Application:
         # self.page3.hide()
         page.show() # Show requested page.
 
+
+    # TODO: Instead of individual functions here we can have a "Open Popup(popups.Alert_Window)" API where any popup class can be passed
+    #           Not really a priority by any means. Just a clean up task.
     #############################
     ##### Open Alert Pop-Up #####
     #############################
@@ -71,7 +74,16 @@ class Application:
             self.toplevel_window = popups.Alert_Window(self) # Create window if None or destroyed
         else:
             self.toplevel_window.focus() # if window exists focus it.
-    
+
+    ###################################
+    ##### Open Launch FPGA Pop-Up #####
+    ###################################
+    def open_fpga_popup(self):
+        if self.toplevel_window is None or not self.toplevel_window.winfo_exists():
+            self.toplevel_window = popups.FPGA_Window(self) # Create window if None or destroyed
+        else:
+            self.toplevel_window.focus() # if window exists focus it.
+
     ################################
     ##### Open Markdown Pop-Up #####
     ################################

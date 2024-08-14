@@ -113,7 +113,7 @@ class MarkdownWindow(ctk.CTkToplevel):
         # self.left_frame.grid(column=0, row=0)
         # self.right_frame.grid(column=1, row=0)
 
-class Remote_Window(ctk.CTkToplevel):
+class FPGA_Window(ctk.CTkToplevel):
     def __init__(self, app):
         ctk.CTkToplevel.__init__(self, app.root)
         self.app = app
@@ -180,10 +180,23 @@ class Remote_Window(ctk.CTkToplevel):
             return_button = ctk.CTkButton(self.popup_frame, text="OK", width=140, command=self.on_return)
             return_button.grid(row=current_row, column=0, padx=5, pady=5)
         
-            window_width = 200
+            window_width = 800
             window_height = (len(csv_data) + 1) * 40 + 30
+            window_height = 400
             window_size = f"{str(window_width)}x{str(window_height)}"
             self.geometry(window_size)
+    
+
+
+
+
+
+
+
+
+
+
+
 
         self.popup_frame.pack()
 
@@ -196,12 +209,3 @@ class Remote_Window(ctk.CTkToplevel):
         # On return button we dont need to do anything
         # except to destroy the window
         self.destroy()
-
-class Launch_FPGA_Window(ctk.CTkToplevel):
-
-    def __init__(self, app):
-        ctk.CTkToplevel.__init__(self, app.root)
-        self.app = app
-        self.title("Launch PYNQ FPGA")
-        self.grab_set() # This makes the pop-up the primary window and doesn't allow interaction with main menu
-        self.geometry("300x100")
