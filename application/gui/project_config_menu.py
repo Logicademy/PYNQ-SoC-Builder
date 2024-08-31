@@ -109,6 +109,11 @@ class ConfigTabView(ctk.CTkTabview):
                                         variable=self.gen_tst_var, font=text_font)
         # self.gen_tst_sw.grid(row=2, column=2, padx=5, pady=5, sticky="w")
 
+        self.inc_tut_var = ctk.StringVar(value="on")
+        self.inc_tut_sw = ctk.CTkSwitch(self.RHS_switch_frame, text="Include Tutorial", 
+                                        variable=self.gen_tst_var, font=text_font)
+        # self.gen_tst_sw.grid(row=2, column=2, padx=5, pady=5, sticky="w")
+
         # PYNQ Board Settings
         self.pynq_board_settings_lbl = ctk.CTkLabel(self.RHS_switch_frame, text="PYNQ Board Settings", font=bold_text_font)
         # self.pynq_board_settings_lbl.grid(row=0, column=3, padx=5, pady=5)
@@ -145,6 +150,7 @@ class ConfigTabView(ctk.CTkTabview):
             self.jupyter_settings_lbl.grid(row=0, column=2, padx=5, pady=5, sticky="news")
             self.gen_when_build_sw.grid(row=1, column=2, padx=5, pady=5, sticky="w")
             self.gen_tst_sw.grid(row=2, column=2, padx=5, pady=5, sticky="w")
+            self.inc_tut_sw.grid(row=3, column=2, padx=5, pady=5, sticky="w")
             # PYNQ Board Settings
             # self.pynq_board_settings_lbl.grid(row=4, column=1, padx=5, pady=5, sticky="news")
             # self.gen_io_sw.grid(row=5, column=1, padx=5, pady=5, sticky="w")     
@@ -180,6 +186,7 @@ class ConfigTabView(ctk.CTkTabview):
             self.jupyter_settings_lbl.grid(row=105, column=0, padx=5, pady=5, sticky="news")
             self.gen_when_build_sw.grid(row=106, column=0, padx=5, pady=5, sticky="w")
             self.gen_tst_sw.grid(row=107, column=0, padx=5, pady=5, sticky="w")
+            self.inc_tut_sw.grid(row=108, column=0, padx=5, pady=5, sticky="w")
             # PYNQ Board Settings
             # self.pynq_board_settings_lbl.grid(row=108, column=0, padx=5, pady=5, sticky="news")
             # self.gen_io_sw.grid(row=109, column=0, padx=5, pady=5, sticky="w")
@@ -240,7 +247,15 @@ class ConfigTabView(ctk.CTkTabview):
         except Exception as e:
             print(f"\nCouldn't load use_tstpln: {e}")
             self.gen_tst_sw.deselect()
-
+        # Include tutorial in JNB
+        try:
+            if prj_config['inc_tutor'] == True:
+                self.inc_tut_sw.select()
+            else:
+                self.inc_tut_sw.deselect()
+        except Exception as e:
+            print(f"\nCouldn't load inc_tutor: {e}")
+            self.inc_tut_sw.deselect()
     # def load_project_config(self):
     #     print(self.hdlgen_path)
     #     self.hdlgen_path = "C:\\hdlgen\\March\\DSPProc_Threshold_Luke\\DSPProc\\HDLGenPrj\\DSPProc.hdlgen"
@@ -263,6 +278,7 @@ class ConfigTabView(ctk.CTkTabview):
         config_dict['regen_bd'] = True if self.always_regen_bd_sw.get() == 1 else False
         config_dict['gen_jnb'] = True if self.gen_when_build_sw.get() == 1 else False
         config_dict['use_tstpln'] = True if self.gen_tst_sw.get() == 1 else False
+        config_dict['inc_tutor'] = True if self.inc_tut_sw.get() == 1 else False
         # IO Config Page (not IO connections)
         config_dict['use_board_io'] = True if self.ioconfigpage.on_off_switch.get() == 1 else False
        
