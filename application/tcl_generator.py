@@ -2,7 +2,7 @@ import xml.dom.minidom
 import os
 import re
 import application.xml_manager as xmlman
-from config import *
+from application.config import *
 # tcl_generator.py
 # This Python 3 script is responsible for generating a Tcl script file dynamically depending on the project.
 
