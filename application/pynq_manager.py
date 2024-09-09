@@ -43,20 +43,23 @@ class Pynq_Manager:
         # Add /data/boards/board_files/pynq-z2/
         vivado_dir = os.path.dirname(os.path.dirname(self.vivado_bat_path)) # Using this command twice removes /bin/vivado.bat
         # Add /data/boards/board_files/pynq-z2/
-        board_path = vivado_dir + "/data/boards/board_files/pynq-z2/"
+        z1_board_path = vivado_dir + "/data/boards/board_files/pynq-z1"
+        z2_board_path = vivado_dir + "/data/boards/board_files/pynq-z2"
+
         # print(board_path)
         # Check if the path exists and return boolean
-        board_files_exists = os.path.exists(board_path)
+        z1_board_files_exists = os.path.exists(z1_board_path)
+        z2_board_files_exists = os.path.exists(z2_board_path)
 
         # print(board_files_exists)
         # Install the board
         # - 1) Check folders exist
         # - 2) Copy folder
         # - 3) Thats all.
-        if not board_files_exists:
+        if not z1_board_files_exists:
             try:
                 # print(os.path.dirname(board_path))
-                os.makedirs(os.path.dirname(os.path.dirname(board_path)))
+                os.makedirs(os.path.dirname(os.path.dirname(z1_board_path)))
             except FileExistsError:
                 print("Board_files Vivado directory already exists, copying files")
             
@@ -68,13 +71,14 @@ class Pynq_Manager:
                 board_files_folder = os.path.join(current_path, "board_files")
 
                 # Copy the entire directory and its contents
-                shutil.copytree(board_files_folder, board_path)
-                print(f"Directory copied successfully from {board_files_folder} to {board_path}")
+                shutil.copytree(board_files_folder, z1_board_path)
+                print(f"Directory copied successfully from {board_files_folder} to {z1_board_path}")
             except shutil.Error as e:
                 print(f"Error: {e}")
             except OSError as e:
                 print(f"Error: {e}")
-        return board_files_exists
+        
+        return z1_board_files_exists or z2_board_files_exists
 
     def get_bd_exists(self):
         ## This function is highly inefficient and could be condensed easily, for sake of

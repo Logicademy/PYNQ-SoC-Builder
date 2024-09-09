@@ -339,6 +339,20 @@ def generate_tcl(hdlgen_prj, add_to_log_box):
     if SET_BOARD_PART_PROPERTY:
         file_contents += f"\nset_property board_part tul.com.tw:pynq-z2:part0:1.0 [current_project]"
 
+    try: 
+        if proj_config['board'] == "PYNQ Z1":
+            file_contents += f"\nset_property board_part tul.com.tw:pynq-z2:part0:1.0 [current_project]"
+        elif proj_config['board'] == "PYNQ Z1":
+            file_contents += f"\nset_property board_part www.digilentinc.com:pynq-z1:part0:1.0 [current_project]"
+        else:
+            print(f"Tcl Gen: Could not recognise board: {proj_config['board']}, using PYNQZ2 as default")
+            file_contents += f"\nset_property board_part tul.com.tw:pynq-z2:part0:1.0 [current_project]"
+
+    except Exception as e:
+        print(f"Tcl Gen: Could not determine target board, using PYNQ Z-2 {e} if true: {SET_BOARD_PART_PROPERTY}")
+
+
+
     #################################################
     ########## Import XDC Constraints File ##########
     #################################################
