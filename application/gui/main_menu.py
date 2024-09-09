@@ -6,6 +6,7 @@ import application.gui.log_menu as logm
 import application.hdlgen_project as hdlgenprj
 import webbrowser
 import application.file_manager as fm
+from application.config import * 
 
 ctk.set_appearance_mode("Dark")       # 'Light' 'Dark' or 'System
 ctk.set_default_color_theme("blue")
@@ -86,7 +87,9 @@ class SidebarMenu(ctk.CTkScrollableFrame):
             font=button_font,
             command=self.launch_fpga
         )
-        self.fpga_button.grid(row=3, column=0, pady=10)
+        
+        if SHOW_LAUNCH_FPGA_BUTTON:
+            self.fpga_button.grid(row=3, column=0, pady=10)
 
         self.open_dir_button = ctk.CTkButton(
             self,
@@ -123,7 +126,9 @@ class SidebarMenu(ctk.CTkScrollableFrame):
         self.close_button.grid(row=7, column=0, pady=10)
 
     def launch_fpga(self):
-        fm.upload_output_folder_to_direct_connect_pynq(self.hdlgen_prj)
+        # fm.upload_output_folder_to_direct_connect_pynq(self.hdlgen_prj)
+        self.parent.app.open_fpga_popup()
+
 
     def resize(self, event):
         # print("SidebarMenu Menu is called")

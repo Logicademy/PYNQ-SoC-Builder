@@ -10,3 +10,8 @@
 ##########################
 SET_BOARD_PART_PROPERTY = True       # Set board property in Vivado (if False, don't update)
 
+
+#########################
+# main_menu.py switches #
+#########################
+SHOW_LAUNCH_FPGA_BUTTON = False       # Show Launch FPGA button in sidebar menu
