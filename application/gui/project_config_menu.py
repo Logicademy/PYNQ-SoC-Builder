@@ -266,7 +266,7 @@ class ConfigTabView(ctk.CTkTabview):
         try:
             self.fpga_sel_dropdown.set(prj_config['board'])
         except Exception as e:
-            print(f"\nCouldn't load use_tstpln: {e}")
+            print(f"\nCouldn't load board: {e}")
             self.fpga_sel_dropdown.set(self.fpga_boards[0])
 
 
