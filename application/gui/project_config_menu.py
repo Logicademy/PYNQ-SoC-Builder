@@ -22,7 +22,7 @@ class ConfigTabView(ctk.CTkTabview):
         tab_font = (default_font, 20)
         text_font = (default_font, 20)
         bold_text_font = (default_font, 24, 'bold')
-
+        switch_font = (default_font, 16)
 
         self._segmented_button.configure(font=tab_font)
 
@@ -75,9 +75,7 @@ class ConfigTabView(ctk.CTkTabview):
         # self.LHS_title = ctk.CTkLabel(self.LHS_explaination_frame, text="")
 
         # Vivado Settings
-        self.vivado_settings_var = ctk.StringVar(value="on")
         self.vivado_settings_lbl = ctk.CTkLabel(self.RHS_switch_frame, text="Vivado Settings", font=bold_text_font)
-        # self.vivado_settings_lbl.grid(row=0, column=1, padx=5, pady=5)    # No need to pack these because the resize() call handles it.
 
         self.open_viv_var = ctk.StringVar(value="on")
         self.open_viv_sw = ctk.CTkSwitch(self.RHS_switch_frame, text="Open Vivado GUI", 
@@ -95,6 +93,20 @@ class ConfigTabView(ctk.CTkTabview):
         # self.always_regen_bd_sw.grid(row=3, column=1, padx=5, pady=5, sticky="w")
 
 
+        # FPGA Settings
+        # Settings Label
+        self.fpga_settings_lbl = ctk.CTkLabel(self.RHS_switch_frame, text="FPGA Settings", font=bold_text_font)
+        # To put label and option menu together we use a frame
+        self.fpga_sel_box = ctk.CTkFrame(self.RHS_switch_frame)
+        self.fpga_sel_lbl = ctk.CTkLabel(self.fpga_sel_box, text="Select FPGA", width=150, font=switch_font)
+        self.fpga_sel_dropdown = ctk.CTkOptionMenu(self.fpga_sel_box, font=switch_font, variable=ctk.StringVar(), width=150)
+        # Pack into frame
+        self.fpga_sel_lbl.grid(column=0, row=0)
+        self.fpga_sel_dropdown.grid(column=1, row=0)
+        # Populate option box
+        self.fpga_boards = ['PYNQ Z2', 'PYNQ Z1'] # Value 0 is default value
+        self.fpga_sel_dropdown.configure(values=self.fpga_boards)
+        self.fpga_sel_dropdown.cget('variable').set(self.fpga_boards[0])
 
         # Jupyter Notebook Settings
         self.jupyter_settings_lbl = ctk.CTkLabel(self.RHS_switch_frame, text="Jupyter Notebook Settings", font=bold_text_font)
@@ -109,9 +121,9 @@ class ConfigTabView(ctk.CTkTabview):
                                         variable=self.gen_tst_var, font=text_font)
         # self.gen_tst_sw.grid(row=2, column=2, padx=5, pady=5, sticky="w")
 
-        self.inc_tut_var = ctk.StringVar(value="on")
-        self.inc_tut_sw = ctk.CTkSwitch(self.RHS_switch_frame, text="Include Tutorial", 
-                                        variable=self.gen_tst_var, font=text_font)
+        # self.inc_tut_var = ctk.StringVar(value="on")
+        # self.inc_tut_sw = ctk.CTkSwitch(self.RHS_switch_frame, text="Include Tutorial", 
+                                        # variable=self.gen_tst_var, font=text_font)
         # self.gen_tst_sw.grid(row=2, column=2, padx=5, pady=5, sticky="w")
 
         # PYNQ Board Settings
@@ -142,15 +154,18 @@ class ConfigTabView(ctk.CTkTabview):
             ### 2 Columns
 
             # Vivado Settings
-            self.vivado_settings_lbl.grid(row=0, column=1, padx=5, pady=5, sticky="news")
-            self.open_viv_sw.grid(row=1, column=1, padx=5, pady=5, sticky="w")
-            self.keep_viv_open_sw.grid(row=2, column=1, padx=5, pady=5, sticky="w")
-            self.always_regen_bd_sw.grid(row=3, column=1, padx=5, pady=5, sticky="w")
+            self.vivado_settings_lbl.grid(row=0, column=0, padx=5, pady=5, sticky="news")
+            self.open_viv_sw.grid(row=1, column=0, padx=5, pady=5, sticky="w")
+            self.keep_viv_open_sw.grid(row=2, column=0, padx=5, pady=5, sticky="w")
+            self.always_regen_bd_sw.grid(row=3, column=0, padx=5, pady=5, sticky="w")
+            # FPGA Settings
+            self.fpga_settings_lbl.grid(row=4, column=0, padx=5, pady=5, sticky="news")
+            self.fpga_sel_box.grid(row=5, column=0, padx=5, pady=5, sticky="w")
             # Jupyter Notebook Settings
             self.jupyter_settings_lbl.grid(row=0, column=2, padx=5, pady=5, sticky="news")
             self.gen_when_build_sw.grid(row=1, column=2, padx=5, pady=5, sticky="w")
             self.gen_tst_sw.grid(row=2, column=2, padx=5, pady=5, sticky="w")
-            self.inc_tut_sw.grid(row=3, column=2, padx=5, pady=5, sticky="w")
+            # self.inc_tut_sw.grid(row=3, column=2, padx=5, pady=5, sticky="w")
             # PYNQ Board Settings
             # self.pynq_board_settings_lbl.grid(row=4, column=1, padx=5, pady=5, sticky="news")
             # self.gen_io_sw.grid(row=5, column=1, padx=5, pady=5, sticky="w")     
@@ -178,15 +193,15 @@ class ConfigTabView(ctk.CTkTabview):
             # self.LHS_explaination_frame.grid(row=110, column=0, padx=5, pady=5, sticky="news")
 
             # Vivado Settings
-            self.vivado_settings_lbl.grid(row=101, column=0, padx=5, pady=5, sticky="news")
-            self.open_viv_sw.grid(row=102, column=0, padx=5, pady=5, sticky="w")
-            self.keep_viv_open_sw.grid(row=103, column=0, padx=5, pady=5, sticky="w")
-            self.always_regen_bd_sw.grid(row=104, column=0, padx=5, pady=5, sticky="w")
+            self.vivado_settings_lbl.grid(row=0, column=0, padx=5, pady=5, sticky="news")
+            self.open_viv_sw.grid(row=1, column=0, padx=5, pady=5, sticky="w")
+            self.keep_viv_open_sw.grid(row=2, column=0, padx=5, pady=5, sticky="w")
+            self.always_regen_bd_sw.grid(row=3, column=0, padx=5, pady=5, sticky="w")
             # Jupyter Notebook Settings
             self.jupyter_settings_lbl.grid(row=105, column=0, padx=5, pady=5, sticky="news")
             self.gen_when_build_sw.grid(row=106, column=0, padx=5, pady=5, sticky="w")
             self.gen_tst_sw.grid(row=107, column=0, padx=5, pady=5, sticky="w")
-            self.inc_tut_sw.grid(row=108, column=0, padx=5, pady=5, sticky="w")
+            # self.inc_tut_sw.grid(row=108, column=0, padx=5, pady=5, sticky="w")
             # PYNQ Board Settings
             # self.pynq_board_settings_lbl.grid(row=108, column=0, padx=5, pady=5, sticky="news")
             # self.gen_io_sw.grid(row=109, column=0, padx=5, pady=5, sticky="w")
@@ -247,15 +262,24 @@ class ConfigTabView(ctk.CTkTabview):
         except Exception as e:
             print(f"\nCouldn't load use_tstpln: {e}")
             self.gen_tst_sw.deselect()
-        # Include tutorial in JNB
+
         try:
-            if prj_config['inc_tutor'] == True:
-                self.inc_tut_sw.select()
-            else:
-                self.inc_tut_sw.deselect()
+            self.fpga_sel_dropdown.set(prj_config['board'])
         except Exception as e:
-            print(f"\nCouldn't load inc_tutor: {e}")
-            self.inc_tut_sw.deselect()
+            print(f"\nCouldn't load use_tstpln: {e}")
+            self.fpga_sel_dropdown.set(self.fpga_boards[0])
+
+
+        # 
+        # # Include tutorial in JNB
+        # try:
+        #     if prj_config['inc_tutor'] == True:
+        #         self.inc_tut_sw.select()
+        #     else:
+        #         self.inc_tut_sw.deselect()
+        # except Exception as e:
+        #     print(f"\nCouldn't load inc_tutor: {e}")
+        #     self.inc_tut_sw.deselect()
     # def load_project_config(self):
     #     print(self.hdlgen_path)
     #     self.hdlgen_path = "C:\\hdlgen\\March\\DSPProc_Threshold_Luke\\DSPProc\\HDLGenPrj\\DSPProc.hdlgen"
@@ -278,7 +302,10 @@ class ConfigTabView(ctk.CTkTabview):
         config_dict['regen_bd'] = True if self.always_regen_bd_sw.get() == 1 else False
         config_dict['gen_jnb'] = True if self.gen_when_build_sw.get() == 1 else False
         config_dict['use_tstpln'] = True if self.gen_tst_sw.get() == 1 else False
-        config_dict['inc_tutor'] = True if self.inc_tut_sw.get() == 1 else False
+        #config_dict['inc_tutor'] = True if self.inc_tut_sw.get() == 1 else False
+
+        config_dict['board'] = self.fpga_sel_dropdown.get()
+
         # IO Config Page (not IO connections)
         config_dict['use_board_io'] = True if self.ioconfigpage.on_off_switch.get() == 1 else False
        
