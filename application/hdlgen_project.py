@@ -674,9 +674,11 @@ class HdlgenProject:
                         self.end_build_status_process('opn_prj')
                         self.start_build_status_process('bld_bdn')
                         self.add_to_build_log(f"\nCreating BD Design: {self.path_to_bd}")
+                        self.end_build_status_process('opn_prj') ## Force Open Project to stop if it hasn't already.
                         self.add_to_build_log("\n"+line)
                     elif "_0_0_synth_1" in line:
                         self.end_build_status_process('bld_bdn')
+                        self.end_build_status_process('opn_prj') ## Force Open Project to stop if it hasn't already.
                         self.buildstatuspage.obj_dict['run_syn']['status'].configure(text="Preparing")
                         self.add_to_build_log("\nStarting Synthesis of Design")
                         self.add_to_build_log("\n"+line.strip())

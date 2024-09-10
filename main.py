@@ -153,7 +153,7 @@ if __name__ == "__main__":
     print(f"Current branch: {current_branch}")
 
     try:
-        if current_branch.name == "auto_updater":    # Temporarily changed to auto_updater for testing purposes 
+        if current_branch.name == "master":    # Temporarily changed to auto_updater for testing purposes 
             # Fetch updates from the remote
             # Configure remote URL with credentials (for HTTPS)
             repo.remotes.origin.set_url("https://github.com/Logicademy/PYNQ-SoC-Builder.git")
@@ -162,7 +162,7 @@ if __name__ == "__main__":
 
             # Compare local and remote commits
             local_commit = repo.head.commit  # Local commit
-            remote_commit = repo.refs['origin/auto_updater'].commit  # Remote branch's commit
+            remote_commit = repo.refs['origin/master'].commit  # Remote branch's commit
 
             print(f"Local Commit: {local_commit}")
             print(f"Remote Commit: {remote_commit}")
@@ -192,7 +192,6 @@ if __name__ == "__main__":
                 
                 # Step 3: Exit the current process
                 sys.exit()
-
 
             else:
                 print("Skipping update, running application...")
