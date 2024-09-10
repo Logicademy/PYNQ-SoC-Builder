@@ -27,7 +27,7 @@ class Application:
         # self.build_running = False      # Flag - True build is running, False build not running
         # self.build_force_quit_event = threading.Event()     # Event to trigger Build threads to quit
         self.dialog_response = None     # Stores response from Dialog Pop-Up
-        self.toplevel_message = None   # Set top_level_message to be presented by dialog/alert
+        self.top_level_message = None   # Set top_level_message to be presented by dialog/alert
         self.toplevel_window = None    # Var for top level window objects
         self.hdlgen_path = None         # Current Project
         self.hdlgen_prj = None          # Current Project Object
@@ -162,7 +162,7 @@ if __name__ == "__main__":
 
             # Compare local and remote commits
             local_commit = repo.head.commit  # Local commit
-            remote_commit = repo.refs['origin/master'].commit  # Remote branch's commit
+            remote_commit = repo.refs['origin/auto_updater'].commit  # Remote branch's commit
 
             if local_commit != remote_commit:
                 print("New commits are available!")
@@ -170,8 +170,10 @@ if __name__ == "__main__":
                 print("Your branch is up-to-date.")
 
             # Launch Question Box
-            app.open_dialog()
             app.top_level_message = "An update is available, would you like to install it?"
+            app.open_dialog()
+            app.toplevel_window.wait_window() # Wait for user's response
+
 
             if app.dialog_response == "yes":
                 origin.pull()
