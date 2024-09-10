@@ -164,15 +164,18 @@ if __name__ == "__main__":
             local_commit = repo.head.commit  # Local commit
             remote_commit = repo.refs['origin/auto_updater'].commit  # Remote branch's commit
 
-            if local_commit != remote_commit:
+            print(f"Local Commit: {local_commit}")
+            print(f"Remote Commit: {remote_commit}")
+
+            if str(local_commit) != str(remote_commit):
                 print("New commits are available!")
+                # Launch User Prompt
+                app.top_level_message = "An update is available, would you like to install it?"
+                app.open_dialog()
+                app.toplevel_window.wait_window() # Wait for user's response
             else:
                 print("Your branch is up-to-date.")
 
-            # Launch Question Box
-            app.top_level_message = "An update is available, would you like to install it?"
-            app.open_dialog()
-            app.toplevel_window.wait_window() # Wait for user's response
 
 
             if app.dialog_response == "yes":
@@ -194,16 +197,7 @@ if __name__ == "__main__":
             else:
                 print("Skipping update, running application...")
 
-
-
-
     except Exception as e:
         print(f"Could not auto-update project, please do manually or re-clone from Github.com/Logicademy/PYNQ-SoC-Builder - {e}")
-
-
-
-
-
-
 
     root.mainloop()
