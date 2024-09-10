@@ -667,6 +667,7 @@ class HdlgenProject:
                         self.add_to_build_log("\n\nVivado raised an error and the build could not complete. Please check the log above for more details")
                         self.add_to_build_log("\nBuild is quitting.")
                     elif "open_project" in line:
+                        print("OPEN_PROJECT FOUND")
                         self.start_build_status_process('opn_prj')
                         self.add_to_build_log(f"\nOpening Vivado Project {self.path_to_xpr}")
                         self.add_to_build_log("\n" + line.strip())
@@ -674,9 +675,11 @@ class HdlgenProject:
                         self.end_build_status_process('opn_prj')
                         self.start_build_status_process('bld_bdn')
                         self.add_to_build_log(f"\nCreating BD Design: {self.path_to_bd}")
+                        self.end_build_status_process('opn_prj') ## Force Open Project to stop if it hasn't already.
                         self.add_to_build_log("\n"+line)
                     elif "_0_0_synth_1" in line:
                         self.end_build_status_process('bld_bdn')
+                        self.end_build_status_process('opn_prj') ## Force Open Project to stop if it hasn't already.
                         self.buildstatuspage.obj_dict['run_syn']['status'].configure(text="Preparing")
                         self.add_to_build_log("\nStarting Synthesis of Design")
                         self.add_to_build_log("\n"+line.strip())

@@ -3,7 +3,10 @@ import application.gui.main_menu as main_menu
 import application.gui.popups as popups
 import application.gui.open_project as openproj
 import threading
-
+import git
+import os
+import subprocess
+import sys
 class Application:
 
     ##############################
@@ -24,7 +27,7 @@ class Application:
         # self.build_running = False      # Flag - True build is running, False build not running
         # self.build_force_quit_event = threading.Event()     # Event to trigger Build threads to quit
         self.dialog_response = None     # Stores response from Dialog Pop-Up
-        self.toplevel_message = None   # Set top_level_message to be presented by dialog/alert
+        self.top_level_message = None   # Set top_level_message to be presented by dialog/alert
         self.toplevel_window = None    # Var for top level window objects
         self.hdlgen_path = None         # Current Project
         self.hdlgen_prj = None          # Current Project Object
@@ -141,4 +144,59 @@ if __name__ == "__main__":
     root = ctk.CTk()
     ctk.deactivate_automatic_dpi_awareness()
     app = Application(root)
+
+
+    repo = git.Repo(os.getcwd())
+    
+    # Get the active branch
+    current_branch = repo.active_branch
+    print(f"Current branch: {current_branch}")
+
+    try:
+        if current_branch.name == "master":    # Temporarily changed to auto_updater for testing purposes 
+            # Fetch updates from the remote
+            # Configure remote URL with credentials (for HTTPS)
+            repo.remotes.origin.set_url("https://github.com/Logicademy/PYNQ-SoC-Builder.git")
+            origin = repo.remotes.origin
+            origin.fetch()
+
+            # Compare local and remote commits
+            local_commit = repo.head.commit  # Local commit
+            remote_commit = repo.refs['origin/master'].commit  # Remote branch's commit
+
+            print(f"Local Commit: {local_commit}")
+            print(f"Remote Commit: {remote_commit}")
+
+            if str(local_commit) != str(remote_commit):
+                print("New commits are available!")
+                # Launch User Prompt
+                app.top_level_message = "An update is available, would you like to install it?"
+                app.open_dialog()
+                app.toplevel_window.wait_window() # Wait for user's response
+            else:
+                print("Your branch is up-to-date.")
+
+
+
+            if app.dialog_response == "yes":
+                origin.pull()
+                # Step 2: Restart the application
+                print("Restarting the application with updated code...")
+                #time.sleep(2)  # Optional: delay to show messages or log to a file
+
+                # Use subprocess to start a new process
+                new_process = subprocess.Popen([sys.executable] + sys.argv)
+
+                # Optional: Log the new process ID
+                print(f"Started new process with PID: {new_process.pid}")
+                
+                # Step 3: Exit the current process
+                sys.exit()
+
+            else:
+                print("Skipping update, running application...")
+
+    except Exception as e:
+        print(f"Could not auto-update project, please do manually or re-clone from Github.com/Logicademy/PYNQ-SoC-Builder - {e}")
+
     root.mainloop()
