@@ -93,3 +93,4 @@ Selecting an option will open the corresponding board's Jupyter Notebook environ
 ## Project Poster
 
 ![Project Poster](docs/project_poster.png)
+
