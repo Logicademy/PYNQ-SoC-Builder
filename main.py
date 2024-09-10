@@ -153,7 +153,7 @@ if __name__ == "__main__":
     print(f"Current branch: {current_branch}")
 
     try:
-        if current_branch.name == "master":
+        if current_branch.name == "auto_updater":    # Temporarily changed to auto_updater for testing purposes 
             # Fetch updates from the remote
             # Configure remote URL with credentials (for HTTPS)
             repo.remotes.origin.set_url("https://github.com/Logicademy/PYNQ-SoC-Builder.git")
