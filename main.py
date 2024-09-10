@@ -164,10 +164,11 @@ if __name__ == "__main__":
             local_commit = repo.head.commit  # Local commit
             remote_commit = repo.refs['origin/master'].commit  # Remote branch's commit
 
+            print(f"Local Hash: {local_commit.hexsha}")
             print(f"Local Commit: {local_commit}")
             print(f"Remote Commit: {remote_commit}")
 
-            if str(local_commit) != str(remote_commit):
+            if local_commit.hexsha != remote_commit.hexsha:
                 print("New commits are available!")
                 # Launch User Prompt
                 app.top_level_message = "An update is available, would you like to install it?"
