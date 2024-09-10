@@ -667,6 +667,7 @@ class HdlgenProject:
                         self.add_to_build_log("\n\nVivado raised an error and the build could not complete. Please check the log above for more details")
                         self.add_to_build_log("\nBuild is quitting.")
                     elif "open_project" in line:
+                        print("OPEN_PROJECT FOUND")
                         self.start_build_status_process('opn_prj')
                         self.add_to_build_log(f"\nOpening Vivado Project {self.path_to_xpr}")
                         self.add_to_build_log("\n" + line.strip())
