@@ -177,8 +177,6 @@ if __name__ == "__main__":
             else:
                 print("Your branch is up-to-date.")
 
-
-
             if app.dialog_response == "yes":
                 origin.pull()
                 # Step 2: Restart the application
