@@ -672,11 +672,11 @@ class PortConfigTab(ctk.CTkScrollableFrame):
         # LED Connections
         self.RHS_frame = ctk.CTkFrame(self)
 
-        self.led_title = ctk.CTkLabel(self.RHS_frame, text="Board LED Configuration", font=title_font)
-        self.led_subtext = ctk.CTkLabel(self.RHS_frame, text="Connect ports of component to LEDs on PYNQ Board", font=subtitle_font)
+        self.led_title = ctk.CTkLabel(self.RHS_frame, text="Board I/O Configuration", font=title_font)
+        self.led_subtext = ctk.CTkLabel(self.RHS_frame, text="Connect ports of component to LEDs/Switches/Buttons on PYNQ Board", font=subtitle_font)
 
-        self.on_off_switch = ctk.CTkSwitch(self.RHS_frame, text="Enable LEDs?", font=master_switch_font)
-        self.on_off_subtext = ctk.CTkLabel(self.RHS_frame, text="If enabled, connect component to LEDs\nIf disabled, no LEDs are connected", font=subtitle_font)
+        self.on_off_switch = ctk.CTkSwitch(self.RHS_frame, text="Enable I/O?", font=master_switch_font)
+        self.on_off_subtext = ctk.CTkLabel(self.RHS_frame, text="If enabled, connect component to board I/O\nIf disabled, no external ports are connected", font=subtitle_font)
 
         self.led0_lbl = ctk.CTkLabel(self.RHS_frame, text="LED0", width=50, font=self.switch_font)
         self.led0_dropdown = ctk.CTkOptionMenu(self.RHS_frame, font=self.switch_font, variable=ctk.StringVar(), width=200, command=lambda signal, io="led0": self.io_optionbox_handler(signal, io))
@@ -697,9 +697,94 @@ class PortConfigTab(ctk.CTkScrollableFrame):
         self.led3_dropdown = ctk.CTkOptionMenu(self.RHS_frame, font=self.switch_font, variable=ctk.StringVar(), width=200, command=lambda signal, io="led3": self.io_optionbox_handler(signal, io))
         self.led3_entry = ctk.CTkEntry(self.RHS_frame, width=60, font=self.switch_font)
         self.led3_entry_placeholder = ctk.CTkLabel(self.RHS_frame,text="")
+
+        # RGB LEDs
+        self.led4r_lbl = ctk.CTkLabel(self.RHS_frame, text="LED4R", width=50, font=self.switch_font)
+        self.led4r_dropdown = ctk.CTkOptionMenu(self.RHS_frame, font=self.switch_font, variable=ctk.StringVar(), width=200, command=lambda signal, io="led3": self.io_optionbox_handler(signal, io))
+        self.led4r_entry = ctk.CTkEntry(self.RHS_frame, width=60, font=self.switch_font)
+        self.led4r_entry_placeholder = ctk.CTkLabel(self.RHS_frame,text="")
+
+        self.led4g_lbl = ctk.CTkLabel(self.RHS_frame, text="LED4G", width=50, font=self.switch_font)
+        self.led4g_dropdown = ctk.CTkOptionMenu(self.RHS_frame, font=self.switch_font, variable=ctk.StringVar(), width=200, command=lambda signal, io="led3": self.io_optionbox_handler(signal, io))
+        self.led4g_entry = ctk.CTkEntry(self.RHS_frame, width=60, font=self.switch_font)
+        self.led4g_entry_placeholder = ctk.CTkLabel(self.RHS_frame,text="")
+
+        self.led4b_lbl = ctk.CTkLabel(self.RHS_frame, text="LED4B", width=50, font=self.switch_font)
+        self.led4b_dropdown = ctk.CTkOptionMenu(self.RHS_frame, font=self.switch_font, variable=ctk.StringVar(), width=200, command=lambda signal, io="led3": self.io_optionbox_handler(signal, io))
+        self.led4b_entry = ctk.CTkEntry(self.RHS_frame, width=60, font=self.switch_font)
+        self.led4b_entry_placeholder = ctk.CTkLabel(self.RHS_frame,text="")
+
+        self.led5r_lbl = ctk.CTkLabel(self.RHS_frame, text="LED5R", width=50, font=self.switch_font)
+        self.led5r_dropdown = ctk.CTkOptionMenu(self.RHS_frame, font=self.switch_font, variable=ctk.StringVar(), width=200, command=lambda signal, io="led3": self.io_optionbox_handler(signal, io))
+        self.led5r_entry = ctk.CTkEntry(self.RHS_frame, width=60, font=self.switch_font)
+        self.led5r_entry_placeholder = ctk.CTkLabel(self.RHS_frame,text="")
+
+        self.led5g_lbl = ctk.CTkLabel(self.RHS_frame, text="LED5G", width=50, font=self.switch_font)
+        self.led5g_dropdown = ctk.CTkOptionMenu(self.RHS_frame, font=self.switch_font, variable=ctk.StringVar(), width=200, command=lambda signal, io="led3": self.io_optionbox_handler(signal, io))
+        self.led5g_entry = ctk.CTkEntry(self.RHS_frame, width=60, font=self.switch_font)
+        self.led5g_entry_placeholder = ctk.CTkLabel(self.RHS_frame,text="")
+
+        self.led5b_lbl = ctk.CTkLabel(self.RHS_frame, text="LED5B", width=50, font=self.switch_font)
+        self.led5b_dropdown = ctk.CTkOptionMenu(self.RHS_frame, font=self.switch_font, variable=ctk.StringVar(), width=200, command=lambda signal, io="led3": self.io_optionbox_handler(signal, io))
+        self.led5b_entry = ctk.CTkEntry(self.RHS_frame, width=60, font=self.switch_font)
+        self.led5b_3entry_placeholder = ctk.CTkLabel(self.RHS_frame,text="")
+
+        # Switches
+        self.sw0_lbl = ctk.CTkLabel(self.RHS_frame, text="SW0", width=50, font=self.switch_font)
+        self.sw0_dropdown = ctk.CTkOptionMenu(self.RHS_frame, font=self.switch_font, variable=ctk.StringVar(), width=200, command=lambda signal, io="led3": self.io_optionbox_handler(signal, io))
+        self.sw0_entry = ctk.CTkEntry(self.RHS_frame, width=60, font=self.switch_font)
+        self.sw0_entry_placeholder = ctk.CTkLabel(self.RHS_frame,text="")
+
+        self.sw1_lbl = ctk.CTkLabel(self.RHS_frame, text="SW1", width=50, font=self.switch_font)
+        self.sw1_dropdown = ctk.CTkOptionMenu(self.RHS_frame, font=self.switch_font, variable=ctk.StringVar(), width=200, command=lambda signal, io="led3": self.io_optionbox_handler(signal, io))
+        self.sw1_entry = ctk.CTkEntry(self.RHS_frame, width=60, font=self.switch_font)
+        self.sw1_entry_placeholder = ctk.CTkLabel(self.RHS_frame,text="")
+
+        # Buttons
+        self.btn0_lbl = ctk.CTkLabel(self.RHS_frame, text="BTN0", width=50, font=self.switch_font)
+        self.btn0_dropdown = ctk.CTkOptionMenu(self.RHS_frame, font=self.switch_font, variable=ctk.StringVar(), width=200, command=lambda signal, io="led3": self.io_optionbox_handler(signal, io))
+        self.btn0_entry = ctk.CTkEntry(self.RHS_frame, width=60, font=self.switch_font)
+        self.btn0_entry_placeholder = ctk.CTkLabel(self.RHS_frame,text="")
+
+        self.btn1_lbl = ctk.CTkLabel(self.RHS_frame, text="BTN1", width=50, font=self.switch_font)
+        self.btn1_dropdown = ctk.CTkOptionMenu(self.RHS_frame, font=self.switch_font, variable=ctk.StringVar(), width=200, command=lambda signal, io="led3": self.io_optionbox_handler(signal, io))
+        self.btn1_entry = ctk.CTkEntry(self.RHS_frame, width=60, font=self.switch_font)
+        self.btn1_entry_placeholder = ctk.CTkLabel(self.RHS_frame,text="")
+
+        self.btn2_lbl = ctk.CTkLabel(self.RHS_frame, text="BTN2", width=50, font=self.switch_font)
+        self.btn2_dropdown = ctk.CTkOptionMenu(self.RHS_frame, font=self.switch_font, variable=ctk.StringVar(), width=200, command=lambda signal, io="led3": self.io_optionbox_handler(signal, io))
+        self.btn2_entry = ctk.CTkEntry(self.RHS_frame, width=60, font=self.switch_font)
+        self.btn2_entry_placeholder = ctk.CTkLabel(self.RHS_frame,text="")
+
+        self.btn3_lbl = ctk.CTkLabel(self.RHS_frame, text="BTN3", width=50, font=self.switch_font)
+        self.btn3_dropdown = ctk.CTkOptionMenu(self.RHS_frame, font=self.switch_font, variable=ctk.StringVar(), width=200, command=lambda signal, io="led3": self.io_optionbox_handler(signal, io))
+        self.btn3_entry = ctk.CTkEntry(self.RHS_frame, width=60, font=self.switch_font)
+        self.btn3_entry_placeholder = ctk.CTkLabel(self.RHS_frame,text="")
+
+
+
+
         self.switches = []  # Initalise
 
-        self.led_optionboxes = [self.led0_dropdown, self.led1_dropdown, self.led2_dropdown, self.led3_dropdown]
+        self.led_optionboxes = [
+            self.led0_dropdown, 
+            self.led1_dropdown, 
+            self.led2_dropdown, 
+            self.led3_dropdown, 
+            self.led4r_dropdown, 
+            self.led4g_dropdown, 
+            self.led4b_dropdown,
+            self.led5r_dropdown, 
+            self.led5g_dropdown, 
+            self.led5b_dropdown,
+            self.sw0_dropdown,
+            self.sw1_dropdown,
+            self.btn0_dropdown,
+            self.btn1_dropdown,
+            self.btn2_dropdown,
+            self.btn3_dropdown
+        ]
+
 
     def save_io_config(self, xml_instance):
         # We first load the settings then send it to the XML instance
@@ -708,18 +793,37 @@ class PortConfigTab(ctk.CTkScrollableFrame):
             "led1":"None",
             "led2":"None",
             "led3":"None",
-            "led4_b":"None",
-            "led4_g":"None",
-            "led4_r":"None",
-            "led5_b":"None",
-            "led5_g":"None",
-            "led5_r":"None"
+            "led4b":"None",
+            "led4g":"None",
+            "led4r":"None",
+            "led5b":"None",
+            "led5g":"None",
+            "led5r":"None",
+            "sw0":"None",
+            "sw1":"None",
+            "btn0":"None",
+            "btn1":"None",
+            "btn2":"None",
+            "btn3":"None",
         }
 
         led0_array = []
         led1_array = []
         led2_array = []
         led3_array = []
+        led4r_array = []
+        led4g_array = []
+        led4b_array = []
+        led5r_array = []
+        led5g_array = []
+        led5b_array = []
+        sw0_array = []
+        sw1_array = []
+        btn0_array = []
+        btn1_array = []
+        btn2_array = []
+        btn3_array = []
+
 
 
         if self.led0_entry.grid_info():
@@ -746,10 +850,109 @@ class PortConfigTab(ctk.CTkScrollableFrame):
         else:
             led3_array = [self.led3_dropdown.get(), 0]
 
+
+
+        # RGB LEDS 4
+        if self.led4r_entry.grid_info():
+            # This means the entry box is shown and you should read the value.
+            led4r_array = [self.led4r_dropdown.get(), int(self.led4r_entry.get())]
+        else:
+            led4r_array = [self.led4r_dropdown.get(), 0]
+        if self.led4g_entry.grid_info():
+            # This means the entry box is shown and you should read the value.
+            led4g_array = [self.led4g_dropdown.get(), int(self.led4g_entry.get())]
+        else:
+            led4g_array = [self.led4g_dropdown.get(), 0]
+        if self.led4b_entry.grid_info():
+            # This means the entry box is shown and you should read the value.
+            led4b_array = [self.led4b_dropdown.get(), int(self.led4b_entry.get())]
+        else:
+            led4b_array = [self.led4b_dropdown.get(), 0]
+
+        # RGB LEDS 5
+        if self.led5r_entry.grid_info():
+            # This means the entry box is shown and you should read the value.
+            led5r_array = [self.led5r_dropdown.get(), int(self.led5r_entry.get())]
+        else:
+            led5r_array = [self.led5r_dropdown.get(), 0]
+        if self.led5g_entry.grid_info():
+            # This means the entry box is shown and you should read the value.
+            led5g_array = [self.led5g_dropdown.get(), int(self.led5g_entry.get())]
+        else:
+            led5g_array = [self.led5g_dropdown.get(), 0]
+        if self.led5b_entry.grid_info():
+            # This means the entry box is shown and you should read the value.
+            led5b_array = [self.led5b_dropdown.get(), int(self.led5b_entry.get())]
+        else:
+            led5b_array = [self.led5b_dropdown.get(), 0]
+
+
+        # 2 x Switches
+        if self.sw0_entry.grid_info():
+            # This means the entry box is shown and you should read the value.
+            sw0_array = [self.sw0_dropdown.get(), int(self.sw0_entry.get())]
+        else:
+            led5r_array = [self.sw0_dropdown.get(), 0]
+        if self.led5g_entry.grid_info():
+            # This means the entry box is shown and you should read the value.
+            sw1_array = [self.sw1_dropdown.get(), int(self.sw1_entry.get())]
+        else:
+            sw1_array = [self.sw1_dropdown.get(), 0]
+
+
+        # 4 X BUTTONS
+
+        if self.btn0_entry.grid_info():
+            # This means the entry box is shown and you should read the value.
+            btn0_array = [self.btn0_dropdown.get(), int(self.btn0_entry.get())]
+        else:
+            btn0_array = [self.btn0_dropdown.get(), 0]
+
+        if self.btn1_entry.grid_info():
+            # This means the entry box is shown and you should read the value.
+            btn1_array = [self.btn1_dropdown.get(), int(self.btn1_entry.get())]
+        else:
+            btn1_array = [self.btn1_dropdown.get(), 0]
+
+        if self.btn2_entry.grid_info():
+            # This means the entry box is shown and you should read the value.
+            btn2_array = [self.btn2_dropdown.get(), int(self.btn2_entry.get())]
+        else:
+            btn2_array = [self.btn2_dropdown.get(), 0]
+
+        if self.btn3_entry.grid_info():
+            # This means the entry box is shown and you should read the value.
+            btn3_array = [self.btn3_dropdown.get(), int(self.btn3_entry.get())]
+        else:
+            btn3_array = [self.btn3_dropdown.get(), 0]
+
+
+
+
+
+
+
+
+
+
+        # Basic LEDs
         io_config["led0"] = led0_array
         io_config["led1"] = led1_array
         io_config["led2"] = led2_array
         io_config["led3"] = led3_array
+        # RGBs, SWs, BTNs,
+        io_config["led4r"] = led4r_array
+        io_config["led4g"] = led4g_array
+        io_config["led4b"] = led4b_array
+        io_config["led5r"] = led5r_array
+        io_config["led5g"] = led5g_array
+        io_config["led5b"] = led5b_array
+        io_config["sw0"] = sw0_array
+        io_config["sw1"] = sw1_array
+        io_config["btn0"] = btn0_array
+        io_config["btn1"] = btn1_array
+        io_config["btn2"] = btn2_array
+        io_config["btn3"] = btn3_array
 
         xml_instance.write_io_config(io_config)
 
@@ -903,23 +1106,64 @@ class PortConfigTab(ctk.CTkScrollableFrame):
         if signal == '':
             # We need to forgot the box
             print("Forgot box")
+            # LED 0 to 3
             if io == "led0":
                 self.led0_entry.grid_forget()
                 self.led0_entry.delete(0, ctk.END)
             elif io == "led1":
                 self.led1_entry.grid_forget()
                 self.led1_entry.delete(0, ctk.END)
-
             elif io == "led2":
                 self.led2_entry.grid_forget()
                 self.led2_entry.delete(0, ctk.END)
-
             elif io == "led3":
                 self.led3_entry.grid_forget()
                 self.led3_entry.delete(0, ctk.END)
+            # LED 4 RGB
+            elif io == "led4r":
+                self.led4r_entry.grid_forget()
+                self.led4r_entry.delete(0, ctk.END)
+            elif io == "led4g":
+                self.led4g_entry.grid_forget()
+                self.led4g_entry.delete(0, ctk.END)
+            elif io == "led4b":
+                self.led4b_entry.grid_forget()
+                self.led4b_entry.delete(0, ctk.END)
+            # LED 5 RGB
+            elif io == "led5r":
+                self.led5r_entry.grid_forget()
+                self.led5r_entry.delete(0, ctk.END)
+            elif io == "led5g":
+                self.led5g_entry.grid_forget()
+                self.led5g_entry.delete(0, ctk.END)
+            elif io == "led5b":
+                self.led5b_entry.grid_forget()
+                self.led5b_entry.delete(0, ctk.END)
+            # Switch 0/1
+            elif io == "sw0":
+                self.sw0_entry.grid_forget()
+                self.sw0_entry.delete(0, ctk.END)
+            elif io == "sw1":
+                self.sw1_entry.grid_forget()
+                self.sw1_entry.delete(0, ctk.END)
+            # Buttons 0 to 3
+            elif io == "btn0":
+                self.btn0_entry.grid_forget()
+                self.btn0_entry.delete(0, ctk.END)
+            elif io == "btn1":
+                self.btn1_entry.grid_forget()
+                self.btn1_entry.delete(0, ctk.END)
+            elif io == "btn2":
+                self.btn2_entry.grid_forget()
+                self.btn2_entry.delete(0, ctk.END)
+            elif io == "btn3":
+                self.btn3_entry.grid_forget()
+                self.btn3_entry.delete(0, ctk.END)
 
         elif self.dropdown_dict[signal] > 1:
-            print("Add box")
+            print(f"Add box: {io}")
+            
+            # LED 0 to 3 - Single Colour 
             if io == "led0":
                 self.led0_entry.grid(row=4, column=2, padx=5, pady=5, sticky='w')
                 self.led0_entry.configure(placeholder_text=f"(0-{self.dropdown_dict[signal]-1})")
@@ -932,23 +1176,106 @@ class PortConfigTab(ctk.CTkScrollableFrame):
             elif io == "led3":
                 self.led3_entry.grid(row=7, column=2, padx=5, pady=5, sticky='w')
                 self.led3_entry.configure(placeholder_text=f"(0-{self.dropdown_dict[signal]-1})")
+            
+            # LED 4 - RGB Colour
+            elif io == "led4r":
+                self.led4r_entry.grid(row=8, column=2, padx=5, pady=5, sticky='w')
+                self.led4r_entry.configure(placeholder_text=f"(0-{self.dropdown_dict[signal]-1})")
+            elif io == "led4g":
+                self.led4g_entry.grid(row=9, column=2, padx=5, pady=5, sticky='w')
+                self.led4g_entry.configure(placeholder_text=f"(0-{self.dropdown_dict[signal]-1})")
+            elif io == "led4b":
+                self.led4b_entry.grid(row=10, column=2, padx=5, pady=5, sticky='w')
+                self.led4b_entry.configure(placeholder_text=f"(0-{self.dropdown_dict[signal]-1})")
+            
+            # LED 5 - RGB Colour
+            elif io == "led5r":
+                self.led5r_entry.grid(row=11, column=2, padx=5, pady=5, sticky='w')
+                self.led5r_entry.configure(placeholder_text=f"(0-{self.dropdown_dict[signal]-1})")
+            elif io == "led5g":
+                self.led5g_entry.grid(row=12, column=2, padx=5, pady=5, sticky='w')
+                self.led5g_entry.configure(placeholder_text=f"(0-{self.dropdown_dict[signal]-1})")
+            elif io == "led5b":
+                self.led5b_entry.grid(row=13, column=2, padx=5, pady=5, sticky='w')
+                self.led5b_entry.configure(placeholder_text=f"(0-{self.dropdown_dict[signal]-1})")
+            
+            # Switches
+            elif io == "sw0":
+                self.sw0_entry.grid(row=14, column=2, padx=5, pady=5, sticky='w')
+                self.sw0_entry.configure(placeholder_text=f"(0-{self.dropdown_dict[signal]-1})")
+            elif io == "sw1":
+                self.sw1_entry.grid(row=15, column=2, padx=5, pady=5, sticky='w')
+                self.sw1_entry.configure(placeholder_text=f"(0-{self.dropdown_dict[signal]-1})")
+
+            # Buttons
+            elif io == "btn0":
+                self.btn0_entry.grid(row=16, column=2, padx=5, pady=5, sticky='w')
+                self.btn0_entry.configure(placeholder_text=f"(0-{self.dropdown_dict[signal]-1})")
+            elif io == "btn1":
+                self.btn1_entry.grid(row=17, column=2, padx=5, pady=5, sticky='w')
+                self.btn1_entry.configure(placeholder_text=f"(0-{self.dropdown_dict[signal]-1})")
+            elif io == "btn2":
+                self.btn2_entry.grid(row=18, column=2, padx=5, pady=5, sticky='w')
+                self.btn2_entry.configure(placeholder_text=f"(0-{self.dropdown_dict[signal]-1})")
+            elif io == "btn3":
+                self.btn3_entry.grid(row=19, column=2, padx=5, pady=5, sticky='w')
+                self.btn3_entry.configure(placeholder_text=f"(0-{self.dropdown_dict[signal]-1})")
+
         else:
             print("Forgot box")
+            # LED 0 to 3
             if io == "led0":
                 self.led0_entry.grid_forget()
                 self.led0_entry.delete(0, ctk.END)
             elif io == "led1":
                 self.led1_entry.grid_forget()
                 self.led1_entry.delete(0, ctk.END)
-
             elif io == "led2":
                 self.led2_entry.grid_forget()
                 self.led2_entry.delete(0, ctk.END)
-
             elif io == "led3":
                 self.led3_entry.grid_forget()
                 self.led3_entry.delete(0, ctk.END)
-
+            # LED 4 RGB
+            elif io == "led4r":
+                self.led4r_entry.grid_forget()
+                self.led4r_entry.delete(0, ctk.END)
+            elif io == "led4g":
+                self.led4g_entry.grid_forget()
+                self.led4g_entry.delete(0, ctk.END)
+            elif io == "led4b":
+                self.led4b_entry.grid_forget()
+                self.led4b_entry.delete(0, ctk.END)
+            # LED 5 RGB
+            elif io == "led5r":
+                self.led5r_entry.grid_forget()
+                self.led5r_entry.delete(0, ctk.END)
+            elif io == "led5g":
+                self.led5g_entry.grid_forget()
+                self.led5g_entry.delete(0, ctk.END)
+            elif io == "led5b":
+                self.led5b_entry.grid_forget()
+                self.led5b_entry.delete(0, ctk.END)
+            # Switch 0/1
+            elif io == "sw0":
+                self.sw0_entry.grid_forget()
+                self.sw0_entry.delete(0, ctk.END)
+            elif io == "sw1":
+                self.sw1_entry.grid_forget()
+                self.sw1_entry.delete(0, ctk.END)
+            # Buttons 0 to 3
+            elif io == "btn0":
+                self.btn0_entry.grid_forget()
+                self.btn0_entry.delete(0, ctk.END)
+            elif io == "btn1":
+                self.btn1_entry.grid_forget()
+                self.btn1_entry.delete(0, ctk.END)
+            elif io == "btn2":
+                self.btn2_entry.grid_forget()
+                self.btn2_entry.delete(0, ctk.END)
+            elif io == "btn3":
+                self.btn3_entry.grid_forget()
+                self.btn3_entry.delete(0, ctk.END)
 
     def resize(self, event):
         # print("Am I getting called")
@@ -1023,6 +1350,39 @@ class PortConfigTab(ctk.CTkScrollableFrame):
         # self.led3_entry.grid(row=7, column=2, padx=5, pady=5, sticky='w')
         # self.led3_entry_placeholder.grid(row=5, column=3, padx=5, pady=5)
 
+
+        self.led4r_lbl.grid(row=8, column=0, padx=5, pady=5, sticky='e')
+        self.led4r_dropdown.grid(row=8, column=1, padx=5, pady=5)
+        self.led4g_lbl.grid(row=9, column=0, padx=5, pady=5, sticky='e')
+        self.led4g_dropdown.grid(row=9, column=1, padx=5, pady=5)
+        self.led4b_lbl.grid(row=10, column=0, padx=5, pady=5, sticky='e')
+        self.led4b_dropdown.grid(row=10, column=1, padx=5, pady=5)
+        
+        self.led5r_lbl.grid(row=11, column=0, padx=5, pady=5, sticky='e')
+        self.led5r_dropdown.grid(row=11, column=1, padx=5, pady=5)
+        self.led5g_lbl.grid(row=12, column=0, padx=5, pady=5, sticky='e')
+        self.led5g_dropdown.grid(row=12, column=1, padx=5, pady=5)
+        self.led5b_lbl.grid(row=13, column=0, padx=5, pady=5, sticky='e')
+        self.led5b_dropdown.grid(row=13, column=1, padx=5, pady=5)
+        
+        self.sw0_lbl.grid(row=14, column=0, padx=5, pady=5, sticky='e')
+        self.sw0_dropdown.grid(row=14, column=1, padx=5, pady=5)
+        self.sw1_lbl.grid(row=15, column=0, padx=5, pady=5, sticky='e')
+        self.sw1_dropdown.grid(row=15, column=1, padx=5, pady=5)
+        
+        self.btn0_lbl.grid(row=16, column=0, padx=5, pady=5, sticky='e')
+        self.btn0_dropdown.grid(row=16, column=1, padx=5, pady=5)
+        self.btn1_lbl.grid(row=17, column=0, padx=5, pady=5, sticky='e')
+        self.btn1_dropdown.grid(row=17, column=1, padx=5, pady=5)
+        self.btn2_lbl.grid(row=18, column=0, padx=5, pady=5, sticky='e')
+        self.btn2_dropdown.grid(row=18, column=1, padx=5, pady=5)
+        self.btn3_lbl.grid(row=19, column=0, padx=5, pady=5, sticky='e')
+        self.btn3_dropdown.grid(row=19, column=1, padx=5, pady=5)
+
+# THIS IO CONFIG TAB IS NOT ACTUALLY RENDERED!! #
+# It is a relic of the past.
+# There used to be an old GUI (see old_gui branch if it stills exists on GitHub)
+# 
 class IOConfigTab(ctk.CTkFrame):
     def __init__(self, parent):
         super().__init__(parent)
