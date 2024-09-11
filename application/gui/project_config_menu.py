@@ -766,7 +766,9 @@ class PortConfigTab(ctk.CTkScrollableFrame):
 
         self.switches = []  # Initalise
 
-        self.led_optionboxes = [
+        # Array storing references to all dropdowns for output I/O
+        # Outputs can have ALL model inputs or outputs
+        self.output_optionboxes = [
             self.led0_dropdown, 
             self.led1_dropdown, 
             self.led2_dropdown, 
@@ -776,7 +778,12 @@ class PortConfigTab(ctk.CTkScrollableFrame):
             self.led4b_dropdown,
             self.led5r_dropdown, 
             self.led5g_dropdown, 
-            self.led5b_dropdown,
+            self.led5b_dropdown
+        ]
+        
+        # Array storing references to all dropdowns for input I/O 
+        # Inputs may only be inputs to HDL models - naturally enough.
+        self.input_optionboxes = [
             self.sw0_dropdown,
             self.sw1_dropdown,
             self.btn0_dropdown,
@@ -1081,24 +1088,47 @@ class PortConfigTab(ctk.CTkScrollableFrame):
             return
 
 
-        dropdown_options = [""]
-        self.dropdown_dict = {}
+        ###############################################
+        # POPULATE DROPDOWN MENU FOR OUTPUT BOARD I/O #
+        ###############################################
+        output_dropdown_options = [""]
+        self.output_dropdown_dict = {}
         for port in self.hdlgen_prj.parsed_ports:
-            dropdown_options.append(port[0])
+            output_dropdown_options.append(port[0])
             # dropdown_ports.append(port[0], port[2])
-            self.dropdown_dict[port[0]] = port[2]
+            self.output_dropdown_dict[port[0]] = port[2]
         for sig in self.switches_values:
             if sig == None:
                 continue
-            dropdown_options.append(f"int_{sig[0]}")    # We want it to be int_ for internal
+            output_dropdown_options.append(f"int_{sig[0]}")    # We want it to be int_ for internal
             # dropdown_ports.append(port[0], port[2])
-            self.dropdown_dict[f"int_{sig[0]}"] = sig[1]
+            self.output_dropdown_dict[f"int_{sig[0]}"] = sig[1]
         
-        # dropdown_options now contains all the names of the signals.
+        # output_dropdown_options now contains all the names of the signals.
         # dropdown_dict contains all the names + the size
-        for optionbox in self.led_optionboxes:
-            optionbox.configure(values=dropdown_options)
-            if optionbox.cget('variable').get() not in dropdown_options:
+        for optionbox in self.output_optionboxes:
+            optionbox.configure(values=output_dropdown_options)
+            if optionbox.cget('variable').get() not in output_dropdown_options:
+                optionbox.cget('variable').set("")
+        
+        ###############################################
+        # POPULATE DROPDOWN MENU FOR INPUT BOARD I/O  #
+        ###############################################
+        input_dropdown_options = [""]
+        self.input_dropdown_dict = {}
+        for port in self.hdlgen_prj.parsed_ports:
+            if port[1] == "in":
+                input_dropdown_options.append(port[0])
+                # dropdown_ports.append(port[0], port[2])
+                self.input_dropdown_dict[port[0]] = port[2]
+
+        # Internal Signals CANNOT ever be inputs so we are ignoring them.
+        
+        # input_dropdown_options now contains all the names of the signals.
+        # dropdown_dict contains all the names + the size
+        for optionbox in self.input_optionboxes:
+            optionbox.configure(values=input_dropdown_options)
+            if optionbox.cget('variable').get() not in input_dropdown_options:
                 optionbox.cget('variable').set("")
 
     def io_optionbox_handler(self, signal, io):
