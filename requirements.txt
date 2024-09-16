@@ -6,3 +6,4 @@ tkinter-tooltip
 tkhtmlview
 psutil
 markdown
+gitpython
