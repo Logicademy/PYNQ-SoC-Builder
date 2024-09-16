@@ -1487,19 +1487,19 @@ class PortConfigTab(ctk.CTkScrollableFrame):
             self.led5b_lbl.grid(row=13, column=0, padx=5, pady=5, sticky='e')
             self.led5b_dropdown.grid(row=13, column=1, padx=5, pady=5)
             
-            self.sw0_lbl.grid(row=14, column=0, padx=5, pady=5, sticky='e')
-            self.sw0_dropdown.grid(row=14, column=1, padx=5, pady=5)
-            self.sw1_lbl.grid(row=15, column=0, padx=5, pady=5, sticky='e')
-            self.sw1_dropdown.grid(row=15, column=1, padx=5, pady=5)
+            self.sw0_lbl.grid(row=4, column=3, padx=5, pady=5, sticky='e')
+            self.sw0_dropdown.grid(row=4, column=4, padx=5, pady=5)
+            self.sw1_lbl.grid(row=5, column=3, padx=5, pady=5, sticky='e')
+            self.sw1_dropdown.grid(row=5, column=4, padx=5, pady=5)
             
-            self.btn0_lbl.grid(row=4, column=3, padx=5, pady=5, sticky='e')
-            self.btn0_dropdown.grid(row=4, column=4, padx=5, pady=5)
-            self.btn1_lbl.grid(row=5, column=3, padx=5, pady=5, sticky='e')
-            self.btn1_dropdown.grid(row=5, column=4, padx=5, pady=5)
-            self.btn2_lbl.grid(row=6, column=3, padx=5, pady=5, sticky='e')
-            self.btn2_dropdown.grid(row=6, column=4, padx=5, pady=5)
-            self.btn3_lbl.grid(row=7, column=3, padx=5, pady=5, sticky='e')
-            self.btn3_dropdown.grid(row=7, column=4, padx=5, pady=5)
+            self.btn0_lbl.grid(row=6, column=3, padx=5, pady=5, sticky='e')
+            self.btn0_dropdown.grid(row=6, column=4, padx=5, pady=5)
+            self.btn1_lbl.grid(row=7, column=3, padx=5, pady=5, sticky='e')
+            self.btn1_dropdown.grid(row=7, column=4, padx=5, pady=5)
+            self.btn2_lbl.grid(row=8, column=3, padx=5, pady=5, sticky='e')
+            self.btn2_dropdown.grid(row=8, column=4, padx=5, pady=5)
+            self.btn3_lbl.grid(row=9, column=3, padx=5, pady=5, sticky='e')
+            self.btn3_dropdown.grid(row=9, column=4, padx=5, pady=5)
 
 # THIS IO CONFIG TAB IS NOT ACTUALLY RENDERED!! #
 # It is a relic of the past.
