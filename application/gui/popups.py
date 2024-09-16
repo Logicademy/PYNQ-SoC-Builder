@@ -28,6 +28,19 @@ class Alert_Window(ctk.CTkToplevel):
         self.left_frame.grid(column=0, row=0)
         self.right_frame.grid(column=1, row=0)
 
+class Problem_Window(Alert_Window):
+    def __init__(self, app):
+        Alert_Window.__init__(self, app)
+        self.app = app
+        self.geometry("300x100")
+        self.link_button = ctk.CTkButton(self.right_frame, text="More Info", command=self.open_link)
+        if (self.app.problem_link):
+            self.msglabel.configure(height=70)
+            self.link_button.pack(pady=1)
+
+    def open_link(self):
+        webbrowser.open(self.app.problem_link)
+
 
 class Dialog_Window(ctk.CTkToplevel):
     def __init__(self, app):
@@ -185,18 +198,6 @@ class FPGA_Window(ctk.CTkToplevel):
             window_height = 400
             window_size = f"{str(window_width)}x{str(window_height)}"
             self.geometry(window_size)
-    
-
-
-
-
-
-
-
-
-
-
-
 
         self.popup_frame.pack()
 

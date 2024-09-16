@@ -32,7 +32,8 @@ class Application:
         self.hdlgen_path = None         # Current Project
         self.hdlgen_prj = None          # Current Project Object
         self.path_to_markdown = None    # Path to markdown file.
-
+        self.problem_link = None
+        
         self.page1 = main_menu.MainPage(self)
         self.page2 = openproj.OpenProjectPage(self)
 
@@ -75,6 +76,15 @@ class Application:
     def open_alert(self):
         if self.toplevel_window is None or not self.toplevel_window.winfo_exists():
             self.toplevel_window = popups.Alert_Window(self) # Create window if None or destroyed
+        else:
+            self.toplevel_window.focus() # if window exists focus it.
+
+    ###############################
+    ##### Open Problem Pop-Up #####
+    ###############################
+    def open_problem(self):
+        if self.toplevel_window is None or not self.toplevel_window.winfo_exists():
+            self.toplevel_window = popups.Problem_Window(self) # Create window if None or destroyed
         else:
             self.toplevel_window.focus() # if window exists focus it.
 
@@ -145,14 +155,12 @@ if __name__ == "__main__":
     ctk.deactivate_automatic_dpi_awareness()
     app = Application(root)
 
-
-    repo = git.Repo(os.getcwd())
-    
-    # Get the active branch
-    current_branch = repo.active_branch
-    print(f"Current branch: {current_branch}")
-
     try:
+        repo = git.Repo(os.getcwd())
+    
+        # Get the active branch
+        current_branch = repo.active_branch
+        print(f"Current branch: {current_branch}")
         if current_branch.name == "master":    # Temporarily changed to auto_updater for testing purposes 
             # Fetch updates from the remote
             # Configure remote URL with credentials (for HTTPS)
@@ -194,6 +202,12 @@ if __name__ == "__main__":
 
             else:
                 print("Skipping update, running application...")
+
+    except git.InvalidGitRepositoryError:
+        app.top_level_message = "Could not find Git repository - Cannot check for updates."
+        app.problem_link = "https://github.com/Logicademy/PYNQ-SoC-Builder/blob/master/docs/support/git_not_found.md"
+        app.open_problem()
+        app.toplevel_window.wait_window() # Wait for user's response
 
     except Exception as e:
         print(f"Could not auto-update project, please do manually or re-clone from Github.com/Logicademy/PYNQ-SoC-Builder - {e}")
