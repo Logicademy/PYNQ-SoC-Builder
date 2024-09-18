@@ -220,12 +220,12 @@ pynq_constraints_mode = {
     "sw0": "in",
     "sw1": "in",
     # RGB LEDs
-    "led4_b": "out",
-    "led4_g": "out",
-    "led4_r": "out",
-    "led5_b": "out",
-    "led5_g": "out",
-    "led5_r": "out",
+    "led4b": "out",
+    "led4g": "out",
+    "led4r": "out",
+    "led5b": "out",
+    "led5g": "out",
+    "led5r": "out",
     # LEDs
     "led0": "out",
     "led1": "out",

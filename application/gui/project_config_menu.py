@@ -899,7 +899,7 @@ class PortConfigTab(ctk.CTkScrollableFrame):
             # This means the entry box is shown and you should read the value.
             sw0_array = [self.sw0_dropdown.get(), int(self.sw0_entry.get())]
         else:
-            led5r_array = [self.sw0_dropdown.get(), 0]
+            sw0_array = [self.sw0_dropdown.get(), 0]
         if self.led5g_entry.grid_info():
             # This means the entry box is shown and you should read the value.
             sw1_array = [self.sw1_dropdown.get(), int(self.sw1_entry.get())]
