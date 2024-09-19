@@ -981,6 +981,83 @@ def generate_gui_controller(compName, parsed_all_ports, location):
     py_code += "\n\t# Format SVG Data"
     py_code += "\n\tsvg_content = svg_content.split('<?xml', 1)[-1]"
     py_code += "\n\tsvg_with_tags = f'<svg>{svg_content}</svg>'"
+
+
+    py_code += """
+        js_code = \"\"\"
+            <script>
+                function makeElementDraggable(element) {
+                    let isDragging = false,
+                        offsetX = 0,
+                        offsetY = 0
+                    element.addEventListener('mousedown', event => {
+                        isDragging = true
+                        offsetX = event.clientX - element.getBoundingClientRect().left
+                        offsetY = event.clientY - element.getBoundingClientRect().top
+                    })
+
+                    document.addEventListener('mousemove', event => {
+                        if (isDragging) {
+                            const containerRect = document.querySelector('.output-content-area').getBoundingClientRect()
+                            element.style.position = 'absolute'
+                            element.style.left = `${Math.max(containerRect.left, Math.min(event.clientX - offsetX, containerRect.right - element.offsetWidth)) - containerRect.left}px`
+                            element.style.top = `${Math.max(containerRect.top, Math.min(event.clientY - offsetY, containerRect.bottom - element.offsetHeight)) - containerRect.top}px`
+                        }
+                    })
+                    document.addEventListener('mouseup', () => isDragging = false)
+                }
+
+                function setupButton(button, callback) {
+                    let isClick = true
+                    button.onmousedown = () => {
+                        isClick = true
+                        setTimeout(() => isClick = false, 250)
+                    }
+
+                    button.onclick = event => {
+                        if (!isClick) {
+                            event.preventDefault()
+                        } else {
+                            callback(button)
+                        }
+                    }
+                }
+
+                function toggleButtonState(button) {
+                    button.textContent = button.textContent === '0' ? '1' : '0'
+                    button.classList.toggle('mod-danger')
+                    button.classList.toggle('mod-success')
+                }
+
+                function setSignals() {
+            """
+
+    inputs = []
+    outputs = []
+    for port in parsed_all_ports:
+        if port[1] == "in":
+                inputs.append(port[0])
+        elif port[1] == "out":
+                outputs.append(port[0])
+
+    py_code += "\n\t\t\tconst values = ["
+    py_code += ', '.join(f"'{input}'" for input in inputs)
+    py_code += "].map(id => document.getElementById(id).textContent === '1' ? 1 : 0);"
+    py_code += f"\n\t\t\tconst [{', '.join(f'{port}_value' for port in inputs)}] = values;"
+    py_code += "\n\t\t\t"
+    py_code += "\n\t\t\tIPython.notebook.kernel.execute(`\n"
+    py_code += '\n'.join([f"\t\t\t\t{input}.write(0, ${{input}}_value);" for input in inputs])
+    py_code += "\t\t\t\t\n"
+    py_code += '\n'.join([f"\t\t\t\t{output}_value = {output}.read(0)" for output in outputs])
+    py_code += "\t\t\t\t\n"
+    py_code += '\n'.join([f"\t\t\t\tprint({output}_value)" for output in outputs])
+    py_code += "\n\t\t\t, {"
+    py_code += "\n\t\t}"
+    py_code += "\n\t\t\tiopub: {"
+    py_code += "\n\t\t\t\toutput: data => {"
+
+
+
     py_code += "\n\n\t# Create Widget Object for SVG"
     py_code += "\n\toutput_svg = Output()"
     py_code += "\n\twith output_svg:"
