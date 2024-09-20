@@ -944,6 +944,47 @@ def generate_io_visuals(io_map):
     return py_code
 
 def generate_gui_controller(compName, parsed_all_ports, location):
+    def create_input_button(name):
+        return f"""
+        <div class="draggable" style="display: inline-flex;align-items: center;gap: 0;">
+            <div class="lm-Widget p-Widget jupyter-widgets">{name}</div>
+            <button class="input-button lm-Widget p-Widget jupyter-widgets jupyter-button widget-toggle-button mod-danger" style="width: 50px;" id="{name}">0</button>
+        </div>
+    """
+
+    def create_output_button(name):
+        return f"""
+        <div class="draggable" style="display: inline-flex;align-items: center;gap: 0;">
+            <button class="lm-Widget p-Widget jupyter-widgets jupyter-button widget-toggle-button mod-danger" disabled="" title="" style="width: 50px;" id="{name}">0</button>
+            <div class="lm-Widget p-Widget jupyter-widgets">{name}</div>
+        </div>
+    """
+
+    def create_set_signals_button():
+        return """
+        <button class="set-signal-button draggable lm-Widget p-Widget jupyter-widgets jupyter-button widget-button mod-info" title="">Set Signals</button>
+        """
+
+    def create_input_textbox(name):
+        return f"""
+        <div class="draggable" style="display: inline-flex;align-items: center;gap: 0;">
+            <div class="lm-Widget p-Widget jupyter-widgets widget-label">{name}</div>
+            <div class="lm-Widget p-Widget jupyter-widgets widget-inline-hbox widget-text" style="width: 200px;">
+                <label class="widget-label" title="" for="{name}" style="display: none;"></label>
+                <input type="text" id="{name}" placeholder="" value="0x0">
+            </div>
+        </div>
+    """
+
+    def create_output_textbox(name):
+        return f"""
+        <div class="draggable" style="display: inline-flex;align-items: center;gap: 0;">
+            <div class="lm-Widget p-Widget jupyter-widgets widget-inline-hbox widget-text" style="width: 200px;">
+            <label class="widget-label" title="" for="{name}" style="display: none;"></label>
+            <input type="text" id="{name}" disabled="" placeholder=""></div>
+            <div class="lm-Widget p-Widget jupyter-widgets widget-label">{name}</div>
+        </div>
+    """
 
     py_code = ""
 
@@ -962,13 +1003,6 @@ def generate_gui_controller(compName, parsed_all_ports, location):
     py_code += f"\nsvg_content = \"{svg_data}\""
     py_code += f"\nimage_index = 1  # Tracks next image to show so that it can be cycled"
 
-    py_code += f"\n\n# Find images in the current directory"
-    py_code += f"\ndef find_images():"
-    py_code += f"\n\tcurr_dir = os.getcwd()"
-    py_code += f"\n\tlist_dir = os.listdir(curr_dir)"
-    py_code += f"\n\timg_files = [file for file in list_dir if file.endswith('.png') or file.endswith('.svg') or file.endswith('.jpg')]"
-    py_code += f"\n\treturn img_files"
-
     py_code += "\ndef get_bit(bit_position, num):"
     py_code += "\n\tif bit_position >= num.bit_length():"
     py_code += "\n\t\treturn 0"
@@ -976,396 +1010,249 @@ def generate_gui_controller(compName, parsed_all_ports, location):
     py_code += "\n\t\treturn (num >> bit_position) & 1"
 
     py_code += "\n\n\ndef generate_gui(svg_content):"
-    py_code += "\n\timages_found = find_images()"
-
     py_code += "\n\t# Format SVG Data"
     py_code += "\n\tsvg_content = svg_content.split('<?xml', 1)[-1]"
-    py_code += "\n\tsvg_with_tags = f'<svg>{svg_content}</svg>'"
-
+    py_code += "\n\tsvg_with_tags = f'<svg style=\"display: block; margin: 50px auto; max-width: 100%; height: auto;\"{svg_content}</svg>'"
 
     py_code += """
-        js_code = \"\"\"
-            <script>
-                function makeElementDraggable(element) {
-                    let isDragging = false,
-                        offsetX = 0,
-                        offsetY = 0
-                    element.addEventListener('mousedown', event => {
-                        isDragging = true
-                        offsetX = event.clientX - element.getBoundingClientRect().left
-                        offsetY = event.clientY - element.getBoundingClientRect().top
-                    })
+    html_code = \"\"\"
+        <style>
+            .output-content-area {
+                position: relative;
+                border: 1px solid black;
+                overflow: scroll;
+                box-sizing: border-box;
+            }
+        </style>
 
-                    document.addEventListener('mousemove', event => {
-                        if (isDragging) {
-                            const containerRect = document.querySelector('.output-content-area').getBoundingClientRect()
-                            element.style.position = 'absolute'
-                            element.style.left = `${Math.max(containerRect.left, Math.min(event.clientX - offsetX, containerRect.right - element.offsetWidth)) - containerRect.left}px`
-                            element.style.top = `${Math.max(containerRect.top, Math.min(event.clientY - offsetY, containerRect.bottom - element.offsetHeight)) - containerRect.top}px`
-                        }
-                    })
-                    document.addEventListener('mouseup', () => isDragging = false)
-                }
+        <div class="output-content-area" id="output-content-area">
+    \"\"\"+svg_with_tags+\"\"\"
+    """
 
-                function setupButton(button, callback) {
-                    let isClick = true
-                    button.onmousedown = () => {
-                        isClick = true
-                        setTimeout(() => isClick = false, 250)
+    input_buttons = []
+    output_buttons = []
+    input_textboxes = []
+    output_textboxes = []
+
+    for port in parsed_all_ports:
+        if port[1] == "in":
+            if port[2] == 1:
+                input_buttons.append(port[0])
+            else:
+                input_textboxes.append({"name": port[0], "bits": port[2]})  
+        elif port[1] == "out":
+            if port[2] == 1: 
+                output_buttons.append(port[0])
+            elif port[2] <= 8:
+                pass
+            else:
+                output_textboxes.append(port[0])
+
+    for input_button in input_buttons:
+        py_code += create_input_button(input_button)
+    for output_button in output_buttons:
+        py_code += create_output_button(output_button)
+    for input_textbox in input_textboxes:
+        py_code += create_input_textbox(input_textbox)      
+    for output_text_box in output_textboxes:
+        py_code += create_output_textbox(output_text_box)
+    py_code += create_set_signals_button()
+
+    py_code += """
+        <script>
+            function makeElementDraggable(element) {
+                let isDragging = false,
+                    offsetX = 0,
+                    offsetY = 0;
+                element.addEventListener('mousedown', event => {
+                    isDragging = true;
+                    offsetX = event.clientX - element.getBoundingClientRect().left;
+                    offsetY = event.clientY - element.getBoundingClientRect().top;
+                });
+                document.addEventListener('mousemove', event => {
+                    if (isDragging) {
+                        const containerRect = document.querySelector('.output-content-area').getBoundingClientRect();
+                        element.style.position = 'absolute';
+                        element.style.left = `${Math.max(containerRect.left, Math.min(event.clientX - offsetX, containerRect.right - element.offsetWidth)) - containerRect.left}px`;
+                        element.style.top = `${Math.max(containerRect.top, Math.min(event.clientY - offsetY, containerRect.bottom - element.offsetHeight)) - containerRect.top}px`;
+                    }
+                });
+                document.addEventListener('mouseup', () => isDragging = false);
+            }
+
+            function setupButton(button, callback) {
+                let isClick = true;
+                button.onmousedown = () => {
+                    isClick = true;
+                    setTimeout(() => isClick = false, 250);
+                };
+
+                button.onclick = event => {
+                    if (!isClick) {
+                        event.preventDefault();
+                    } else {
+                        callback(button);
+                    }
+                };
+            }
+
+            function toggleButtonState(button) {
+                button.textContent = button.textContent === '0' ? '1' : '0';
+                button.classList.toggle('mod-danger');
+                button.classList.toggle('mod-success');
+            }
+
+            function checkMaxValue(numberStr, numBits) {
+                function userStringToInt(numberStr){
+                    let radix = 10;
+                    if (numberStr.startsWith("0x")) {
+                        radix = 16;
+                    } else if (numberStr.startsWith("0b")) {
+                        radix = 2;
+                    } else if (numberStr.slice(1).startsWith("0x")) {
+                        radix = 16;
+                    } else if (numberStr.slice(1).startsWith("0b")) {
+                        radix = 2;
+                    } else{
+                        return parseInt(numberStr)
                     }
 
-                    button.onclick = event => {
-                        if (!isClick) {
-                            event.preventDefault()
-                        } else {
-                            callback(button)
-                        }
+                    const skipSign = (numberStr[0] === '+' || numberStr[0] === '-') ? 1 : 0;
+                    const noRadixString = numberStr.slice(0, skipSign) + numberStr.slice(skipSign + 2);
+                    return parseInt(noRadixString, radix);
+                }
+
+                const value = userStringToInt(numberStr)
+                try {
+                    let maxValue = 2**numBits - 1
+                    
+                    if (value > maxValue) {
+                        let truncatedValue = value % (2**numBits)
+                        return [true, truncatedValue];
+                    } else {
+                        return [false, value];
                     }
+                } catch (error) {
+                    return [false, null];
                 }
+            }
+    """
 
-                function toggleButtonState(button) {
-                    button.textContent = button.textContent === '0' ? '1' : '0'
-                    button.classList.toggle('mod-danger')
-                    button.classList.toggle('mod-success')
-                }
-
-                function setSignals() {
+    def generate_set_signals_function(input_textboxes, input_buttons, output_textboxes, output_buttons):
+        textbox_names = [item["name"] for item in input_textboxes]
+        textbox_names_str = ', '.join([f"'{name}'" for name in textbox_names])
+        value_names_str = ', '.join([f"{name}_value" for name in textbox_names])
+        
+        truncated_checks = []
+        for item in input_textboxes:
+            name = item["name"]
+            bits = item["bits"]
+            truncated_check = f"""
+                            let [{name}_truncated, new_{name}Value] = checkMaxValue({name}_value, {bits});
+                {name}_value = new_{name}Value;
+                if ({name}_truncated) {{
+                    console.log(`{name} value provided is > {bits} bits, input has been truncated to: 0x${{{name}_value.toString(16)}}`);
+                }}
             """
+            truncated_checks.append(truncated_check.strip())
+        
+        truncated_checks_str = "\n\n".join(truncated_checks)
 
-    inputs = []
-    outputs = []
-    for port in parsed_all_ports:
-        if port[1] == "in":
-                inputs.append(port[0])
-        elif port[1] == "out":
-                outputs.append(port[0])
+        button_names_str = ', '.join([f"'{name}'" for name in input_buttons])
+        button_value_names_str = ', '.join([f"{name}_value" for name in input_buttons])
 
-    py_code += "\n\t\t\tconst values = ["
-    py_code += ', '.join(f"'{input}'" for input in inputs)
-    py_code += "].map(id => document.getElementById(id).textContent === '1' ? 1 : 0);"
-    py_code += f"\n\t\t\tconst [{', '.join(f'{port}_value' for port in inputs)}] = values;"
-    py_code += "\n\t\t\t"
-    py_code += "\n\t\t\tIPython.notebook.kernel.execute(`\n"
-    py_code += '\n'.join([f"\t\t\t\t{input}.write(0, ${{input}}_value);" for input in inputs])
-    py_code += "\t\t\t\t\n"
-    py_code += '\n'.join([f"\t\t\t\t{output}_value = {output}.read(0)" for output in outputs])
-    py_code += "\t\t\t\t\n"
-    py_code += '\n'.join([f"\t\t\t\tprint({output}_value)" for output in outputs])
-    py_code += "\n\t\t\t, {"
-    py_code += "\n\t\t}"
-    py_code += "\n\t\t\tiopub: {"
-    py_code += "\n\t\t\t\toutput: data => {"
+        write_statements = []
+        if(input_textboxes):
+            for item in input_textboxes:
+                write_statements.append(f"                {item['name']}.write(0, ${{{item['name']}_value}})")
+        
+        if(input_buttons):
+            for name in input_buttons:
+                write_statements.append(f"                {name}.write(0, ${{{name}_value}})")
 
+        write_statements_str = "\n".join(write_statements)
 
+        output_reads = []
+        if(output_textboxes):
+            for name in output_textboxes:
+                output_reads.append(f"{name}_value = {name}.read(0)")
+        
+        if(output_buttons):
+            for name in output_buttons:
+                output_reads.append(f"{name}_value = {name}.read(0)")
 
-    py_code += "\n\n\t# Create Widget Object for SVG"
-    py_code += "\n\toutput_svg = Output()"
-    py_code += "\n\twith output_svg:"
-    py_code += "\n\t\tdisplay(SVG(data=svg_with_tags))"
+        output_reads_str = "\n                ".join(output_reads)
 
-    input_setup = ""
-    output_setup = ""
-    num_input = 0
-    num_output = 0
+        print_statements = []
+        if(output_textboxes):
+            for name in output_textboxes:
+                print_statements.append(f"{name}:{{{name}_value}}")
+        
+        if(output_buttons):
+            for name in output_buttons:
+                print_statements.append(f"{name}:{{{name}_value}}")
+        
+        print_statement_str = ",".join(print_statements)
 
-    py_code += "\n\t# Update Button State Function"
-    py_code += "\n\tdef update_button_state(change, label, button):"
-    py_code += "\n\t\tif change['new']:"
-    py_code += "\n\t\t\tbutton.value = True"
-    py_code += "\n\t\t\tbutton.description = '1'"
-    py_code += "\n\t\t\tbutton.button_style = 'success'  # Green color"
-    py_code += "\n\t\telse:"
-    py_code += "\n\t\t\tbutton.value = False"
-    py_code += "\n\t\t\tbutton.description = '0'"
-    py_code += "\n\t\t\tbutton.button_style = 'danger'   # Red color"
+        generated_code = """function setSignals(){"""
 
-    py_code += "\n\n\t# Change Image Button Handler"
-    py_code += "\n\tdef update_image(arg, grid):"
-    py_code += "\n\t\tglobal image_index # Use global var image_index"
-    py_code += "\n\t\tglobal svg_content # Use global var svg_content"
-    py_code += "\n\n\t\t# First remove the current image"
-    py_code += "\n\t\tgrid[:-1,1].close()"
-    py_code += "\n\t\t# If the image_index remainder is 0, we want to set default SVG"
-    py_code += "\n\t\tif image_index % (len(images_found)+1) == 0:"
-    py_code += "\n\t\t\t# Set SVG"
-    py_code += "\n\t\t\tsvg_content = svg_content.split('<?xml', 1)[-1]"
-    py_code += "\n\t\t\tsvg_with_tags = f'<svg>{svg_content}</svg>'"
-    py_code += "\n\t\t\t# Create Widget Object for SVG"
-    py_code += "\n\t\t\toutput_svg = Output()"
-    py_code += "\n\t\t\twith output_svg:"
-    py_code += "\n\t\t\t\tdisplay(SVG(data=svg_with_tags))"
-    py_code += "\n\t\t\t# Set new widget"
-    py_code += "\n\t\t\tgrid[:-1,1] = output_svg"
-    py_code += "\n\t\telse:"
-    py_code += "\n\t\t\t# We are dealing with a new image"
-    py_code += "\n\t\t\t# Normalise index to be between 0 and number of images found - 1"
-    py_code += "\n\t\t\tindex = (image_index-1) % len(images_found)"
-    py_code += "\n\t\t\timage_filename = images_found[index]"
-    py_code += "\n\t\t\t# Deal with SVG file"
-    py_code += "\n\t\t\tif image_filename[-3:] == 'svg':"
-    py_code += "\n\t\t\t\t#Read the SVG content from the file"
-    py_code += "\n\t\t\t\twith open(image_filename, 'r') as file:"
-    py_code += "\n\t\t\t\t\tsvg_content_temp = file.read()"
-    py_code += "\n\t\t\t\tsvg_content_temp = svg_content_temp.split('<?xml', 1)[-1]"
-    py_code += "\n\t\t\t\tsvg_content_temp_with_tags = f'<svg>{svg_content_temp}</svg>'"
-    py_code += "\n\t\t\t\tuser_svg = Output()"
-    py_code += "\n\t\t\t\twith user_svg:"
-    py_code += "\n\t\t\t\t\tdisplay(SVG(data=svg_content_temp_with_tags))"
-    py_code += "\n\t\t\t\tgrid[:-1,1] = user_svg"
-    py_code += "\n\t\t\t# Dealing with JPG or PNG"
-    py_code += "\n\t\t\telse:"
-    py_code += "\n\t\t\t\tfile = open(image_filename, 'rb')"
-    py_code += "\n\t\t\t\timage = file.read()"
-    py_code += "\n\t\t\t\timage_widget = widgets.Image("
-    py_code += "\n\t\t\t\t\tvalue=image,"
-    py_code += "\n\t\t\t\t\tformat=image_filename[-3:],"
-    py_code += "\n\t\t\t\t\twidth=300,"
-    py_code += "\n\t\t\t\t\theight=400"
-    py_code += "\n\t\t\t\t)"
-    py_code += "\n\t\t\t\tgrid[:-1,1] = image_widget"
-    py_code += "\n\t\timage_index += 1"
-    py_code += "\n"
+        if(input_textboxes):
+            generated_code += f"""
+                const textbox_values = [{textbox_names_str}].map(id => document.getElementById(id).value);
+                let [{value_names_str}] = textbox_values;
+    {truncated_checks_str}
+    """
+        if(input_buttons):
+            generated_code += f"""
+                const values = [{button_names_str}].map(id => document.getElementById(id).textContent === '1' ? 1 : 0);
+                const [{button_value_names_str}] = values;
+    """    
+        
+        generated_code += f"""
+                IPython.notebook.kernel.execute(`
+    {write_statements_str}
+                    time.sleep(0.00000002)
+                    {output_reads_str}
 
+                    print(f"{print_statement_str}")
+                `, {{
+                    iopub: {{
+                        output: data => {{
+                            let output = data.content.text.trim().split(",")
+                            output.forEach(output => {{
+                                output  = output.split(":")
+                                const element = document.getElementById(output[0])
+                                const value = parseInt(output[1], 10)
 
-    for port in parsed_all_ports:
-        if port[1] == "in":
-            if port[2] == 1:
-                # Create Button
-                input_setup +=  f"\n\t{port[0]}_btn = widgets.ToggleButton("
-                input_setup +=  "\n\t\tvalue=False,"
-                input_setup +=  f"\n\t\tdescription='0',"
-                input_setup +=  "\n\t\tdisabled=False,"
-                input_setup +=  "\n\t\tlayout=Layout(width='50px'),"
-                input_setup +=  "\n\t\tbutton_style='danger'"
-                input_setup +=  "\n\t)"
-                # Create Label
-                input_setup += f"\n\t{port[0]}_lbl = widgets.Label(value='{port[0]}')"
-                # Add Event Listener
-                input_setup += f"\n\t{port[0]}_btn.observe(lambda change: update_button_state(change, {port[0]}_lbl, {port[0]}_btn), names='value')"
-                # hbox = HBox([label1, toggle_button1, label2, toggle_button2])
-                input_setup += f"\n\t{port[0]}_hbox = HBox([{port[0]}_lbl, {port[0]}_btn])"
-                input_setup += "\n\thbox_layout = widgets.Layout(display='flex', justify_content='flex-end', flex_flow='row')"
-                input_setup += f"\n\t{port[0]}_hbox.layout = hbox_layout"
-            else:  
-                input_setup +=  f"\n\t{port[0]}_tbox = widgets.Text("
-                input_setup +=  "\n\t\tvalue='0x0',"
-                input_setup +=  "\n\t\tplaceholder='',"
-                # input_setup +=  f"\n\t\tdescription='{port[0]}:',"
-                input_setup += "\n\t\tlayout=Layout(width='200px'),"
-                input_setup +=  "\n\t\tdisabled=False"
-                input_setup +=  "\n\t)"
-                input_setup += f"\n\t{port[0]}_lbl = widgets.Label(value='{port[0]}')"
-                input_setup += f"\n\t{port[0]}_hbox = HBox([{port[0]}_lbl, {port[0]}_tbox])"
-                input_setup += "\n\thbox_layout = widgets.Layout(display='flex', justify_content='flex-end', flex_flow='row')"
-                input_setup += f"\n\t{port[0]}_hbox.layout = hbox_layout"
-            num_input += 1
-        elif port[1] == "out":
-            if port[2] == 1:   # This will be used to make red/green light on output later
-                # Create Button
-                output_setup +=  f"\n\t{port[0]}_btn = widgets.ToggleButton("
-                output_setup +=  "\n\t\tvalue=False,"
-                output_setup +=  f"\n\t\tdescription='0',"
-                output_setup +=  "\n\t\tdisabled=True,"
-                output_setup +=  "\n\t\tlayout=Layout(width='50px'),"
-                output_setup +=  "\n\t\tbutton_style='danger'"
-                output_setup +=  "\n\t)"
+                                if (element.tagName === "INPUT") {{
+                                    element.value = "0x" + value.toString(16)
+                                }} else if (element.tagName === ("BUTTON")){{
+                                    element.textContent = value === 1 ? '1' : '0';
+                                    element.classList.remove('mod-success', 'mod-danger');
+                                    element.classList.add(value === 1 ? 'mod-success' : 'mod-danger');  
+                                }}
+                            }})
+                        }}
+                    }}
+                }});
+    """        
+        generated_code += "}"
+                    
+        return generated_code.strip()
 
-                output_setup += f"\n\t{port[0]}_lbl = widgets.Label(value='{port[0]}')"
-                output_setup += "\n\thbox_layout = widgets.Layout(display='flex', justify_content='flex-start', flex_flow='row')"
-                # hbox = HBox([label1, toggle_button1, label2, toggle_button2])
-                output_setup += f"\n\t{port[0]}_hbox = HBox([{port[0]}_btn, {port[0]}_lbl])"
-                output_setup += f"\n\t{port[0]}_hbox.layout = hbox_layout"
+    py_code += generate_set_signals_function(input_textboxes, input_buttons, output_textboxes, output_buttons)
 
-            elif port[2] <= 8:
-                output_setup += "\n\thbox_layout = widgets.Layout(display='flex', justify_content='flex-start', flex_flow='row')"
-                output_setup += f"\n\t{port[0]}_lbl = widgets.Label(value='{port[0]}')"
-                for i in range(0, port[2]):
-                    output_setup +=  f"\n\t{port[0]}_{i}_btn = widgets.ToggleButton("
-                    output_setup +=  "\n\t\tvalue=False,"
-                    output_setup +=  f"\n\t\tdescription='{i}',"
-                    output_setup +=  "\n\t\tdisabled=True,"
-                    output_setup +=  "\n\t\tlayout=Layout(width='25px')," 
-                    output_setup +=  "\n\t\tbutton_style='danger'"
-                    output_setup +=  "\n\t)"
-                
-                output_setup += f"\n\t{port[0]}_hbox = HBox(["
-                for i in range(0, port[2]):
-                    output_setup += f"{port[0]}_{port[2]-1-i}_btn, "    # Reverse order
-                output_setup += f"{port[0]}_lbl])"
-                output_setup += f"\n\t{port[0]}_hbox.layout = hbox_layout"
-                # Set up 2-8 bit array of lights
-                pass
-            else:
-                output_setup +=  f"\n\t{port[0]}_tbox = widgets.Text("
-                output_setup +=  "\n\t\tvalue='',"
-                output_setup +=  "\n\t\tplaceholder='',"
-                output_setup += "\n\t\tlayout=Layout(width='200px'),"
-                output_setup +=  "\n\t\tdisabled=True"
-                output_setup +=  "\n\t)"
-                output_setup += f"\n\t{port[0]}_lbl = widgets.Label(value='{port[0]}')"
-                output_setup += f"\n\t{port[0]}_hbox = HBox([{port[0]}_tbox, {port[0]}_lbl])"
-                output_setup += "\n\thbox_layout = widgets.Layout(display='flex', justify_content='flex-start', flex_flow='row')"
-                output_setup += f"\n\t{port[0]}_hbox.layout = hbox_layout"
-            num_output += 1
+    py_code += """
+    }
+            document.querySelectorAll('.input-button').forEach(button => setupButton(button, toggleButtonState));
+            document.querySelectorAll('.set-signal-button').forEach(button => setupButton(button, setSignals));
+            document.querySelectorAll('.gen-button').forEach(button => button.classList.add('lm-Widget', 'p-Widget', 'jupyter-widgets', 'jupyter-button', 'widget-toggle-button', 'mod-danger'));
+            document.querySelectorAll('.draggable').forEach(makeElementDraggable);
+        </script>
+\"\"\"
+"""
 
-    py_code += "\n\n\t# Create Input Widgets"
-    py_code += input_setup
-
-    py_code += "\n\n\t# Create Output Widgets"
-    py_code += output_setup
-
-    py_code += "\n\n\t# Create Set Button Widgets"
-    
-    py_code += "\n\tdef on_button_click(arg):"
-    
-    # All these checkboxes I meant to say textbox
-    read_input_checkbox = ""
-    truncated_msgs = ""
-    write_inputs = ""
-
-    read_output_ports = ""
-    set_output_checkboxes = ""
-    set_placeholders = ""
-
-    for port in parsed_all_ports:
-        if port[1] == "in":
-            if port[2] == 1:
-                # Set value int 1 or 0 if true or false respectively.
-                read_input_checkbox += f"\n\t\t{port[0]}_value = 1 if {port[0]}_btn.value else 0"
-                # No need to run any truncated msgs checks as the value can only be 1/0. 
-                # Set the values
-                write_inputs += f"\n\t\t{port[0]}.write(0, {port[0]}_value)" 
-                # No need to worry about setting placeholders either.
-            else:
-                # Code to read the value from each input text box
-                read_input_checkbox += f"\n\t\t{port[0]}_value = {port[0]}_tbox.value"
-                # Code to check if a signal has been truncated and to print relevant msg to user.
-                truncated_msgs += f"\n\t\ttruncated, {port[0]}_value = check_max_value({port[0]}_value, {port[2]})"
-                truncated_msgs += "\n\t\tif truncated:"
-                truncated_msgs += f"\n\t\t\tprint(f\"{port[0]} value provided is > {port[2]} bits, input has been truncated to: "
-                truncated_msgs += "{hex("+port[0]+"_value)}\")"
-                # Check if the value is None, then we want to print a message and not assert nothing.
-                truncated_msgs += f"\n\t\tif {port[0]}_value == None:"
-                truncated_msgs += f"\n\t\t\tprint(f\'{port[0]} value provided is invalid, no signals have been asserted.')"
-                truncated_msgs += "\n\t\t\treturn"
-                # Write inputs
-                write_inputs += f"\n\t\t{port[0]}.write(0, {port[0]}_value)" 
-                # Set placeholder values of textboxes to last pushed value
-                set_placeholders += f"\n\t\t{port[0]}_tbox.placeholder = str({port[0]}_tbox.value)"
-            
-        elif port[1] == "out":
-            read_output_ports += f"\n\t\t{port[0]}_value = {port[0]}.read(0)"
-            if port[2] == 1:
-                # Set value int 1 or 0 if true or false respectively.
-                set_output_checkboxes += f"\n\t\t{port[0]}_btn.button_style = 'success' if {port[0]}_value==1 else 'danger'"
-                set_output_checkboxes += f"\n\t\t{port[0]}_btn.description = '1' if {port[0]}_value==1 else '0'"
-                # No need to run any truncated msgs checks as the value can only be 1/0. 
-                # Set the values
-                # No need to worry about setting placeholders either.
-            elif port[2] <= 8:
-                for i in range(0, port[2]):
-                    set_output_checkboxes += f"\n\t\t{port[0]}_{i}_btn.button_style = 'success' if get_bit({i}, {port[0]}_value)==1 else 'danger'"
-                    set_output_checkboxes += f"\n\t\t{port[0]}_{i}_btn.description = '1' if get_bit({i}, {port[0]}_value)==1 else '0'"
-                # 2-8 bit array of buttons
-                pass
-            else:                
-                set_output_checkboxes += f"\n\t\t{port[0]}_tbox.value = hex({port[0]}_value)"
-
-    py_code += "\n\t\t# Read Values from User Inputs"
-    py_code += read_input_checkbox
-    py_code += "\n\n\t\t# Check Validity of Inputs"
-    py_code += truncated_msgs
-    py_code += "\n\n\t\t# Write Inputs"
-    py_code += write_inputs
-    py_code += "\n\n\t\t# Set input placeholders"
-    py_code += set_placeholders
-    py_code += "\n\n\t\ttime.sleep(0.00000002)"
-    py_code += "\n\n\t\t# Read Output Signals"
-    py_code += read_output_ports
-    py_code += "\n\n\t\t# Update Textboxes"
-    py_code += set_output_checkboxes
-
-
-    py_code += "\n\n\tset_signal = Button(description='Set Signals', button_style='info')"
-    py_code += "\n\tset_signal.on_click(on_button_click)"
-    py_code += "\n\tdisplay_button = HBox([set_signal], layout=Layout(justify_content='flex-end'))"
-
-
-    py_code += "\n\n\t# Define Grid Layout"
-    grid_depth = max(num_input, num_output)
-    if num_input >= num_output:
-        grid_depth += 2
-    py_code += f"\n\tgrid = GridspecLayout({grid_depth},3)"
-
-    
-
-    py_code += "\n\n\t# Set the Grid Widgets\n\t# Set Image (Centre, Full Height)"
-
-    py_code += "\n\tif len(images_found) > 0:"
-    py_code += "\n\t\tgrid[:-1,1] = output_svg # If there is images found, we want to make room for the toggle button."
-    py_code += "\n\t\ttoggle_image_button = Button(description='Change Image', button_style='info', layout=Layout(width='auto', margin='auto'))"
-    py_code += "\n\t\ttoggle_image_button.on_click(lambda b: update_image(b, grid))"
-    py_code += "\n\t\tgrid[-1,1] = toggle_image_button"
-    py_code += "\n\telse:"
-    py_code += "\n\t\tgrid[:,1] = output_svg"
-
-
-    input_grid_depth_index = 0
-    input_widgets_placement = ""
-    output_grid_depth_index = 0
-    output_widgets_placement = ""
-
-    # Form Placement Code    
-    for port in parsed_all_ports:
-        if port[1] == "in":
-            if port[2] == 1:
-                input_widgets_placement += f"\n\tgrid[{input_grid_depth_index}, 0] = {port[0]}_hbox"
-            else:
-                input_widgets_placement += f"\n\tgrid[{input_grid_depth_index}, 0] = {port[0]}_hbox"
-            input_grid_depth_index += 1
-        elif port[1] == "out":
-            if port[2] <= 8:
-                output_widgets_placement += f"\n\tgrid[{output_grid_depth_index}, 2] = {port[0]}_hbox"
-            else:
-                output_widgets_placement += f"\n\tgrid[{output_grid_depth_index}, 2] = {port[0]}_hbox"
-            output_grid_depth_index += 1
-    
-    # Place button at end of inputs after loop
-    input_widgets_placement += f"\n\tgrid[{input_grid_depth_index}, 0] = display_button"
-    
-    py_code += "\n\n\t# Input Widgets"
-    py_code += input_widgets_placement
-    py_code += "\n\n\t# Output Widgets"
-    py_code += output_widgets_placement
-
-    py_code += "\n\n\treturn grid"
-
-    py_code += "\n\n\ndef check_max_value(number_str, num_bits):"
-    py_code += "\n\ttry:"
-    py_code += "\n\t\t# Extracting the base and value from the input string"
-    py_code += "\n\t\tif number_str.startswith('0x'):"
-    py_code += "\n\t\t\tbase = 16"
-    py_code += "\n\t\t\tvalue = int(number_str, base)"
-    py_code += "\n\t\telif number_str.startswith('0b'):"
-    py_code += "\n\t\t\tbase = 2"
-    py_code += "\n\t\t\tvalue = int(number_str, base)"
-    py_code += "\n\t\telse:"
-    py_code += "\n\t\t\tbase = 10"
-    py_code += "\n\t\t\tvalue = int(number_str, base)"
-    py_code += "\n"
-    py_code += "\n\t\t# Calculating the maximum representable value based on the number of bits"
-    py_code += "\n\t\tmax_value = 2**num_bits - 1"
-    py_code += "\n"
-    py_code += "\n\t\t# Checking if the value exceeds the maximum"
-    py_code += "\n\t\tif value > max_value:"
-    py_code += "\n\t\t\t# Truncate the value to fit within the specified number of bits"
-    py_code += "\n\t\t\ttruncated_value = value % (2**num_bits)"
-    py_code += "\n\t\t\treturn True, truncated_value"
-    py_code += "\n\t\telse:"
-    py_code += "\n\t\t\treturn False, value"
-    py_code += "\n\texcept ValueError:"
-    py_code += "\n\t\treturn False, None"
-    
+    py_code += "\n\n\return HTML(html)"    
 
     return py_code
 
