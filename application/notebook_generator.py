@@ -60,7 +60,7 @@ def create_jnb(hdlgen_prj, add_to_log_box, force_gen=False):
 
     # Py File Imports
     py_file_contents += "import ipywidgets as widgets"
-    py_file_contents += "\nfrom IPython.display import SVG, display"
+    py_file_contents += "\nfrom IPython.display import SVG, display, HTML"
     py_file_contents += "\nfrom ipywidgets import GridspecLayout, Output, HBox"
     py_file_contents += "\nfrom ipywidgets import Button, Layout, jslink, IntText, IntSlider"
     py_file_contents += "\nfrom pynq import Overlay"
@@ -981,7 +981,7 @@ def generate_gui_controller(compName, parsed_all_ports, location):
         <div class="draggable" style="display: inline-flex;align-items: center;gap: 0;">
             <div class="lm-Widget p-Widget jupyter-widgets widget-inline-hbox widget-text" style="width: 200px;">
             <label class="widget-label" title="" for="{name}" style="display: none;"></label>
-            <input type="text" id="{name}" disabled="" placeholder=""></div>
+            <input type="text" id="{name}" disabled="" placeholder="" value="0x0"></div>
             <div class="lm-Widget p-Widget jupyter-widgets widget-label">{name}</div>
         </div>
     """
@@ -1053,7 +1053,7 @@ def generate_gui_controller(compName, parsed_all_ports, location):
     for output_button in output_buttons:
         py_code += create_output_button(output_button)
     for input_textbox in input_textboxes:
-        py_code += create_input_textbox(input_textbox)      
+        py_code += create_input_textbox(input_textbox["name"])      
     for output_text_box in output_textboxes:
         py_code += create_output_textbox(output_text_box)
     py_code += create_set_signals_button()
@@ -1175,13 +1175,13 @@ def generate_gui_controller(compName, parsed_all_ports, location):
         output_reads = []
         if(output_textboxes):
             for name in output_textboxes:
-                output_reads.append(f"{name}_value = {name}.read(0)")
+                output_reads.append(f"                {name}_value = {name}.read(0)")
         
         if(output_buttons):
             for name in output_buttons:
-                output_reads.append(f"{name}_value = {name}.read(0)")
+                output_reads.append(f"                {name}_value = {name}.read(0)")
 
-        output_reads_str = "\n                ".join(output_reads)
+        output_reads_str = "\n".join(output_reads)
 
         print_statements = []
         if(output_textboxes):
@@ -1200,7 +1200,7 @@ def generate_gui_controller(compName, parsed_all_ports, location):
             generated_code += f"""
                 const textbox_values = [{textbox_names_str}].map(id => document.getElementById(id).value);
                 let [{value_names_str}] = textbox_values;
-    {truncated_checks_str}
+{truncated_checks_str}
     """
         if(input_buttons):
             generated_code += f"""
@@ -1210,11 +1210,11 @@ def generate_gui_controller(compName, parsed_all_ports, location):
         
         generated_code += f"""
                 IPython.notebook.kernel.execute(`
-    {write_statements_str}
-                    time.sleep(0.00000002)
-                    {output_reads_str}
+{write_statements_str}
+                time.sleep(0.00000002)
+{output_reads_str}
 
-                    print(f"{print_statement_str}")
+                print(f"{print_statement_str}")
                 `, {{
                     iopub: {{
                         output: data => {{
@@ -1236,7 +1236,6 @@ def generate_gui_controller(compName, parsed_all_ports, location):
                     }}
                 }});
     """        
-        generated_code += "}"
                     
         return generated_code.strip()
 
@@ -1246,13 +1245,12 @@ def generate_gui_controller(compName, parsed_all_ports, location):
     }
             document.querySelectorAll('.input-button').forEach(button => setupButton(button, toggleButtonState));
             document.querySelectorAll('.set-signal-button').forEach(button => setupButton(button, setSignals));
-            document.querySelectorAll('.gen-button').forEach(button => button.classList.add('lm-Widget', 'p-Widget', 'jupyter-widgets', 'jupyter-button', 'widget-toggle-button', 'mod-danger'));
             document.querySelectorAll('.draggable').forEach(makeElementDraggable);
         </script>
 \"\"\"
 """
 
-    py_code += "\n\n\return HTML(html)"    
+    py_code += "\n\n\treturn HTML(html_code)"    
 
     return py_code
 
