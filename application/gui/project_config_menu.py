@@ -1051,6 +1051,85 @@ class PortConfigTab(ctk.CTkScrollableFrame):
                     self.led3_entry.delete(0, 'end')  # Clear the current content
                     self.led3_entry.insert(0, str(config[1]))
             
+            elif pynqio == 'led4r':
+                self.led4r_dropdown.set(config[0])
+                if signal_dictionary[config[0]] > 1:
+                    print(f"Setting led4r Entry: {str(config[1])}")
+                    self.led4r_entry.delete(0, 'end')  # Clear the current content
+                    self.led4r_entry.insert(0, str(config[1]))
+            elif pynqio == 'led4g':
+                self.led4g_dropdown.set(config[0])
+                if signal_dictionary[config[0]] > 1:
+                    print(f"Setting led4g Entry: {str(config[1])}")
+                    self.led4g_entry.delete(0, 'end')  # Clear the current content
+                    self.led4g_entry.insert(0, str(config[1]))
+            elif pynqio == 'led4b':
+                self.led4b_dropdown.set(config[0])
+                if signal_dictionary[config[0]] > 1:
+                    print(f"Setting led4b Entry: {str(config[1])}")
+                    self.led4b_entry.delete(0, 'end')  # Clear the current content
+                    self.led4b_entry.insert(0, str(config[1]))
+
+            elif pynqio == 'led5r':
+                self.led5r_dropdown.set(config[0])
+                if signal_dictionary[config[0]] > 1:
+                    print(f"Setting led5r Entry: {str(config[1])}")
+                    self.led5r_entry.delete(0, 'end')  # Clear the current content
+                    self.led5r_entry.insert(0, str(config[1]))
+            elif pynqio == 'led5g':
+                self.led5g_dropdown.set(config[0])
+                if signal_dictionary[config[0]] > 1:
+                    print(f"Setting led5g Entry: {str(config[1])}")
+                    self.led5g_entry.delete(0, 'end')  # Clear the current content
+                    self.led5g_entry.insert(0, str(config[1]))
+            elif pynqio == 'led5b':
+                self.led5b_dropdown.set(config[0])
+                if signal_dictionary[config[0]] > 1:
+                    print(f"Setting led5b Entry: {str(config[1])}")
+                    self.led5b_entry.delete(0, 'end')  # Clear the current content
+                    self.led5b_entry.insert(0, str(config[1]))
+            
+            
+            elif pynqio == 'sw0':
+                self.sw0_dropdown.set(config[0])
+                if signal_dictionary[config[0]] > 1:
+                    print(f"Setting sw0 Entry: {str(config[1])}")
+                    self.sw0_entry.delete(0, 'end')  # Clear the current content
+                    self.sw0_entry.insert(0, str(config[1]))
+            elif pynqio == 'sw1':
+                self.sw1_dropdown.set(config[0])
+                if signal_dictionary[config[0]] > 1:
+                    print(f"Setting sw1 Entry: {str(config[1])}")
+                    self.sw1_entry.delete(0, 'end')  # Clear the current content
+                    self.sw1_entry.insert(0, str(config[1]))
+
+            elif pynqio == 'btn0':
+                self.btn0_dropdown.set(config[0])
+                if signal_dictionary[config[0]] > 1:
+                    print(f"Setting btn0 Entry: {str(config[1])}")
+                    self.btn0_entry.delete(0, 'end')  # Clear the current content
+                    self.btn0_entry.insert(0, str(config[1]))
+            elif pynqio == 'btn1':
+                self.btn1_dropdown.set(config[0])
+                if signal_dictionary[config[0]] > 1:
+                    print(f"Setting btn1 Entry: {str(config[1])}")
+                    self.btn1_entry.delete(0, 'end')  # Clear the current content
+                    self.btn1_entry.insert(0, str(config[1]))
+            elif pynqio == 'btn2':
+                self.btn2_dropdown.set(config[0])
+                if signal_dictionary[config[0]] > 1:
+                    print(f"Setting btn2 Entry: {str(config[1])}")
+                    self.btn2_entry.delete(0, 'end')  # Clear the current content
+                    self.btn2_entry.insert(0, str(config[1]))
+            elif pynqio == 'btn3':
+                self.btn3_dropdown.set(config[0])
+                if signal_dictionary[config[0]] > 1:
+                    print(f"Setting btn3 Entry: {str(config[1])}")
+                    self.btn3_entry.delete(0, 'end')  # Clear the current content
+                    self.btn3_entry.insert(0, str(config[1]))
+
+
+
             self.update_dropdown_values()
             self.io_optionbox_handler(io=pynqio, signal=config[0])
             
