@@ -944,6 +944,7 @@ def generate_io_visuals(io_map):
     return py_code
 
 def generate_gui_controller(compName, parsed_all_ports, location):
+
     py_code = ""
 
     current_cwd = os.getcwd().replace("\\", "/")
@@ -1238,7 +1239,7 @@ def create_html_css_js(svg: str, parsed_all_ports: list[dict]) -> str:
     """
     html_css_js += generate_set_signals_function(input_textboxes, input_buttons, output_textboxes, output_buttons)
 
-    # Add the event handlers tp the widgets
+    # Add the event handlers to the widgets
     html_css_js += """
     }
             document.querySelectorAll('.input-button').forEach(button => setupButton(button, toggleButtonState));
@@ -1254,10 +1255,10 @@ def create_html_css_js(svg: str, parsed_all_ports: list[dict]) -> str:
 
 def create_input_button(name: str) -> str:
     """
-    Generates an HTML string for a draggable div containing a label and a button that serves as an input element.
+    Generates a HTML string for a draggable div containing a label and an input button
 
     Args:
-        name (str): The name/id of the button.
+        name (str): The name of the button.
 
     Returns:
         str: The HTML string for the input button widget.
@@ -1272,10 +1273,10 @@ def create_input_button(name: str) -> str:
 
 def create_output_button(name: str) -> str:
     """
-    Generates an HTML string for a draggable div containing a disabled output button with a label.
+    Generates a HTML string for a draggable div containing a label and a disabled output button
 
     Args:
-        name (str): The name/id of the output button.
+        name (str): The name of the output button.
 
     Returns:
         str: The HTML string for the output button widget.
@@ -1286,7 +1287,6 @@ def create_output_button(name: str) -> str:
         <div class="lm-Widget p-Widget jupyter-widgets">{name}</div>
     </div>
     """
-
 
 def create_set_signals_button() -> str:
     """
@@ -1299,13 +1299,12 @@ def create_set_signals_button() -> str:
     <button class="set-signal-button draggable lm-Widget p-Widget jupyter-widgets jupyter-button widget-button mod-info" title="">Set Signals</button>
     """
 
-
 def create_input_textbox(name: str) -> str:
     """
-    Generates an HTML string for a draggable div containing a text input box with a label.
+    Generates a HTML string for a draggable div containing a text input box with a label.
 
     Args:
-        name (str): The name/id of the text input box.
+        name (str): The name of the text input box.
 
     Returns:
         str: The HTML string for the input text box widget.
@@ -1320,13 +1319,12 @@ def create_input_textbox(name: str) -> str:
     </div>
     """
 
-
 def create_output_textbox(name: str) -> str:
     """
-    Generates an HTML string for a draggable div containing a disabled output text box with a label.
+    Generates a HTML string for a draggable div containing a disabled output text box with a label.
 
     Args:
-        name (str): The name/id of the text box.
+        name (str): The name of the text box.
 
     Returns:
         str: The HTML string for the output text box widget.
