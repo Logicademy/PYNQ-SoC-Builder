@@ -2,6 +2,7 @@ import customtkinter as ctk
 import application.hdlgen_project as hdlprj
 import application.xml_manager as xmlm
 from datetime import datetime, timedelta
+import webbrowser
 
 class ConfigTabView(ctk.CTkTabview):
     def __init__(self, parent):
@@ -664,8 +665,11 @@ class PortConfigTab(ctk.CTkScrollableFrame):
 
         # Internal Signals Frame
         self.LHS_frame = ctk.CTkFrame(self)
-        self.int_signals_lbl = ctk.CTkLabel(self.LHS_frame, text="Make Internal Signal a Port?", font=title_font)
+        self.int_signal_title_frame = ctk.CTkFrame(self.LHS_frame)
+        self.int_signals_lbl = ctk.CTkLabel(self.int_signal_title_frame, text="Make Internal Signal a Port?", font=title_font)
         self.int_signals_explaination_lbl = ctk.CTkLabel(self.LHS_frame, text="Enabling an internal signal here will connect it to a port on the component, making it accessible by board I/O and in Jupyter Notebook", font=subtitle_font)
+
+        self.help_btn_int_signals = ctk.CTkButton(self.int_signal_title_frame, text="?", width=10, height=10, command=self.int_sig_help)
 
         self.no_int_signals_lbl = ctk.CTkLabel(self.LHS_frame, width=200, text="No compatible internal signals found", font=no_int_font)
 
@@ -791,6 +795,11 @@ class PortConfigTab(ctk.CTkScrollableFrame):
             self.btn2_dropdown,
             self.btn3_dropdown
         ]
+
+    def int_sig_help(self):
+        # This is the command associated with the "Make Internal Signal an External Port" help button
+        # It opens a link to GitHub pages 
+        webbrowser.open("https://github.com/Logicademy/PYNQ-SoC-Builder/blob/master/docs/support/internal_signal_support.md")
 
 
     def save_io_config(self, xml_instance):
@@ -1187,7 +1196,7 @@ class PortConfigTab(ctk.CTkScrollableFrame):
         input_dropdown_options = [""]
         self.input_dropdown_dict = {}
         for port in self.hdlgen_prj.parsed_ports:
-            if port[1] == "in":
+            if port[1] == "in" and port[2] == 1:
                 input_dropdown_options.append(port[0])
                 # dropdown_ports.append(port[0], port[2])
                 self.input_dropdown_dict[port[0]] = port[2]
@@ -1402,13 +1411,10 @@ class PortConfigTab(ctk.CTkScrollableFrame):
                     self.btn3_entry.grid_forget()
                     self.btn3_entry.delete(0, ctk.END)
 
-
     def resize(self, event):
         # print("Am I getting called")
         frame_width = event.width-330
         frame_height=event.height/2-80
-
-
 
         self.configure(width=frame_width, height=frame_height)
 
@@ -1438,8 +1444,13 @@ class PortConfigTab(ctk.CTkScrollableFrame):
 
         # 1) Place the widget
         # 2) Set the width and wraplength (and height if need be)
-        self.int_signals_lbl.grid(row=0, column=0, padx=5, pady=5, columnspan=number_of_columns)
+
+        self.int_signal_title_frame.grid(row=0, column=0, padx=5, pady=5, columnspan=number_of_columns)
         self.int_signals_explaination_lbl.grid(row=1, column=0, padx=5, pady=5, columnspan=number_of_columns)
+
+        self.int_signals_lbl.grid(row=0, column=0 )
+        self.help_btn_int_signals.grid(row=0, column=1)
+
         self.int_signals_lbl.configure(width=LHS_frame_width, wraplength=LHS_frame_width)
         self.int_signals_explaination_lbl.configure(width=LHS_frame_width, wraplength=LHS_frame_width)
 
