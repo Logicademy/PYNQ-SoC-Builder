@@ -944,48 +944,6 @@ def generate_io_visuals(io_map):
     return py_code
 
 def generate_gui_controller(compName, parsed_all_ports, location):
-    def create_input_button(name):
-        return f"""
-        <div class="draggable" style="display: inline-flex;align-items: center;gap: 0;">
-            <div class="lm-Widget p-Widget jupyter-widgets">{name}</div>
-            <button class="input-button lm-Widget p-Widget jupyter-widgets jupyter-button widget-toggle-button mod-danger" style="width: 50px;" id="{name}">0</button>
-        </div>
-    """
-
-    def create_output_button(name):
-        return f"""
-        <div class="draggable" style="display: inline-flex;align-items: center;gap: 0;">
-            <button class="lm-Widget p-Widget jupyter-widgets jupyter-button widget-toggle-button mod-danger" disabled="" title="" style="width: 50px;" id="{name}">0</button>
-            <div class="lm-Widget p-Widget jupyter-widgets">{name}</div>
-        </div>
-    """
-
-    def create_set_signals_button():
-        return """
-        <button class="set-signal-button draggable lm-Widget p-Widget jupyter-widgets jupyter-button widget-button mod-info" title="">Set Signals</button>
-        """
-
-    def create_input_textbox(name):
-        return f"""
-        <div class="draggable" style="display: inline-flex;align-items: center;gap: 0;">
-            <div class="lm-Widget p-Widget jupyter-widgets widget-label">{name}</div>
-            <div class="lm-Widget p-Widget jupyter-widgets widget-inline-hbox widget-text" style="width: 200px;">
-                <label class="widget-label" title="" for="{name}" style="display: none;"></label>
-                <input type="text" id="{name}" placeholder="" value="0x0">
-            </div>
-        </div>
-    """
-
-    def create_output_textbox(name):
-        return f"""
-        <div class="draggable" style="display: inline-flex;align-items: center;gap: 0;">
-            <div class="lm-Widget p-Widget jupyter-widgets widget-inline-hbox widget-text" style="width: 200px;">
-            <label class="widget-label" title="" for="{name}" style="display: none;"></label>
-            <input type="text" id="{name}" disabled="" placeholder="" value="0x0"></div>
-            <div class="lm-Widget p-Widget jupyter-widgets widget-label">{name}</div>
-        </div>
-    """
-
     py_code = ""
 
     current_cwd = os.getcwd().replace("\\", "/")
@@ -1014,243 +972,10 @@ def generate_gui_controller(compName, parsed_all_ports, location):
     py_code += "\n\tsvg_content = svg_content.split('<?xml', 1)[-1]"
     py_code += "\n\tsvg_with_tags = f'<svg style=\"display: block; margin: 50px auto; max-width: 100%; height: auto;\"{svg_content}</svg>'"
 
-    py_code += """
-    html_code = \"\"\"
-        <style>
-            .output-content-area {
-                position: relative;
-                border: 1px solid black;
-                overflow: scroll;
-                box-sizing: border-box;
-            }
-        </style>
+    svg_content = svg_data.split('<?xml', 1)[-1] 
+    SVG = f'<svg style="display: block; margin: 50px auto; max-width: 100%; height: auto;"{svg_data}</svg>' # work in progress
 
-        <div class="output-content-area" id="output-content-area">
-    \"\"\"+svg_with_tags+\"\"\"
-    """
-
-    input_buttons = []
-    output_buttons = []
-    input_textboxes = []
-    output_textboxes = []
-
-    for port in parsed_all_ports:
-        if port[1] == "in":
-            if port[2] == 1:
-                input_buttons.append(port[0])
-            else:
-                input_textboxes.append({"name": port[0], "bits": port[2]})  
-        elif port[1] == "out":
-            if port[2] == 1: 
-                output_buttons.append(port[0])
-            elif port[2] <= 8:
-                pass
-            else:
-                output_textboxes.append(port[0])
-
-    for input_button in input_buttons:
-        py_code += create_input_button(input_button)
-    for output_button in output_buttons:
-        py_code += create_output_button(output_button)
-    for input_textbox in input_textboxes:
-        py_code += create_input_textbox(input_textbox["name"])      
-    for output_text_box in output_textboxes:
-        py_code += create_output_textbox(output_text_box)
-    py_code += create_set_signals_button()
-
-    py_code += """
-        <script>
-            function makeElementDraggable(element) {
-                let isDragging = false,
-                    offsetX = 0,
-                    offsetY = 0;
-                element.addEventListener('mousedown', event => {
-                    isDragging = true;
-                    offsetX = event.clientX - element.getBoundingClientRect().left;
-                    offsetY = event.clientY - element.getBoundingClientRect().top;
-                });
-                document.addEventListener('mousemove', event => {
-                    if (isDragging) {
-                        const containerRect = document.querySelector('.output-content-area').getBoundingClientRect();
-                        element.style.position = 'absolute';
-                        element.style.left = `${Math.max(containerRect.left, Math.min(event.clientX - offsetX, containerRect.right - element.offsetWidth)) - containerRect.left}px`;
-                        element.style.top = `${Math.max(containerRect.top, Math.min(event.clientY - offsetY, containerRect.bottom - element.offsetHeight)) - containerRect.top}px`;
-                    }
-                });
-                document.addEventListener('mouseup', () => isDragging = false);
-            }
-
-            function setupButton(button, callback) {
-                let isClick = true;
-                button.onmousedown = () => {
-                    isClick = true;
-                    setTimeout(() => isClick = false, 250);
-                };
-
-                button.onclick = event => {
-                    if (!isClick) {
-                        event.preventDefault();
-                    } else {
-                        callback(button);
-                    }
-                };
-            }
-
-            function toggleButtonState(button) {
-                button.textContent = button.textContent === '0' ? '1' : '0';
-                button.classList.toggle('mod-danger');
-                button.classList.toggle('mod-success');
-            }
-
-            function checkMaxValue(numberStr, numBits) {
-                function userStringToInt(numberStr){
-                    let radix = 10;
-                    if (numberStr.startsWith("0x")) {
-                        radix = 16;
-                    } else if (numberStr.startsWith("0b")) {
-                        radix = 2;
-                    } else if (numberStr.slice(1).startsWith("0x")) {
-                        radix = 16;
-                    } else if (numberStr.slice(1).startsWith("0b")) {
-                        radix = 2;
-                    } else{
-                        return parseInt(numberStr)
-                    }
-
-                    const skipSign = (numberStr[0] === '+' || numberStr[0] === '-') ? 1 : 0;
-                    const noRadixString = numberStr.slice(0, skipSign) + numberStr.slice(skipSign + 2);
-                    return parseInt(noRadixString, radix);
-                }
-
-                const value = userStringToInt(numberStr)
-                try {
-                    let maxValue = 2**numBits - 1
-                    
-                    if (value > maxValue) {
-                        let truncatedValue = value % (2**numBits)
-                        return [true, truncatedValue];
-                    } else {
-                        return [false, value];
-                    }
-                } catch (error) {
-                    return [false, null];
-                }
-            }
-    """
-
-    def generate_set_signals_function(input_textboxes, input_buttons, output_textboxes, output_buttons):
-        textbox_names = [item["name"] for item in input_textboxes]
-        textbox_names_str = ', '.join([f"'{name}'" for name in textbox_names])
-        value_names_str = ', '.join([f"{name}_value" for name in textbox_names])
-        
-        truncated_checks = []
-        for item in input_textboxes:
-            name = item["name"]
-            bits = item["bits"]
-            truncated_check = f"""
-                            let [{name}_truncated, new_{name}Value] = checkMaxValue({name}_value, {bits});
-                {name}_value = new_{name}Value;
-                if ({name}_truncated) {{
-                    console.log(`{name} value provided is > {bits} bits, input has been truncated to: 0x${{{name}_value.toString(16)}}`);
-                }}
-            """
-            truncated_checks.append(truncated_check.strip())
-        
-        truncated_checks_str = "\n\n".join(truncated_checks)
-
-        button_names_str = ', '.join([f"'{name}'" for name in input_buttons])
-        button_value_names_str = ', '.join([f"{name}_value" for name in input_buttons])
-
-        write_statements = []
-        if(input_textboxes):
-            for item in input_textboxes:
-                write_statements.append(f"                {item['name']}.write(0, ${{{item['name']}_value}})")
-        
-        if(input_buttons):
-            for name in input_buttons:
-                write_statements.append(f"                {name}.write(0, ${{{name}_value}})")
-
-        write_statements_str = "\n".join(write_statements)
-
-        output_reads = []
-        if(output_textboxes):
-            for name in output_textboxes:
-                output_reads.append(f"                {name}_value = {name}.read(0)")
-        
-        if(output_buttons):
-            for name in output_buttons:
-                output_reads.append(f"                {name}_value = {name}.read(0)")
-
-        output_reads_str = "\n".join(output_reads)
-
-        print_statements = []
-        if(output_textboxes):
-            for name in output_textboxes:
-                print_statements.append(f"{name}:{{{name}_value}}")
-        
-        if(output_buttons):
-            for name in output_buttons:
-                print_statements.append(f"{name}:{{{name}_value}}")
-        
-        print_statement_str = ",".join(print_statements)
-
-        generated_code = """function setSignals(){"""
-
-        if(input_textboxes):
-            generated_code += f"""
-                const textbox_values = [{textbox_names_str}].map(id => document.getElementById(id).value);
-                let [{value_names_str}] = textbox_values;
-{truncated_checks_str}
-    """
-        if(input_buttons):
-            generated_code += f"""
-                const values = [{button_names_str}].map(id => document.getElementById(id).textContent === '1' ? 1 : 0);
-                const [{button_value_names_str}] = values;
-    """    
-        
-        generated_code += f"""
-                IPython.notebook.kernel.execute(`
-{write_statements_str}
-                time.sleep(0.00000002)
-{output_reads_str}
-
-                print(f"{print_statement_str}")
-                `, {{
-                    iopub: {{
-                        output: data => {{
-                            let output = data.content.text.trim().split(",")
-                            output.forEach(output => {{
-                                output  = output.split(":")
-                                const element = document.getElementById(output[0])
-                                const value = parseInt(output[1], 10)
-
-                                if (element.tagName === "INPUT") {{
-                                    element.value = "0x" + value.toString(16)
-                                }} else if (element.tagName === ("BUTTON")){{
-                                    element.textContent = value === 1 ? '1' : '0';
-                                    element.classList.remove('mod-success', 'mod-danger');
-                                    element.classList.add(value === 1 ? 'mod-success' : 'mod-danger');  
-                                }}
-                            }})
-                        }}
-                    }}
-                }});
-    """        
-                    
-        return generated_code.strip()
-
-    py_code += generate_set_signals_function(input_textboxes, input_buttons, output_textboxes, output_buttons)
-
-    py_code += """
-    }
-            document.querySelectorAll('.input-button').forEach(button => setupButton(button, toggleButtonState));
-            document.querySelectorAll('.set-signal-button').forEach(button => setupButton(button, setSignals));
-            document.querySelectorAll('.draggable').forEach(makeElementDraggable);
-        </script>
-\"\"\"
-"""
-
-    py_code += "\n\n\treturn HTML(html_code)"    
+    py_code += create_html_css_js(SVG, parsed_all_ports)
 
     return py_code
 
@@ -1337,3 +1062,388 @@ def create_large_classes_from_port_map(parsed_port_map):
             code += create_class_for_large_signal(gpio_name, gpio_mode, gpio_width)
 
     return code
+
+# The following functions are responsible for generating the HTML, CSS and JavaScript for the interavtive sandbox
+def create_html_css_js(svg: str, parsed_all_ports: list[dict]) -> str:
+    """
+    This function takes an input SVG string that represents the default circuit diagram 
+    for the Pynq-Soc-Builder project and generates the HTML, CSS and JavaScript code for 
+    creating an interactive sandbox. The returned string contains:
+
+    - HTML structure for rendering the sandbox
+    - CSS for styling the sandbox elements.
+    - JavaScript for event handling within the sandbox.
+
+    Parameters:
+    svg (str): A string representing the SVG data of the circuit diagram.
+    parsed_all_ports (list[dict]): A list of all port dicts
+
+    Returns:
+    str: A string combining the HTML, CSS, and JavaScript required for the interactive sandbox.
+    """
+
+    html_css_js = f"""
+    html_code = \"\"\"
+        <!-- Styling the output area with a scrollable content box, a black border, and ensuring the content fits within the defined box size -->
+        <style>
+            .output-content-area {{
+                position: relative;
+                border: 1px solid black;
+                overflow: scroll;
+                box-sizing: border-box;
+            }}
+
+            <!-- Styling .custom-div to display content inline, align items in the center, and remove gaps between elements -->
+            .custom-div{{
+                display: inline-flex;
+                align-items: center;
+                gap: 0;
+            }} 
+        </style>
+
+        <!-- Output area for interactive sandbox -->
+        <div class="output-content-area" id="output-content-area">
+    \"\"\"+svg_with_tags+\"\"\"
+    """
+    
+    input_buttons = []
+    output_buttons = []
+    input_textboxes = []
+    output_textboxes = []
+
+    for port in parsed_all_ports:
+        name, mode, width = port
+        if mode == "in":
+            if width == 1:
+                input_buttons.append(name)
+            else:
+                input_textboxes.append({"name": name, "bits": width})  
+        elif mode == "out":
+            if width == 1: 
+                output_buttons.append(name)
+            else:
+                output_textboxes.append(name)
+
+    # Generate HTML for input buttons, output buttons, input textboxes, output textboxes and the set signals button
+    html_css_js += '\n'.join(create_input_button(btn) for btn in input_buttons)
+    html_css_js += '\n'.join(create_output_button(btn) for btn in output_buttons)
+    html_css_js += '\n'.join(create_input_textbox(tb["name"]) for tb in input_textboxes)
+    html_css_js += '\n'.join(create_output_textbox(tb) for tb in output_textboxes)
+    html_css_js += create_set_signals_button()
+
+    # Generate the JavaScript for event handling
+    html_css_js += """
+        <script>
+            /**
+            * Makes an HTML element draggable within a specified container.
+            * @param {HTMLElement} element - The element to be made draggable.
+            */
+            function makeElementDraggable(element) {
+                let isDragging = false,
+                    offsetX = 0,
+                    offsetY = 0;
+
+                element.addEventListener('mousedown', event => {
+                    isDragging = true;
+                    offsetX = event.clientX - element.getBoundingClientRect().left;
+                    offsetY = event.clientY - element.getBoundingClientRect().top;
+                });
+
+                document.addEventListener('mousemove', event => {
+                    if (isDragging) {
+                        const containerRect = document.querySelector('.output-content-area').getBoundingClientRect();
+                        element.style.position = 'absolute';
+                        element.style.left = `${Math.max(containerRect.left, Math.min(event.clientX - offsetX, containerRect.right - element.offsetWidth)) - containerRect.left}px`;
+                        element.style.top = `${Math.max(containerRect.top, Math.min(event.clientY - offsetY, containerRect.bottom - element.offsetHeight)) - containerRect.top}px`;
+                    }
+                });
+
+                document.addEventListener('mouseup', () => isDragging = false);
+            }
+
+            /**
+            * Sets up a button with a click handler
+            * @param {HTMLElement} button - The button element to be set up.
+            * @param {Function} callback - The function to be executed when the button is clicked.
+            */            
+            function setupButton(button, callback) {
+                let isClick = true;
+                button.onmousedown = () => {
+                    isClick = true;
+                    setTimeout(() => isClick = false, 250); // differentiate a drag from a click
+                };
+
+                button.onclick = event => {
+                    if (!isClick) {
+                        event.preventDefault();
+                    } else {
+                        callback(button);
+                    }
+                };
+            }
+
+            /**
+            * Toggles the state of a button between two values and updates its styling.
+            * @param {HTMLElement} button - The button element whose state will be toggled.
+            */            
+            function toggleButtonState(button) {
+                button.textContent = button.textContent === '0' ? '1' : '0';
+                button.classList.toggle('mod-danger');
+                button.classList.toggle('mod-success');
+            }
+
+            /**
+            * Converts the input numeric string into an integer and checks if it exceeds the maximum value             
+            * @param {string} numberStr - The numeric string to be evaluated, can be positive or negative and in decimal, hexadecimal, or binary format
+            * @param {number} numBits - The number of bits used to represent the maximum value
+            * @returns {[boolean, number|null]} - An array where the first element indicates whether the value exceeded 
+            *          the maximum limit (true if exceeded, false otherwise), and the second element is either the 
+            *          truncated value if it exceeded the limit, or the original value if it did not. Returns null if 
+            *          an error occurs during conversion.
+            */
+            function checkMaxValue(numberStr, numBits) {
+                function userStringToInt(numberStr){
+                    let radix = 10;
+                    if (numberStr.startsWith("0x")) {
+                        radix = 16;
+                    } else if (numberStr.startsWith("0b")) {
+                        radix = 2;
+                    } else if (numberStr.slice(1).startsWith("0x")) {
+                        radix = 16;
+                    } else if (numberStr.slice(1).startsWith("0b")) {
+                        radix = 2;
+                    } else{
+                        return parseInt(numberStr)
+                    }
+
+                    const skipSign = (numberStr[0] === '+' || numberStr[0] === '-') ? 1 : 0;
+                    const noRadixString = numberStr.slice(0, skipSign) + numberStr.slice(skipSign + 2);
+                    return parseInt(noRadixString, radix);
+                }
+
+                const value = userStringToInt(numberStr)
+                try {
+                    let maxValue = 2**numBits - 1
+                    
+                    if (value > maxValue) {
+                        let truncatedValue = value % (2**numBits)
+                        return [true, truncatedValue];
+                    } else {
+                        return [false, value];
+                    }
+                } catch (error) {
+                    return [false, null];
+                }
+            }
+    """
+    html_css_js += generate_set_signals_function(input_textboxes, input_buttons, output_textboxes, output_buttons)
+
+    # Add the event handlers tp the widgets
+    html_css_js += """
+    }
+            document.querySelectorAll('.input-button').forEach(button => setupButton(button, toggleButtonState));
+            document.querySelectorAll('.set-signal-button').forEach(button => setupButton(button, setSignals));
+            document.querySelectorAll('.draggable').forEach(makeElementDraggable);
+        </script>
+\"\"\"
+"""
+
+    html_css_js += "\n\n\treturn HTML(html_code)"    
+
+    return html_css_js
+
+def create_input_button(name: str) -> str:
+    """
+    Generates an HTML string for a draggable div containing a label and a button that serves as an input element.
+
+    Args:
+        name (str): The name/id of the button.
+
+    Returns:
+        str: The HTML string for the input button widget.
+    """
+    return f"""
+    <div class="draggable" class="custom-div">
+        <div class="lm-Widget p-Widget jupyter-widgets">{name}</div>
+        <button class="input-button lm-Widget p-Widget jupyter-widgets jupyter-button widget-toggle-button mod-danger" style="width: 50px;" id="{name}">0</button>
+    </div>
+    """
+
+
+def create_output_button(name: str) -> str:
+    """
+    Generates an HTML string for a draggable div containing a disabled output button with a label.
+
+    Args:
+        name (str): The name/id of the output button.
+
+    Returns:
+        str: The HTML string for the output button widget.
+    """
+    return f"""
+    <div class="draggable" class="custom-div">
+        <button class="lm-Widget p-Widget jupyter-widgets jupyter-button widget-toggle-button mod-danger" disabled="" title="" style="width: 50px;" id="{name}">0</button>
+        <div class="lm-Widget p-Widget jupyter-widgets">{name}</div>
+    </div>
+    """
+
+
+def create_set_signals_button() -> str:
+    """
+    Generates an HTML string for a draggable 'Set Signals' button.
+
+    Returns:
+        str: The HTML string for the set signals button widget.
+    """
+    return """
+    <button class="set-signal-button draggable lm-Widget p-Widget jupyter-widgets jupyter-button widget-button mod-info" title="">Set Signals</button>
+    """
+
+
+def create_input_textbox(name: str) -> str:
+    """
+    Generates an HTML string for a draggable div containing a text input box with a label.
+
+    Args:
+        name (str): The name/id of the text input box.
+
+    Returns:
+        str: The HTML string for the input text box widget.
+    """
+    return f"""
+    <div class="draggable" class="custom-div">
+        <div class="lm-Widget p-Widget jupyter-widgets widget-label">{name}</div>
+        <div class="lm-Widget p-Widget jupyter-widgets widget-inline-hbox widget-text" style="width: 200px;">
+            <label class="widget-label" title="" for="{name}" style="display: none;"></label>
+            <input type="text" id="{name}" placeholder="" value="0x0">
+        </div>
+    </div>
+    """
+
+
+def create_output_textbox(name: str) -> str:
+    """
+    Generates an HTML string for a draggable div containing a disabled output text box with a label.
+
+    Args:
+        name (str): The name/id of the text box.
+
+    Returns:
+        str: The HTML string for the output text box widget.
+    """
+    return f"""
+    <div class="draggable" class="custom-div">
+        <div class="lm-Widget p-Widget jupyter-widgets widget-inline-hbox widget-text" style="width: 200px;">
+        <label class="widget-label" title="" for="{name}" style="display: none;"></label>
+        <input type="text" id="{name}" disabled="" placeholder="" value="0x0"></div>
+        <div class="lm-Widget p-Widget jupyter-widgets widget-label">{name}</div>
+    </div>
+    """
+
+def generate_set_signals_function(input_textboxes: list[dict], input_buttons: list[str], output_textboxes: list[str], output_buttons: list[str]) -> str:
+    """
+    Generates JavaScript code for the setSignals() event handler
+
+    Args:
+        input_textboxes (list[dict]): A list of dictionaries representing input textboxes,
+                                       each containing 'name' (str) and 'bits' (int).
+        input_buttons (list[str]): A list of strings representing the names of input buttons.
+        output_textboxes (list[str]): A list of strings representing the names of output textboxes.
+        output_buttons (list[str]): A list of strings representing the names of output buttons.
+
+    Returns:
+        str: A string containing the generated JavaScript function to set signals.
+    
+    The generated function retrieves values from input textboxes and buttons, checks for 
+    maximum values, writes values to a backend, reads output values, and updates 
+    the corresponding HTML elements.
+    """    
+    textbox_names = [item["name"] for item in input_textboxes]
+    textbox_names_str = ', '.join([f"'{name}'" for name in textbox_names])
+    value_names_str = ', '.join([f"{name}_value" for name in textbox_names])
+    
+    truncated_checks = []
+    for item in input_textboxes:
+        name = item["name"]
+        bits = item["bits"]
+        truncated_check = f"""
+                        let [{name}_truncated, new_{name}Value] = checkMaxValue({name}_value, {bits});
+            {name}_value = new_{name}Value;
+            if ({name}_truncated) {{
+                console.log(`{name} value provided is > {bits} bits, input has been truncated to: 0x${{{name}_value.toString(16)}}`);
+            }}
+        """
+        truncated_checks.append(truncated_check.strip())
+    
+    truncated_checks_str = "\n\n".join(truncated_checks)
+    button_names_str = ', '.join([f"'{name}'" for name in input_buttons])
+    button_value_names_str = ', '.join([f"{name}_value" for name in input_buttons])
+    write_statements = []
+    if(input_textboxes):
+        for item in input_textboxes:
+            write_statements.append(f"                {item['name']}.write(0, ${{{item['name']}_value}})")
+    
+    if(input_buttons):
+        for name in input_buttons:
+            write_statements.append(f"                {name}.write(0, ${{{name}_value}})")
+    write_statements_str = "\n".join(write_statements)
+    output_reads = []
+    if(output_textboxes):
+        for name in output_textboxes:
+            output_reads.append(f"                {name}_value = {name}.read(0)")
+    
+    if(output_buttons):
+        for name in output_buttons:
+            output_reads.append(f"                {name}_value = {name}.read(0)")
+    output_reads_str = "\n".join(output_reads)
+    print_statements = []
+    if(output_textboxes):
+        for name in output_textboxes:
+            print_statements.append(f"{name}:{{{name}_value}}")
+    
+    if(output_buttons):
+        for name in output_buttons:
+            print_statements.append(f"{name}:{{{name}_value}}")
+    
+    print_statement_str = ",".join(print_statements)
+    generated_code = """function setSignals(){"""
+    if(input_textboxes):
+        generated_code += f"""
+            const textbox_values = [{textbox_names_str}].map(id => document.getElementById(id).value);
+            let [{value_names_str}] = textbox_values;
+    {truncated_checks_str}
+"""
+    if(input_buttons):
+        generated_code += f"""
+            const values = [{button_names_str}].map(id => document.getElementById(id).textContent === '1' ? 1 : 0);
+            const [{button_value_names_str}] = values;
+"""    
+    
+    generated_code += f"""
+            IPython.notebook.kernel.execute(`
+    {write_statements_str}
+            time.sleep(0.00000002)
+    {output_reads_str}
+            print(f"{print_statement_str}")
+            `, {{
+                iopub: {{
+                    output: data => {{
+                        let output = data.content.text.trim().split(",")
+                        output.forEach(output => {{
+                            output  = output.split(":")
+                            const element = document.getElementById(output[0])
+                            const value = parseInt(output[1], 10)
+                            if (element.tagName === "INPUT") {{
+                                element.value = "0x" + value.toString(16)
+                            }} else if (element.tagName === ("BUTTON")){{
+                                element.textContent = value === 1 ? '1' : '0';
+                                element.classList.remove('mod-success', 'mod-danger');
+                                element.classList.add(value === 1 ? 'mod-success' : 'mod-danger');  
+                            }}
+                        }})
+                    }}
+                }}
+            }});
+"""        
+                
+    return generated_code.strip()
