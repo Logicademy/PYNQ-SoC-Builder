@@ -869,6 +869,46 @@ def generate_io_visuals(io_map):
     py_code += "\n\t)"
     py_code += "\n\tled5_label = widgets.Label(value='RBG LED 5')"
 
+    py_code += "\n\tsw0_button = widgets.ToggleButton("
+    py_code += "\n\t\tvalue=False,"
+    py_code += "\n\t\tdescription='0',"
+    py_code += "\n\t\tdisabled=True,"
+    py_code += "\n\t\tbutton_style='danger'"
+    py_code += "\n\t)"
+    py_code += "\n\tsw1_button = widgets.ToggleButton("
+    py_code += "\n\t\tvalue=False,"
+    py_code += "\n\t\tdescription='1',"
+    py_code += "\n\t\tdisabled=True,"
+    py_code += "\n\t\tbutton_style='danger'"
+    py_code += "\n\t)"
+    py_code += "\n\tswlabel = widgets.Label(value='Switches')"
+    py_code += "\n\t"
+    py_code += "\n\tbtn0_button = widgets.ToggleButton("
+    py_code += "\n\t\tvalue=False,"
+    py_code += "\n\t\tdescription='0',"
+    py_code += "\n\t\tdisabled=True,"
+    py_code += "\n\t\tbutton_style='danger'"
+    py_code += "\n\t)"
+    py_code += "\n\tbtn1_button = widgets.ToggleButton("
+    py_code += "\n\t\tvalue=False,"
+    py_code += "\n\t\tdescription='1',"
+    py_code += "\n\t\tdisabled=True,"
+    py_code += "\n\t\tbutton_style='danger'"
+    py_code += "\n\t)"
+    py_code += "\n\tbtn2_button = widgets.ToggleButton("
+    py_code += "\n\t\tvalue=False,"
+    py_code += "\n\t\tdescription='2',"
+    py_code += "\n\t\tdisabled=True,"
+    py_code += "\n\t\tbutton_style='danger'"
+    py_code += "\n\t)"
+    py_code += "\n\tbtn3_button = widgets.ToggleButton("
+    py_code += "\n\t\tvalue=False,"
+    py_code += "\n\t\tdescription='3',"
+    py_code += "\n\t\tdisabled=True,"
+    py_code += "\n\t\tbutton_style='danger'"
+    py_code += "\n\t)"
+    py_code += "\n\tbtnlabel = widgets.Label(value='Buttons')"
+
     py_code += "\n\n\n\tdef update_button(new_value, button):"
     py_code += "\n\t\tif new_value == 1:"
     py_code += "\n\t\t\tbutton.value=True"
@@ -876,6 +916,10 @@ def generate_io_visuals(io_map):
     py_code += "\n\t\telif new_value == 0:"
     py_code += "\n\t\t\tbutton.value=False"
     py_code += "\n\t\t\tbutton.button_style='danger'"
+
+
+
+
 
     py_code += "\n\n\tdef work():"
     py_code += "\n\t\twhile True:"
@@ -937,8 +981,14 @@ def generate_io_visuals(io_map):
 
     py_code += "\n\thbox_led5 = widgets.HBox([led5_label, led5_r_button, led5_g_button, led5_b_button])"
     py_code += "\n\thbox_led5.layout = hbox_layout"
-        
-    py_code += "\n\n\tvbox = widgets.VBox([hbox_led, hbox_led4, hbox_led5])"
+
+    py_code += "\n\thbox_btn = widgets.HBox([btnlabel, btn3_button, btn2_button, btn1_button, btn0_button])"
+    py_code += "\n\thbox_btn.layout = hbox_layout"
+
+    py_code += "\n\thbox_sw = widgets.HBox([swlabel, sw0_button, sw1_button])"
+    py_code += "\n\thbox_sw.layout = hbox_layout"
+
+    py_code += "\n\n\tvbox = widgets.VBox([hbox_led, hbox_led4, hbox_led5, hbox_btn, hbox_sw])"
     py_code += "\n\n\treturn vbox"
 
     return py_code

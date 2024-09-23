@@ -152,6 +152,12 @@ class SidebarMenu(ctk.CTkScrollableFrame):
         self.gen_jnb_button.configure(state='normal')
 
     def run_build(self):
+        # Check the I/O is valid.
+        if not self.parent.configMenu.tab_view.ioconfigpage.check_io_is_valid():
+            self.parent.app.top_level_message = "A port is connected to more than one board I/O, only one per signal is allowed."
+            self.parent.app.open_alert()
+            return
+
         # Call Synthesis Dialog Box
         self.parent.app.top_level_message = "Have you synthesised your project to ensure there are no HDL errors?"
         self.parent.app.open_dialog()
@@ -198,6 +204,7 @@ class ConfigMenu(ctk.CTkFrame):
 
         title_font = (default_font, 24, "bold")
         button_font = (default_font, 16, 'bold')
+
 
         self.tab_view = pcm.ConfigTabView(self) # Project Config Menu = pcm
         self.tab_view.grid(row=0, column=0, padx=10, pady=5)
