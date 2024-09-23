@@ -676,7 +676,13 @@ class PortConfigTab(ctk.CTkScrollableFrame):
         # LED Connections
         self.RHS_frame = ctk.CTkFrame(self)
 
-        self.led_title = ctk.CTkLabel(self.RHS_frame, text="Board I/O Configuration", font=title_font)
+        self.io_title_frame = ctk.CTkFrame(self.RHS_frame)
+
+        self.led_title = ctk.CTkLabel(self.io_title_frame, text="Board I/O Configuration", font=title_font)
+        self.led_title_help_btn = ctk.CTkButton(self.io_title_frame, width=20, height=20, command=self.help_btn_io_ports, text="?")
+        self.led_title.grid(row=0, column=0)
+        self.led_title_help_btn.grid(row=0, column=1)
+
         self.led_subtext = ctk.CTkLabel(self.RHS_frame, text="Connect ports of component to LEDs/Switches/Buttons on PYNQ Board", font=subtitle_font)
 
         self.on_off_switch = ctk.CTkSwitch(self.RHS_frame, text="Enable I/O?", font=master_switch_font)
@@ -801,6 +807,11 @@ class PortConfigTab(ctk.CTkScrollableFrame):
         # It opens a link to GitHub pages 
         webbrowser.open("https://github.com/Logicademy/PYNQ-SoC-Builder/blob/master/docs/support/internal_signal_support.md")
 
+    def help_btn_io_ports(self):
+        # This is the command associated with the "Board I/O Configuration" help button
+        # It opens a link to GitHub pages 
+        webbrowser.open("https://github.com/Logicademy/PYNQ-SoC-Builder/blob/master/docs/support/board_io.md")
+
 
     def save_io_config(self, xml_instance):
         # We first load the settings then send it to the XML instance
@@ -840,8 +851,6 @@ class PortConfigTab(ctk.CTkScrollableFrame):
         btn2_array = []
         btn3_array = []
 
-
-
         if self.led0_entry.grid_info():
             # This means the entry box is shown and you should read the value.
             led0_array = [self.led0_dropdown.get(), int(self.led0_entry.get())]
@@ -865,8 +874,6 @@ class PortConfigTab(ctk.CTkScrollableFrame):
             led3_array = [self.led3_dropdown.get(), int(self.led3_entry.get())]
         else:
             led3_array = [self.led3_dropdown.get(), 0]
-
-
 
         # RGB LEDS 4
         if self.led4r_entry.grid_info():
@@ -941,7 +948,6 @@ class PortConfigTab(ctk.CTkScrollableFrame):
             btn3_array = [self.btn3_dropdown.get(), int(self.btn3_entry.get())]
         else:
             btn3_array = [self.btn3_dropdown.get(), 0]
-
 
         # Basic LEDs
         io_config["led0"] = led0_array
@@ -1098,7 +1104,6 @@ class PortConfigTab(ctk.CTkScrollableFrame):
                     self.led5b_entry.delete(0, 'end')  # Clear the current content
                     self.led5b_entry.insert(0, str(config[1]))
             
-            
             elif pynqio == 'sw0':
                 self.sw0_dropdown.set(config[0])
                 if signal_dictionary[config[0]] > 1:
@@ -1136,8 +1141,6 @@ class PortConfigTab(ctk.CTkScrollableFrame):
                     print(f"Setting btn3 Entry: {str(config[1])}")
                     self.btn3_entry.delete(0, 'end')  # Clear the current content
                     self.btn3_entry.insert(0, str(config[1]))
-
-
 
             self.update_dropdown_values()
             self.io_optionbox_handler(io=pynqio, signal=config[0])
@@ -1440,7 +1443,7 @@ class PortConfigTab(ctk.CTkScrollableFrame):
         if frame_width > 1000:
             LHS_frame_width = 500
 
-        RHS_frame_width = frame_width - LHS_frame_width - 10
+        RHS_frame_width = frame_width - LHS_frame_width - 50
 
         # 1) Place the widget
         # 2) Set the width and wraplength (and height if need be)
@@ -1473,9 +1476,10 @@ class PortConfigTab(ctk.CTkScrollableFrame):
 
         if event.width < 1600:
 
-            self.led_title.grid(row=0, column=0, padx=5, pady=5, columnspan=3)
+            self.io_title_frame.grid(row=0, column=0, padx=5, pady=5, columnspan=3)
             self.led_subtext.grid(row=1, column=0, padx=5, pady=5, columnspan=3)
-            self.led_title.configure(width=RHS_frame_width, wraplength=RHS_frame_width)
+            self.io_title_frame.configure(width=RHS_frame_width-20)
+            self.led_title.configure(width=RHS_frame_width-20, wraplength=RHS_frame_width-20)
             self.led_subtext.configure(width=RHS_frame_width, wraplength=RHS_frame_width)
 
             self.on_off_switch.grid(row=2, column=0, padx=5, pady=5, columnspan=3)
@@ -1532,11 +1536,12 @@ class PortConfigTab(ctk.CTkScrollableFrame):
             self.btn3_dropdown.grid(row=19, column=1, padx=5, pady=5)
 
         else:
-
-            self.led_title.grid(row=0, column=0, padx=5, pady=5, columnspan=6)
+            self.io_title_frame.grid(row=0, column=0, padx=5, pady=5, columnspan=6)
+            # self.led_title.grid(row=0, column=0, padx=5, pady=5, columnspan=6)
             self.led_subtext.grid(row=1, column=0, padx=5, pady=5, columnspan=6)
-            self.led_title.configure(width=RHS_frame_width, wraplength=RHS_frame_width)
-            self.led_subtext.configure(width=RHS_frame_width, wraplength=RHS_frame_width)
+            self.io_title_frame.configure(width=RHS_frame_width-20)
+            self.led_title.configure(width=RHS_frame_width-20, wraplength=RHS_frame_width)
+            self.led_subtext.configure(width=RHS_frame_width-20, wraplength=RHS_frame_width)
 
             self.on_off_switch.grid(row=2, column=0, padx=5, pady=5, columnspan=6)
             self.on_off_subtext.grid(row=3, column=0, padx=5, pady=5, columnspan=6)
