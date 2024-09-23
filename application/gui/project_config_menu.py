@@ -49,6 +49,8 @@ class ConfigTabView(ctk.CTkTabview):
         self.buildstatuspage.pack()
 
 
+        
+
         # self.label = ctk.CTkLabel(master=self.tab("App Preferences"), text="App Preferences Area")
         # self.label.pack()
 
@@ -811,6 +813,202 @@ class PortConfigTab(ctk.CTkScrollableFrame):
         # This is the command associated with the "Board I/O Configuration" help button
         # It opens a link to GitHub pages 
         webbrowser.open("https://github.com/Logicademy/PYNQ-SoC-Builder/blob/master/docs/support/board_io.md")
+
+    def check_io_is_valid(self):
+        # This is used to check if an I/O is connnected to >1 I/O port.
+        # In an idea world, option dropdown menus wouldn't allow it to begin with but its faster hack this in right now.
+
+        print("Checking IO is called")
+
+        io_config = {
+            "led0":"None",
+            "led1":"None",
+            "led2":"None",
+            "led3":"None",
+            "led4b":"None",
+            "led4g":"None",
+            "led4r":"None",
+            "led5b":"None",
+            "led5g":"None",
+            "led5r":"None",
+            "sw0":"None",
+            "sw1":"None",
+            "btn0":"None",
+            "btn1":"None",
+            "btn2":"None",
+            "btn3":"None",
+        }
+
+        led0_array = []
+        led1_array = []
+        led2_array = []
+        led3_array = []
+        led4r_array = []
+        led4g_array = []
+        led4b_array = []
+        led5r_array = []
+        led5g_array = []
+        led5b_array = []
+        sw0_array = []
+        sw1_array = []
+        btn0_array = []
+        btn1_array = []
+        btn2_array = []
+        btn3_array = []
+
+        if self.led0_entry.grid_info():
+            # This means the entry box is shown and you should read the value.
+            led0_array = [self.led0_dropdown.get(), int(self.led0_entry.get())]
+        else:
+            led0_array = [self.led0_dropdown.get(), 0]
+
+        if self.led1_entry.grid_info():
+            # This means the entry box is shown and you should read the value.
+            led1_array = [self.led1_dropdown.get(), int(self.led1_entry.get())]
+        else:
+            led1_array = [self.led1_dropdown.get(), 0]
+
+        if self.led2_entry.grid_info():
+            # This means the entry box is shown and you should read the value.
+            led2_array = [self.led2_dropdown.get(), int(self.led2_entry.get())]
+        else:
+            led2_array = [self.led2_dropdown.get(), 0]
+
+        if self.led3_entry.grid_info():
+            # This means the entry box is shown and you should read the value.
+            led3_array = [self.led3_dropdown.get(), int(self.led3_entry.get())]
+        else:
+            led3_array = [self.led3_dropdown.get(), 0]
+
+        # RGB LEDS 4
+        if self.led4r_entry.grid_info():
+            # This means the entry box is shown and you should read the value.
+            led4r_array = [self.led4r_dropdown.get(), int(self.led4r_entry.get())]
+        else:
+            led4r_array = [self.led4r_dropdown.get(), 0]
+        if self.led4g_entry.grid_info():
+            # This means the entry box is shown and you should read the value.
+            led4g_array = [self.led4g_dropdown.get(), int(self.led4g_entry.get())]
+        else:
+            led4g_array = [self.led4g_dropdown.get(), 0]
+        if self.led4b_entry.grid_info():
+            # This means the entry box is shown and you should read the value.
+            led4b_array = [self.led4b_dropdown.get(), int(self.led4b_entry.get())]
+        else:
+            led4b_array = [self.led4b_dropdown.get(), 0]
+
+        # RGB LEDS 5
+        if self.led5r_entry.grid_info():
+            # This means the entry box is shown and you should read the value.
+            led5r_array = [self.led5r_dropdown.get(), int(self.led5r_entry.get())]
+        else:
+            led5r_array = [self.led5r_dropdown.get(), 0]
+        if self.led5g_entry.grid_info():
+            # This means the entry box is shown and you should read the value.
+            led5g_array = [self.led5g_dropdown.get(), int(self.led5g_entry.get())]
+        else:
+            led5g_array = [self.led5g_dropdown.get(), 0]
+        if self.led5b_entry.grid_info():
+            # This means the entry box is shown and you should read the value.
+            led5b_array = [self.led5b_dropdown.get(), int(self.led5b_entry.get())]
+        else:
+            led5b_array = [self.led5b_dropdown.get(), 0]
+
+
+        # 2 x Switches
+        if self.sw0_entry.grid_info():
+            # This means the entry box is shown and you should read the value.
+            sw0_array = [self.sw0_dropdown.get(), int(self.sw0_entry.get())]
+        else:
+            sw0_array = [self.sw0_dropdown.get(), 0]
+        if self.led5g_entry.grid_info():
+            # This means the entry box is shown and you should read the value.
+            sw1_array = [self.sw1_dropdown.get(), int(self.sw1_entry.get())]
+        else:
+            sw1_array = [self.sw1_dropdown.get(), 0]
+
+
+        # 4 X BUTTONS
+
+        if self.btn0_entry.grid_info():
+            # This means the entry box is shown and you should read the value.
+            btn0_array = [self.btn0_dropdown.get(), int(self.btn0_entry.get())]
+        else:
+            btn0_array = [self.btn0_dropdown.get(), 0]
+
+        if self.btn1_entry.grid_info():
+            # This means the entry box is shown and you should read the value.
+            btn1_array = [self.btn1_dropdown.get(), int(self.btn1_entry.get())]
+        else:
+            btn1_array = [self.btn1_dropdown.get(), 0]
+
+        if self.btn2_entry.grid_info():
+            # This means the entry box is shown and you should read the value.
+            btn2_array = [self.btn2_dropdown.get(), int(self.btn2_entry.get())]
+        else:
+            btn2_array = [self.btn2_dropdown.get(), 0]
+
+        if self.btn3_entry.grid_info():
+            # This means the entry box is shown and you should read the value.
+            btn3_array = [self.btn3_dropdown.get(), int(self.btn3_entry.get())]
+        else:
+            btn3_array = [self.btn3_dropdown.get(), 0]
+
+        # Basic LEDs
+        io_config["led0"] = led0_array
+        io_config["led1"] = led1_array
+        io_config["led2"] = led2_array
+        io_config["led3"] = led3_array
+        # RGBs, SWs, BTNs,
+        io_config["led4r"] = led4r_array
+        io_config["led4g"] = led4g_array
+        io_config["led4b"] = led4b_array
+        io_config["led5r"] = led5r_array
+        io_config["led5g"] = led5g_array
+        io_config["led5b"] = led5b_array
+        io_config["sw0"] = sw0_array
+        io_config["sw1"] = sw1_array
+        io_config["btn0"] = btn0_array
+        io_config["btn1"] = btn1_array
+        io_config["btn2"] = btn2_array
+        io_config["btn3"] = btn3_array
+
+        value_count = {}
+
+        # Convert lists to tuples to handle unhashable list values
+        value_count = {}
+
+        for value in io_config.values():
+            # Convert list to tuple if the value is a list
+            if isinstance(value, list):
+                value = tuple(value)
+
+            # Ignore if the value is a tuple where the first element is an empty string
+            if isinstance(value, tuple) and value[0] == '':
+                continue
+
+            value_count[value] = value_count.get(value, 0) + 1
+
+        # Check if any value occurs more than once
+        duplicates = {value: count for value, count in value_count.items() if count > 1}
+
+        print(duplicates)
+
+        if duplicates: # Then is_valid = False
+            return False
+        else:
+            return True
+
+
+
+
+
+
+
+
+
+
+
 
 
     def save_io_config(self, xml_instance):
