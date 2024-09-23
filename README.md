@@ -87,7 +87,7 @@ Selecting an option will open the corresponding board's Jupyter Notebook environ
 
 ## Project Poster
 
-[Project Poster](docs/project_poster.png)
+[Project Poster](https://github.com/Logicademy/PYNQ-SoC-Builder/tree/master/docs/project_poster.png)
 
 ## Contact Me
 
