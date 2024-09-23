@@ -7,6 +7,11 @@ import git
 import os
 import subprocess
 import sys
+
+
+
+
+
 class Application:
 
     ##############################
@@ -212,4 +217,15 @@ if __name__ == "__main__":
     except Exception as e:
         print(f"Could not auto-update project, please do manually or re-clone from Github.com/Logicademy/PYNQ-SoC-Builder - {e}")
 
+
+    try:
+        current_dir = os.getcwd()
+        # Set the icon using the ctypes library
+        icon_path = current_dir + "\\docs\\images\\pynq.ico"  # Replace with the actual path
+        print(icon_path)
+        root.iconbitmap(icon_path)
+    except Exception as e:
+        print(f"Could not set taskbar image: {e}")
+
     root.mainloop()
+    
