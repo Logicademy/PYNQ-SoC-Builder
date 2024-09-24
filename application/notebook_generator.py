@@ -1469,10 +1469,10 @@ def generate_set_signals_function(input_textboxes: list[dict], input_buttons: li
     
     generated_code += f"""
             IPython.notebook.kernel.execute(`
-    {write_statements_str}
-            time.sleep(0.00000002)
-    {output_reads_str}
-            print(f"{print_statement_str}")
+{write_statements_str}
+                time.sleep(0.00000002)
+{output_reads_str}
+                print(f"{print_statement_str}")
             `, {{
                 iopub: {{
                     output: data => {{
