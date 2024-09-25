@@ -1488,7 +1488,7 @@ class PortConfigTab(ctk.CTkScrollableFrame):
         self.int_signal_title_frame.grid(row=0, column=0, padx=5, pady=5, columnspan=number_of_columns)
         self.int_signals_explaination_lbl.grid(row=1, column=0, padx=5, pady=5, columnspan=number_of_columns)
 
-        self.int_signals_lbl.grid(row=0, column=0 )
+        self.int_signals_lbl.grid(row=0, column=0)
         self.help_btn_int_signals.grid(row=0, column=1)
 
         self.int_signals_lbl.configure(width=LHS_frame_width, wraplength=LHS_frame_width)
@@ -1507,7 +1507,7 @@ class PortConfigTab(ctk.CTkScrollableFrame):
             self.no_int_signals_lbl.grid(row=2, column=0, padx=5, pady=5)
 
         for sw in self.switches:
-            sw.configure(width=LHS_frame_width)
+            sw.configure(width=LHS_frame_width/number_of_columns)
 
         self.RHS_frame.grid(row=0, column=1, sticky='n')
 
