@@ -779,17 +779,35 @@ def generate_connections(module_source, all_ports_parsed, io_map, location, add_
             # If its more that should only be a change in the XDC file anyways. :) (if same mode)
             
             if gpio_mode == "in" and pynq_constraints_mode[occurences[0][0]]=="in":
-                # TODO Fix text here
-                add_to_log_box("\nDon't know how to configure inputs yet for gpio_mode = in and pynq_constraints_mode = in. Skipping IO config. (GPIO_width = 1)")
-                print("")
-                
+
+                # We still want the I/O to be readable so we must make it an output external.
+                #file_contents += generate_all_output_no_ext_gpio(gpio_name, gpio_width, gpio_name+"_ext")
                 # Make the signal external and do not connect to AXI interconnect...
-                file_contents += f"\nstartgroup\nmake_bd_pins_external [get_bd_pins {module_source}_0/{gpio_name}]\nendgroup"
+                #file_contents += f"\nstartgroup\nmake_bd_pins_external [get_bd_pins {gpio_name}_0/gpio_io_o]\nendgroup"
+                #file_contents += f"\nset_property name {gpio_name}_ext [get_bd_ports {gpio_name}_0]"
+                
+                # Reference Instructions
+                # startgroup
+                # make_bd_pins_external  [get_bd_pins mux21_1_0/A]
+                # endgroup
+                # set_property name A_ext [get_bd_ports A_0]
+                # connect_bd_net [get_bd_ports A_ext] [get_bd_pins A/gpio_io_i]
+
+                # Create AXI Component - Remember, AXI All Input is from perspective of the component. This is an output to the ARM Processor (Input controlled by our board I/O)
+                file_contents += f"\nadd_axi_gpio_all_input {gpio_name} {gpio_width}"
+                # Make the connection external, and rename accordingly
+                file_contents += "\nstartgroup"
+                file_contents += f"\nmake_bd_pins_external [get_bd_pins {module_source}_0/{gpio_name}]"
+                file_contents += "\nendgroup"
                 file_contents += f"\nset_property name {gpio_name}_ext [get_bd_ports {gpio_name}_0]"
-                 
-                # Then add to the master constraints file
+                # Connect External to the GPIO
+                file_contents += f"\nconnect_bd_net [get_bd_ports {gpio_name}_ext] [get_bd_pins {gpio_name}/gpio_io_i]"
+                # Add our AXI name list for connection to the AXI interconnect
+                interconnect_signals.append(gpio_name)
+                # Finally, add our board contraint to the XDC file.
                 xdc_contents += add_line_to_xdc(occurences[0][0], gpio_name+"_ext")
-                    
+
+
             elif gpio_mode == "in" and pynq_constraints_mode[occurences[0][0]]=="out":
                 file_contents += generate_all_output_external_gpio(gpio_name, gpio_width, module_source, occurences, add_to_log_box)
                 interconnect_signals.append(gpio_name)
