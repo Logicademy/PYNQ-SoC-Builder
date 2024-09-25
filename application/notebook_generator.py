@@ -1143,13 +1143,6 @@ def create_html_css_js(svg: str, parsed_all_ports: list[dict]) -> str:
                 overflow: scroll;
                 box-sizing: border-box;
             }}
-
-            <!-- Styling .custom-div to display content inline, align items in the center, and remove gaps between elements -->
-            .custom-div{{
-                display: inline-flex;
-                align-items: center;
-                gap: 0;
-            }} 
         </style>
 
         <!-- Output area for interactive sandbox -->
@@ -1314,7 +1307,7 @@ def create_input_button(name: str) -> str:
         str: The HTML string for the input button widget.
     """
     return f"""
-    <div class="draggable" class="custom-div">
+    <div class="draggable" style="display: inline-flex;align-items: center;gap: 0;">
         <div class="lm-Widget p-Widget jupyter-widgets">{name}</div>
         <button class="input-button lm-Widget p-Widget jupyter-widgets jupyter-button widget-toggle-button mod-danger" style="width: 50px;" id="{name}">0</button>
     </div>
@@ -1332,7 +1325,7 @@ def create_output_button(name: str) -> str:
         str: The HTML string for the output button widget.
     """
     return f"""
-    <div class="draggable" class="custom-div">
+    <div class="draggable" style="display: inline-flex;align-items: center;gap: 0;">
         <button class="lm-Widget p-Widget jupyter-widgets jupyter-button widget-toggle-button mod-danger" disabled="" title="" style="width: 50px;" id="{name}">0</button>
         <div class="lm-Widget p-Widget jupyter-widgets">{name}</div>
     </div>
@@ -1360,7 +1353,7 @@ def create_input_textbox(name: str) -> str:
         str: The HTML string for the input text box widget.
     """
     return f"""
-    <div class="draggable" class="custom-div">
+    <div class="draggable" style="display: inline-flex;align-items: center;gap: 0;">
         <div class="lm-Widget p-Widget jupyter-widgets widget-label">{name}</div>
         <div class="lm-Widget p-Widget jupyter-widgets widget-inline-hbox widget-text" style="width: 200px;">
             <label class="widget-label" title="" for="{name}" style="display: none;"></label>
@@ -1380,7 +1373,7 @@ def create_output_textbox(name: str) -> str:
         str: The HTML string for the output text box widget.
     """
     return f"""
-    <div class="draggable" class="custom-div">
+    <div class="draggable" style="display: inline-flex;align-items: center;gap: 0;">
         <div class="lm-Widget p-Widget jupyter-widgets widget-inline-hbox widget-text" style="width: 200px;">
         <label class="widget-label" title="" for="{name}" style="display: none;"></label>
         <input type="text" id="{name}" disabled="" placeholder="" value="0x0"></div>
@@ -1469,10 +1462,10 @@ def generate_set_signals_function(input_textboxes: list[dict], input_buttons: li
     
     generated_code += f"""
             IPython.notebook.kernel.execute(`
-    {write_statements_str}
-            time.sleep(0.00000002)
-    {output_reads_str}
-            print(f"{print_statement_str}")
+{write_statements_str}
+                time.sleep(0.00000002)
+{output_reads_str}
+                print(f"{print_statement_str}")
             `, {{
                 iopub: {{
                     output: data => {{
