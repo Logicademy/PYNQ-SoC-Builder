@@ -712,64 +712,64 @@ class PortConfigTab(ctk.CTkScrollableFrame):
 
         # RGB LEDs
         self.led4r_lbl = ctk.CTkLabel(self.RHS_frame, text="LED4R", width=50, font=self.switch_font)
-        self.led4r_dropdown = ctk.CTkOptionMenu(self.RHS_frame, font=self.switch_font, variable=ctk.StringVar(), width=200, command=lambda signal, io="led3": self.io_optionbox_handler(signal, io))
+        self.led4r_dropdown = ctk.CTkOptionMenu(self.RHS_frame, font=self.switch_font, variable=ctk.StringVar(), width=200, command=lambda signal, io="led4r": self.io_optionbox_handler(signal, io))
         self.led4r_entry = ctk.CTkEntry(self.RHS_frame, width=60, font=self.switch_font)
         self.led4r_entry_placeholder = ctk.CTkLabel(self.RHS_frame,text="")
 
         self.led4g_lbl = ctk.CTkLabel(self.RHS_frame, text="LED4G", width=50, font=self.switch_font)
-        self.led4g_dropdown = ctk.CTkOptionMenu(self.RHS_frame, font=self.switch_font, variable=ctk.StringVar(), width=200, command=lambda signal, io="led3": self.io_optionbox_handler(signal, io))
+        self.led4g_dropdown = ctk.CTkOptionMenu(self.RHS_frame, font=self.switch_font, variable=ctk.StringVar(), width=200, command=lambda signal, io="led4g": self.io_optionbox_handler(signal, io))
         self.led4g_entry = ctk.CTkEntry(self.RHS_frame, width=60, font=self.switch_font)
         self.led4g_entry_placeholder = ctk.CTkLabel(self.RHS_frame,text="")
 
         self.led4b_lbl = ctk.CTkLabel(self.RHS_frame, text="LED4B", width=50, font=self.switch_font)
-        self.led4b_dropdown = ctk.CTkOptionMenu(self.RHS_frame, font=self.switch_font, variable=ctk.StringVar(), width=200, command=lambda signal, io="led3": self.io_optionbox_handler(signal, io))
+        self.led4b_dropdown = ctk.CTkOptionMenu(self.RHS_frame, font=self.switch_font, variable=ctk.StringVar(), width=200, command=lambda signal, io="led4b": self.io_optionbox_handler(signal, io))
         self.led4b_entry = ctk.CTkEntry(self.RHS_frame, width=60, font=self.switch_font)
         self.led4b_entry_placeholder = ctk.CTkLabel(self.RHS_frame,text="")
 
         self.led5r_lbl = ctk.CTkLabel(self.RHS_frame, text="LED5R", width=50, font=self.switch_font)
-        self.led5r_dropdown = ctk.CTkOptionMenu(self.RHS_frame, font=self.switch_font, variable=ctk.StringVar(), width=200, command=lambda signal, io="led3": self.io_optionbox_handler(signal, io))
+        self.led5r_dropdown = ctk.CTkOptionMenu(self.RHS_frame, font=self.switch_font, variable=ctk.StringVar(), width=200, command=lambda signal, io="led5r": self.io_optionbox_handler(signal, io))
         self.led5r_entry = ctk.CTkEntry(self.RHS_frame, width=60, font=self.switch_font)
         self.led5r_entry_placeholder = ctk.CTkLabel(self.RHS_frame,text="")
 
         self.led5g_lbl = ctk.CTkLabel(self.RHS_frame, text="LED5G", width=50, font=self.switch_font)
-        self.led5g_dropdown = ctk.CTkOptionMenu(self.RHS_frame, font=self.switch_font, variable=ctk.StringVar(), width=200, command=lambda signal, io="led3": self.io_optionbox_handler(signal, io))
+        self.led5g_dropdown = ctk.CTkOptionMenu(self.RHS_frame, font=self.switch_font, variable=ctk.StringVar(), width=200, command=lambda signal, io="led5g": self.io_optionbox_handler(signal, io))
         self.led5g_entry = ctk.CTkEntry(self.RHS_frame, width=60, font=self.switch_font)
         self.led5g_entry_placeholder = ctk.CTkLabel(self.RHS_frame,text="")
 
         self.led5b_lbl = ctk.CTkLabel(self.RHS_frame, text="LED5B", width=50, font=self.switch_font)
-        self.led5b_dropdown = ctk.CTkOptionMenu(self.RHS_frame, font=self.switch_font, variable=ctk.StringVar(), width=200, command=lambda signal, io="led3": self.io_optionbox_handler(signal, io))
+        self.led5b_dropdown = ctk.CTkOptionMenu(self.RHS_frame, font=self.switch_font, variable=ctk.StringVar(), width=200, command=lambda signal, io="led5b": self.io_optionbox_handler(signal, io))
         self.led5b_entry = ctk.CTkEntry(self.RHS_frame, width=60, font=self.switch_font)
         self.led5b_3entry_placeholder = ctk.CTkLabel(self.RHS_frame,text="")
 
         # Switches
         self.sw0_lbl = ctk.CTkLabel(self.RHS_frame, text="SW0", width=50, font=self.switch_font)
-        self.sw0_dropdown = ctk.CTkOptionMenu(self.RHS_frame, font=self.switch_font, variable=ctk.StringVar(), width=200, command=lambda signal, io="led3": self.io_optionbox_handler(signal, io))
+        self.sw0_dropdown = ctk.CTkOptionMenu(self.RHS_frame, font=self.switch_font, variable=ctk.StringVar(), width=200, command=lambda signal, io="sw0": self.io_optionbox_handler(signal, io))
         self.sw0_entry = ctk.CTkEntry(self.RHS_frame, width=60, font=self.switch_font)
         self.sw0_entry_placeholder = ctk.CTkLabel(self.RHS_frame,text="")
 
         self.sw1_lbl = ctk.CTkLabel(self.RHS_frame, text="SW1", width=50, font=self.switch_font)
-        self.sw1_dropdown = ctk.CTkOptionMenu(self.RHS_frame, font=self.switch_font, variable=ctk.StringVar(), width=200, command=lambda signal, io="led3": self.io_optionbox_handler(signal, io))
+        self.sw1_dropdown = ctk.CTkOptionMenu(self.RHS_frame, font=self.switch_font, variable=ctk.StringVar(), width=200, command=lambda signal, io="sw1": self.io_optionbox_handler(signal, io))
         self.sw1_entry = ctk.CTkEntry(self.RHS_frame, width=60, font=self.switch_font)
         self.sw1_entry_placeholder = ctk.CTkLabel(self.RHS_frame,text="")
 
         # Buttons
         self.btn0_lbl = ctk.CTkLabel(self.RHS_frame, text="BTN0", width=50, font=self.switch_font)
-        self.btn0_dropdown = ctk.CTkOptionMenu(self.RHS_frame, font=self.switch_font, variable=ctk.StringVar(), width=200, command=lambda signal, io="led3": self.io_optionbox_handler(signal, io))
+        self.btn0_dropdown = ctk.CTkOptionMenu(self.RHS_frame, font=self.switch_font, variable=ctk.StringVar(), width=200, command=lambda signal, io="btn0": self.io_optionbox_handler(signal, io))
         self.btn0_entry = ctk.CTkEntry(self.RHS_frame, width=60, font=self.switch_font)
         self.btn0_entry_placeholder = ctk.CTkLabel(self.RHS_frame,text="")
 
         self.btn1_lbl = ctk.CTkLabel(self.RHS_frame, text="BTN1", width=50, font=self.switch_font)
-        self.btn1_dropdown = ctk.CTkOptionMenu(self.RHS_frame, font=self.switch_font, variable=ctk.StringVar(), width=200, command=lambda signal, io="led3": self.io_optionbox_handler(signal, io))
+        self.btn1_dropdown = ctk.CTkOptionMenu(self.RHS_frame, font=self.switch_font, variable=ctk.StringVar(), width=200, command=lambda signal, io="btn1": self.io_optionbox_handler(signal, io))
         self.btn1_entry = ctk.CTkEntry(self.RHS_frame, width=60, font=self.switch_font)
         self.btn1_entry_placeholder = ctk.CTkLabel(self.RHS_frame,text="")
 
         self.btn2_lbl = ctk.CTkLabel(self.RHS_frame, text="BTN2", width=50, font=self.switch_font)
-        self.btn2_dropdown = ctk.CTkOptionMenu(self.RHS_frame, font=self.switch_font, variable=ctk.StringVar(), width=200, command=lambda signal, io="led3": self.io_optionbox_handler(signal, io))
+        self.btn2_dropdown = ctk.CTkOptionMenu(self.RHS_frame, font=self.switch_font, variable=ctk.StringVar(), width=200, command=lambda signal, io="btn2": self.io_optionbox_handler(signal, io))
         self.btn2_entry = ctk.CTkEntry(self.RHS_frame, width=60, font=self.switch_font)
         self.btn2_entry_placeholder = ctk.CTkLabel(self.RHS_frame,text="")
 
         self.btn3_lbl = ctk.CTkLabel(self.RHS_frame, text="BTN3", width=50, font=self.switch_font)
-        self.btn3_dropdown = ctk.CTkOptionMenu(self.RHS_frame, font=self.switch_font, variable=ctk.StringVar(), width=200, command=lambda signal, io="led3": self.io_optionbox_handler(signal, io))
+        self.btn3_dropdown = ctk.CTkOptionMenu(self.RHS_frame, font=self.switch_font, variable=ctk.StringVar(), width=200, command=lambda signal, io="btn3": self.io_optionbox_handler(signal, io))
         self.btn3_entry = ctk.CTkEntry(self.RHS_frame, width=60, font=self.switch_font)
         self.btn3_entry_placeholder = ctk.CTkLabel(self.RHS_frame,text="")
 
@@ -975,7 +975,6 @@ class PortConfigTab(ctk.CTkScrollableFrame):
         # In an idea world, option dropdown menus wouldn't allow it to begin with but its faster hack this in right now.
 
         io_config = self.read_io_config()
-        value_count = {}
 
         # Convert lists to tuples to handle unhashable list values
         value_count = {}
