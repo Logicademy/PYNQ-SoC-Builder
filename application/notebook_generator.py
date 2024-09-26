@@ -63,7 +63,7 @@ def create_jnb(hdlgen_prj, add_to_log_box, force_gen=False):
     py_file_contents += "\nfrom IPython.display import SVG, display, HTML"
     py_file_contents += "\nfrom ipywidgets import GridspecLayout, Output, HBox"
     py_file_contents += "\nfrom ipywidgets import Button, Layout, jslink, IntText, IntSlider"
-    py_file_contents += "\nfrom pynq import Overlay"
+    py_file_contents += "\nfrom pynq import Overlay, PL"
     py_file_contents += "\nimport pandas as pd"
     py_file_contents += "\nimport time"
     py_file_contents += "\nimport os"
@@ -256,6 +256,7 @@ def create_jnb(hdlgen_prj, add_to_log_box, force_gen=False):
     # Python Set Up Code Block
     # Import Overlay
     py_file_contents += "\n\n# Import Overlay"
+    py_file_contents += "\n\nPL.reset()"
     py_file_contents += f"\n{compName} = Overlay(\"{compName}.bit\")"
 
     # This portion needs to be remodelled to support >32 bit signals which have been divided.
