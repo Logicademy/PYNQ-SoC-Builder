@@ -406,7 +406,7 @@ def create_jnb(hdlgen_prj, add_to_log_box, force_gen=False):
         # NOTE: It would be better to convert this script to use hdlgen_prj only but I'm not doing that right now.
  
 
-        py_file_contents += generate_gui_controller(compName, parsed_all_ports, location)
+        py_file_contents += generate_gui_controller(compName, parsed_all_ports, location, clock_enabled)
 
     ##### Break here if only dealing with skeleton code.
     # Possible To-do here is a "example" cell showing how to use signals
@@ -993,7 +993,7 @@ def generate_io_visuals(io_map):
 
     return py_code
 
-def generate_gui_controller(compName, parsed_all_ports, location):
+def generate_gui_controller(compName, parsed_all_ports, location, clock_enabled):
 
     py_code = ""
 
@@ -1021,12 +1021,12 @@ def generate_gui_controller(compName, parsed_all_ports, location):
     py_code += "\n\n\ndef generate_gui(svg_content):"
     py_code += "\n\t# Format SVG Data"
     py_code += "\n\tsvg_content = svg_content.split('<?xml', 1)[-1]"
-    py_code += "\n\tsvg_with_tags = f'<svg style=\"display: block; margin: 50px auto; max-width: 100%; height: auto;\"{svg_content}</svg>'"
+    py_code += "\n\tsvg_with_tags = f'<svg style=\"display: block; margin: 50px auto; max-width: 100%; height: auto; transform: scale(2); transform-origin: center;\"{svg_content}</svg>'"
 
     svg_content = svg_data.split('<?xml', 1)[-1] 
     SVG = f'<svg style="display: block; margin: 50px auto; max-width: 100%; height: auto;"{svg_data}</svg>' # work in progress
 
-    py_code += create_html_css_js(SVG, parsed_all_ports)
+    py_code += create_html_css_js(SVG, parsed_all_ports, clock_enabled)
 
     return py_code
 
@@ -1115,7 +1115,7 @@ def create_large_classes_from_port_map(parsed_port_map):
     return code
 
 # The following functions are responsible for generating the HTML, CSS and JavaScript for the interavtive sandbox
-def create_html_css_js(svg: str, parsed_all_ports: list[dict]) -> str:
+def create_html_css_js(svg: str, parsed_all_ports: list[dict], clock_enabled: bool) -> str:
     """
     This function takes an input SVG string that represents the default circuit diagram 
     for the Pynq-Soc-Builder project and generates the HTML, CSS and JavaScript code for 
@@ -1128,6 +1128,7 @@ def create_html_css_js(svg: str, parsed_all_ports: list[dict]) -> str:
     Parameters:
     svg (str): A string representing the SVG data of the circuit diagram.
     parsed_all_ports (list[dict]): A list of all port dicts
+    clock_enabled (bool): Is the circuit clock enabled?
 
     Returns:
     str: A string combining the HTML, CSS, and JavaScript required for the interactive sandbox.
@@ -1168,12 +1169,15 @@ def create_html_css_js(svg: str, parsed_all_ports: list[dict]) -> str:
             else:
                 output_textboxes.append(name)
 
+    # we can remove the clk button because we have the "Run Clock Period" button
+    input_buttons = list(filter(lambda x: x != 'clk', input_buttons))
+
     # Generate HTML for input buttons, output buttons, input textboxes, output textboxes and the set signals button
     html_css_js += '\n'.join(create_input_button(btn) for btn in input_buttons)
     html_css_js += '\n'.join(create_output_button(btn) for btn in output_buttons)
     html_css_js += '\n'.join(create_input_textbox(tb["name"]) for tb in input_textboxes)
     html_css_js += '\n'.join(create_output_textbox(tb) for tb in output_textboxes)
-    html_css_js += create_set_signals_button()
+    html_css_js += create_set_signals_or_run_clock_period_button(clock_enabled)
 
     # Generate the JavaScript for event handling
     html_css_js += """
@@ -1280,7 +1284,10 @@ def create_html_css_js(svg: str, parsed_all_ports: list[dict]) -> str:
                 }
             }
     """
-    html_css_js += generate_set_signals_function(input_textboxes, input_buttons, output_textboxes, output_buttons)
+
+
+    html_css_js += generate_set_signals_or_run_clock_period_function(input_textboxes, input_buttons, output_textboxes, output_buttons, clock_enabled)
+
 
     # Add the event handlers to the widgets
     html_css_js += """
@@ -1331,15 +1338,18 @@ def create_output_button(name: str) -> str:
     </div>
     """
 
-def create_set_signals_button() -> str:
+def create_set_signals_or_run_clock_period_button(clock_enabled: bool) -> str:
     """
     Generates an HTML string for a draggable 'Set Signals' button.
+
+    Args:
+        clockEnabled (bool): Is this circuit clock enabled?
 
     Returns:
         str: The HTML string for the set signals button widget.
     """
-    return """
-    <button class="set-signal-button draggable lm-Widget p-Widget jupyter-widgets jupyter-button widget-button mod-info" title="">Set Signals</button>
+    return f"""
+    <button class="set-signal-button draggable lm-Widget p-Widget jupyter-widgets jupyter-button widget-button mod-info" title="">{"Run Clock Period" if clock_enabled else "Set Signals"}</button>
     """
 
 def create_input_textbox(name: str) -> str:
@@ -1381,7 +1391,7 @@ def create_output_textbox(name: str) -> str:
     </div>
     """
 
-def generate_set_signals_function(input_textboxes: list[dict], input_buttons: list[str], output_textboxes: list[str], output_buttons: list[str]) -> str:
+def generate_set_signals_or_run_clock_period_function(input_textboxes: list[dict], input_buttons: list[str], output_textboxes: list[str], output_buttons: list[str], clock_enabled: bool) -> str:
     """
     Generates JavaScript code for the setSignals() event handler
 
@@ -1391,6 +1401,7 @@ def generate_set_signals_function(input_textboxes: list[dict], input_buttons: li
         input_buttons (list[str]): A list of strings representing the names of input buttons.
         output_textboxes (list[str]): A list of strings representing the names of output textboxes.
         output_buttons (list[str]): A list of strings representing the names of output buttons.
+        clockEnabled (bool): Is this circuit clock enabled?
 
     Returns:
         str: A string containing the generated JavaScript function to set signals.
@@ -1447,7 +1458,7 @@ def generate_set_signals_function(input_textboxes: list[dict], input_buttons: li
             print_statements.append(f"{name}:{{{name}_value}}")
     
     print_statement_str = ",".join(print_statements)
-    generated_code = """function setSignals(){"""
+    generated_code = """\nfunction setSignals(){"""
     if(input_textboxes):
         generated_code += f"""
             const textbox_values = [{textbox_names_str}].map(id => document.getElementById(id).value);
@@ -1458,12 +1469,19 @@ def generate_set_signals_function(input_textboxes: list[dict], input_buttons: li
         generated_code += f"""
             const values = [{button_names_str}].map(id => document.getElementById(id).textContent === '1' ? 1 : 0);
             const [{button_value_names_str}] = values;
-"""    
+"""  
+    def run_clock_pulse():
+        return """
+                time.sleep(0.0000002)
+                clk.write(0,1)
+                time.sleep(0.0000002)
+                clk.write(0,0)
+"""  
     
     generated_code += f"""
             IPython.notebook.kernel.execute(`
 {write_statements_str}
-                time.sleep(0.00000002)
+{run_clock_pulse() if clock_enabled else "                time.sleep(0.00000002)"}
 {output_reads_str}
                 print(f"{print_statement_str}")
             `, {{
