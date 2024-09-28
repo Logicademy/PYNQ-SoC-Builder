@@ -407,7 +407,7 @@ def create_jnb(hdlgen_prj, add_to_log_box, force_gen=False):
         # NOTE: It would be better to convert this script to use hdlgen_prj only but I'm not doing that right now.
  
 
-        py_file_contents += generate_gui_controller(compName, parsed_all_ports, location, clock_enabled)
+        py_file_contents += generate_gui_controller(compName, parsed_all_ports, location, clock_enabled, io_map)
 
     ##### Break here if only dealing with skeleton code.
     # Possible To-do here is a "example" cell showing how to use signals
@@ -994,7 +994,7 @@ def generate_io_visuals(io_map):
 
     return py_code
 
-def generate_gui_controller(compName, parsed_all_ports, location, clock_enabled):
+def generate_gui_controller(compName, parsed_all_ports, location, clock_enabled, io_map):
 
     py_code = ""
 
@@ -1027,7 +1027,7 @@ def generate_gui_controller(compName, parsed_all_ports, location, clock_enabled)
     svg_content = svg_data.split('<?xml', 1)[-1] 
     SVG = f'<svg style="display: block; margin: 50px auto; max-width: 100%; height: auto;"{svg_data}</svg>' # work in progress
 
-    py_code += create_html_css_js(SVG, parsed_all_ports, clock_enabled)
+    py_code += create_html_css_js(SVG, parsed_all_ports, clock_enabled, io_map)
 
     return py_code
 
@@ -1116,7 +1116,7 @@ def create_large_classes_from_port_map(parsed_port_map):
     return code
 
 # The following functions are responsible for generating the HTML, CSS and JavaScript for the interavtive sandbox
-def create_html_css_js(svg: str, parsed_all_ports: list[dict], clock_enabled: bool) -> str:
+def create_html_css_js(svg: str, parsed_all_ports: list[dict], clock_enabled: bool, io_map: dict) -> str:
     """
     This function takes an input SVG string that represents the default circuit diagram 
     for the Pynq-Soc-Builder project and generates the HTML, CSS and JavaScript code for 
@@ -1151,6 +1151,15 @@ def create_html_css_js(svg: str, parsed_all_ports: list[dict], clock_enabled: bo
         <div class="output-content-area" id="output-content-area">
     \"\"\"+svg_with_tags+\"\"\"
     """
+
+    controlled_by_board_inputs = []
+    board_input_io = ["sw0", "sw1", "btn0", "btn1", "btn2", "btn3"]
+    if io_map:
+        for board_io, signal in io_map.items():
+            # Key is the IO
+            # Value is the port (signal_name, pin_index)
+            if board_io in board_input_io:
+                controlled_by_board_inputs.append(signal[0])
     
     input_buttons = []
     output_buttons = []
@@ -1161,7 +1170,7 @@ def create_html_css_js(svg: str, parsed_all_ports: list[dict], clock_enabled: bo
         name, mode, width = port
         if mode == "in":
             if width == 1:
-                input_buttons.append(name)
+                input_buttons.append({"name": name, "disabled": name in controlled_by_board_inputs})
             else:
                 input_textboxes.append({"name": name, "bits": width})  
         elif mode == "out":
@@ -1171,10 +1180,10 @@ def create_html_css_js(svg: str, parsed_all_ports: list[dict], clock_enabled: bo
                 output_textboxes.append(name)
 
     # we can remove the clk button because we have the "Run Clock Period" button
-    input_buttons = list(filter(lambda x: x != 'clk', input_buttons))
+    input_buttons = list(filter(lambda x: x["name"] != 'clk', input_buttons))
 
     # Generate HTML for input buttons, output buttons, input textboxes, output textboxes and the set signals button
-    html_css_js += '\n'.join(create_input_button(btn) for btn in input_buttons)
+    html_css_js += '\n'.join(create_input_button(btn["name"], btn["disabled"]) for btn in input_buttons)
     html_css_js += '\n'.join(create_output_button(btn) for btn in output_buttons)
     html_css_js += '\n'.join(create_input_textbox(tb["name"]) for tb in input_textboxes)
     html_css_js += '\n'.join(create_output_textbox(tb) for tb in output_textboxes)
@@ -1304,12 +1313,13 @@ def create_html_css_js(svg: str, parsed_all_ports: list[dict], clock_enabled: bo
 
     return html_css_js
 
-def create_input_button(name: str) -> str:
+def create_input_button(name: str, disabled: bool) -> str:
     """
     Generates a HTML string for a draggable div containing a label and an input button
 
     Args:
         name (str): The name of the button.
+        disabled (bool): is the button disabled (driven inputs should be disabled)
 
     Returns:
         str: The HTML string for the input button widget.
@@ -1317,7 +1327,7 @@ def create_input_button(name: str) -> str:
     return f"""
     <div class="draggable" style="display: inline-flex;align-items: center;gap: 0;">
         <div class="lm-Widget p-Widget jupyter-widgets">{name}</div>
-        <button class="input-button lm-Widget p-Widget jupyter-widgets jupyter-button widget-toggle-button mod-danger" style="width: 50px;" id="{name}">0</button>
+        <button class="input-button lm-Widget p-Widget jupyter-widgets jupyter-button widget-toggle-button mod-danger" {"disabled" if disabled else""} style="width: 50px;" id="{name}">0</button>
     </div>
     """
 
@@ -1412,6 +1422,7 @@ def generate_set_signals_or_run_clock_period_function(input_textboxes: list[dict
     the corresponding HTML elements.
     """    
     textbox_names = [item["name"] for item in input_textboxes]
+    input_buttons = [item["name"] for item in input_buttons]
     textbox_names_str = ', '.join([f"'{name}'" for name in textbox_names])
     value_names_str = ', '.join([f"{name}_value" for name in textbox_names])
     
