@@ -345,6 +345,7 @@ def create_jnb(hdlgen_prj, add_to_log_box, force_gen=False):
 
     # Create large classes from Port Map
     py_file_contents += "\n\n# Class wrappers for large (>32bit) signals\n" + create_large_classes_from_port_map(parsed_all_ports)
+    py_file_contents += "\ncurrentIndex = 0\n" + create_large_classes_from_port_map(parsed_all_ports)
 
     py_file_contents += "\n\n# Split Number into Blocks Function"
     py_file_contents += "\ndef split_into_blocks(number, num_blocks):"
@@ -1019,15 +1020,42 @@ def generate_gui_controller(compName, parsed_all_ports, location, clock_enabled,
     py_code += "\n\telse:"
     py_code += "\n\t\treturn (num >> bit_position) & 1"
 
+    py_code += """
+    
+def get_image_files():
+    global svg_content
+    image_extensions = ['.png', '.jpg', '.jpeg', '.svg']  # Add more if needed
+    files = os.listdir()
+    image_tags = []
+    
+    # add the initial svg file
+    svg_content = svg_content.split('<?xml', 1)[-1]
+    svg_content = svg_content.replace("\\n", "").replace("</script>", "</scr"+"ipt>")
+    formatted_svg_content = f'<svg style="display: block; margin: 50px auto; max-width: 100%; height: auto; transform: scale(1); transform-origin: center;"{svg_content}</svg>'
+    image_tags.append(formatted_svg_content)
+    
+    for f in files:
+        ext = os.path.splitext(f)[1].lower()
+        if ext == '.svg':
+            with open(f, 'r') as svg_file:
+                new_svg_content = svg_file.read()
+                new_svg_content = new_svg_content.split('<?xml', 1)[-1]
+                new_svg_content = new_svg_content.replace("\\n", "").replace("</script>", "</scr"+"ipt>")
+                image_tags.append(f'<svg style="display: block; margin: 50px auto; max-width: 100%; height: auto; transform: scale(1); transform-origin: center;"{new_svg_content}</svg>')
+        elif ext in image_extensions:
+            image_tags.append(f'<img src="{f}" style="display: block; margin: 50px auto; max-width: 100%; height: auto; transform: scale(1); transform-origin: center;"">')
+    
+    return image_tags
+"""
+
     py_code += "\n\n\ndef generate_gui(svg_content):"
-    py_code += "\n\t# Format SVG Data"
-    py_code += "\n\tsvg_content = svg_content.split('<?xml', 1)[-1]"
-    py_code += "\n\tsvg_with_tags = f'<svg style=\"display: block; margin: 50px auto; max-width: 100%; height: auto; transform: scale(2); transform-origin: center;\"{svg_content}</svg>'"
+    
+    py_code += """
+    image_list = get_image_files()
+    image_list_js = '["' + '", "'.join([img.replace('"', '\\\\"') for img in image_list]) + '"]'
+"""
 
-    svg_content = svg_data.split('<?xml', 1)[-1] 
-    SVG = f'<svg style="display: block; margin: 50px auto; max-width: 100%; height: auto;"{svg_data}</svg>' # work in progress
-
-    py_code += create_html_css_js(SVG, parsed_all_ports, clock_enabled, io_map)
+    py_code += create_html_css_js(parsed_all_ports, clock_enabled, io_map)
 
     return py_code
 
@@ -1116,7 +1144,7 @@ def create_large_classes_from_port_map(parsed_port_map):
     return code
 
 # The following functions are responsible for generating the HTML, CSS and JavaScript for the interavtive sandbox
-def create_html_css_js(svg: str, parsed_all_ports: list[dict], clock_enabled: bool, io_map: dict) -> str:
+def create_html_css_js(parsed_all_ports: list[dict], clock_enabled: bool, io_map: dict) -> str:
     """
     This function takes an input SVG string that represents the default circuit diagram 
     for the Pynq-Soc-Builder project and generates the HTML, CSS and JavaScript code for 
@@ -1127,7 +1155,6 @@ def create_html_css_js(svg: str, parsed_all_ports: list[dict], clock_enabled: bo
     - JavaScript for event handling within the sandbox.
 
     Parameters:
-    svg (str): A string representing the SVG data of the circuit diagram.
     parsed_all_ports (list[dict]): A list of all port dicts
     clock_enabled (bool): Is the circuit clock enabled?
 
@@ -1135,21 +1162,29 @@ def create_html_css_js(svg: str, parsed_all_ports: list[dict], clock_enabled: bo
     str: A string combining the HTML, CSS, and JavaScript required for the interactive sandbox.
     """
 
-    html_css_js = f"""
+    html_css_js = """
     html_code = \"\"\"
-        <!-- Styling the output area with a scrollable content box, a black border, and ensuring the content fits within the defined box size -->
-        <style>
-            .output-content-area {{
-                position: relative;
-                border: 1px solid black;
-                overflow: scroll;
-                box-sizing: border-box;
-            }}
-        </style>
+    
+<!-- Styling the output area with a scrollable content box, a black border, and ensuring the content fits within the defined box size -->
+<style>
+    .output-content-area {
+        position: relative;
+        border: 1px solid black;
+        overflow: scroll;
+        box-sizing: border-box;
+    }
+</style>
 
-        <!-- Output area for interactive sandbox -->
-        <div class="output-content-area" id="output-content-area">
-    \"\"\"+svg_with_tags+\"\"\"
+<!-- Output area for interactive sandbox -->
+"""
+
+    html_css_js += generate_image_scale_selector()
+
+    html_css_js += """
+<div class="output-content-area" id="output-content-area">
+    <div id="image-wrapper">
+    \"\"\"+image_list[0]+\"\"\"
+    </div>
     """
 
     controlled_by_board_inputs = []
@@ -1189,127 +1224,165 @@ def create_html_css_js(svg: str, parsed_all_ports: list[dict], clock_enabled: bo
     html_css_js += '\n'.join(create_output_textbox(tb) for tb in output_textboxes)
     html_css_js += create_set_signals_or_run_clock_period_button(clock_enabled)
 
+    html_css_js += """
+</div>
+\"\"\"
+"""
+
+    html_css_js += generate_change_image_button()
+
     # Generate the JavaScript for event handling
     html_css_js += """
-        <script>
-            /**
-            * Makes an HTML element draggable within a specified container.
-            * @param {HTMLElement} element - The element to be made draggable.
-            */
-            function makeElementDraggable(element) {
-                let isDragging = false,
-                    offsetX = 0,
-                    offsetY = 0;
+    html_code += \"\"\"
+<div id="error-message" class="error-message"></div> 
+<script type="text/javascript">
+    /**
+    * Makes an HTML element draggable within a specified container.
+    * @param {HTMLElement} element - The element to be made draggable.
+    */
+    function makeElementDraggable(element) {
+        let isDragging = false,
+            offsetX = 0,
+            offsetY = 0;
 
-                element.addEventListener('mousedown', event => {
-                    isDragging = true;
-                    offsetX = event.clientX - element.getBoundingClientRect().left;
-                    offsetY = event.clientY - element.getBoundingClientRect().top;
-                });
+        element.addEventListener('mousedown', event => {
+            isDragging = true;
+            offsetX = event.clientX - element.getBoundingClientRect().left;
+            offsetY = event.clientY - element.getBoundingClientRect().top;
+        });
 
-                document.addEventListener('mousemove', event => {
-                    if (isDragging) {
-                        const containerRect = document.querySelector('.output-content-area').getBoundingClientRect();
-                        element.style.position = 'absolute';
-                        element.style.left = `${Math.max(containerRect.left, Math.min(event.clientX - offsetX, containerRect.right - element.offsetWidth)) - containerRect.left}px`;
-                        element.style.top = `${Math.max(containerRect.top, Math.min(event.clientY - offsetY, containerRect.bottom - element.offsetHeight)) - containerRect.top}px`;
-                    }
-                });
+        document.addEventListener('mousemove', event => {
+            if (isDragging) {
+                const containerRect = document.querySelector('.output-content-area').getBoundingClientRect();
+                element.style.position = 'absolute';
+                element.style.left = `${Math.max(containerRect.left, Math.min(event.clientX - offsetX, containerRect.right - element.offsetWidth)) - containerRect.left}px`;
+                element.style.top = `${Math.max(containerRect.top, Math.min(event.clientY - offsetY, containerRect.bottom - element.offsetHeight)) - containerRect.top}px`;
+            }
+        });
 
-                document.addEventListener('mouseup', () => isDragging = false);
+        document.addEventListener('mouseup', () => isDragging = false);
+    }
+
+    /**
+    * Sets up a button with a click handler
+    * @param {HTMLElement} button - The button element to be set up.
+    * @param {Function} callback - The function to be executed when the button is clicked.
+    */
+    function setupButton(button, callback) {
+        let isClick = true;
+        button.onmousedown = () => {
+            isClick = true;
+            setTimeout(() => isClick = false, 250); // differentiate a drag from a click
+        };
+
+        button.onclick = event => {
+            if (!isClick) {
+                event.preventDefault();
+            } else {
+                callback(button);
+            }
+        };
+    }
+
+    /**
+    * Toggles the state of a button between two values and updates its styling.
+    * @param {HTMLElement} button - The button element whose state will be toggled.
+    */
+    function toggleButtonState(button) {
+        button.textContent = button.textContent === '0' ? '1' : '0';
+        button.classList.toggle('mod-danger');
+        button.classList.toggle('mod-success');
+    }
+
+    /**
+    * Converts the input numeric string into an integer and checks if it exceeds the maximum value             
+    * @param {string} numberStr - The numeric string to be evaluated, can be positive or negative and in decimal, hexadecimal, or binary format
+    * @param {number} numBits - The number of bits used to represent the maximum value
+    * @returns {[boolean, number|null]} - An array where the first element indicates whether the value exceeded 
+    *          the maximum limit (true if exceeded, false otherwise), and the second element is either the 
+    *          truncated value if it exceeded the limit, or the original value if it did not. Returns null if 
+    *          an error occurs during conversion.
+    */
+    function checkMaxValue(numberStr, numBits) {
+        function userStringToInt(numberStr) {
+            let radix = 10;
+            if (numberStr.startsWith("0x")) {
+                radix = 16;
+            } else if (numberStr.startsWith("0b")) {
+                radix = 2;
+            } else if (numberStr.slice(1).startsWith("0x")) {
+                radix = 16;
+            } else if (numberStr.slice(1).startsWith("0b")) {
+                radix = 2;
+            } else {
+                return parseInt(numberStr)
             }
 
-            /**
-            * Sets up a button with a click handler
-            * @param {HTMLElement} button - The button element to be set up.
-            * @param {Function} callback - The function to be executed when the button is clicked.
-            */            
-            function setupButton(button, callback) {
-                let isClick = true;
-                button.onmousedown = () => {
-                    isClick = true;
-                    setTimeout(() => isClick = false, 250); // differentiate a drag from a click
-                };
+            const skipSign = (numberStr[0] === '+' || numberStr[0] === '-') ? 1 : 0;
+            const noRadixString = numberStr.slice(0, skipSign) + numberStr.slice(skipSign + 2);
+            return parseInt(noRadixString, radix);
+        }
 
-                button.onclick = event => {
-                    if (!isClick) {
-                        event.preventDefault();
-                    } else {
-                        callback(button);
-                    }
-                };
+        const value = userStringToInt(numberStr)
+        try {
+            let maxValue = 2 ** numBits - 1
+
+            if (value > maxValue) {
+                let truncatedValue = value % (2 ** numBits)
+                return [true, truncatedValue];
+            } else {
+                return [false, value];
             }
-
-            /**
-            * Toggles the state of a button between two values and updates its styling.
-            * @param {HTMLElement} button - The button element whose state will be toggled.
-            */            
-            function toggleButtonState(button) {
-                button.textContent = button.textContent === '0' ? '1' : '0';
-                button.classList.toggle('mod-danger');
-                button.classList.toggle('mod-success');
-            }
-
-            /**
-            * Converts the input numeric string into an integer and checks if it exceeds the maximum value             
-            * @param {string} numberStr - The numeric string to be evaluated, can be positive or negative and in decimal, hexadecimal, or binary format
-            * @param {number} numBits - The number of bits used to represent the maximum value
-            * @returns {[boolean, number|null]} - An array where the first element indicates whether the value exceeded 
-            *          the maximum limit (true if exceeded, false otherwise), and the second element is either the 
-            *          truncated value if it exceeded the limit, or the original value if it did not. Returns null if 
-            *          an error occurs during conversion.
-            */
-            function checkMaxValue(numberStr, numBits) {
-                function userStringToInt(numberStr){
-                    let radix = 10;
-                    if (numberStr.startsWith("0x")) {
-                        radix = 16;
-                    } else if (numberStr.startsWith("0b")) {
-                        radix = 2;
-                    } else if (numberStr.slice(1).startsWith("0x")) {
-                        radix = 16;
-                    } else if (numberStr.slice(1).startsWith("0b")) {
-                        radix = 2;
-                    } else{
-                        return parseInt(numberStr)
-                    }
-
-                    const skipSign = (numberStr[0] === '+' || numberStr[0] === '-') ? 1 : 0;
-                    const noRadixString = numberStr.slice(0, skipSign) + numberStr.slice(skipSign + 2);
-                    return parseInt(noRadixString, radix);
-                }
-
-                const value = userStringToInt(numberStr)
-                try {
-                    let maxValue = 2**numBits - 1
-                    
-                    if (value > maxValue) {
-                        let truncatedValue = value % (2**numBits)
-                        return [true, truncatedValue];
-                    } else {
-                        return [false, value];
-                    }
-                } catch (error) {
-                    return [false, null];
-                }
-            }
+        } catch (error) {
+            return [false, null];
+        }
+    }
     """
 
-
     html_css_js += generate_set_signals_or_run_clock_period_function(input_textboxes, input_buttons, output_textboxes, output_buttons, clock_enabled)
-
 
     # Add the event handlers to the widgets
     html_css_js += """
     }
-            document.querySelectorAll('.input-button').forEach(button => setupButton(button, toggleButtonState));
-            document.querySelectorAll('.set-signal-button').forEach(button => setupButton(button, setSignals));
-            document.querySelectorAll('.draggable').forEach(makeElementDraggable);
-        </script>
-\"\"\"
-"""
+    
+    function changeImageSize() {
+        const scaleSelector = document.getElementById('image-size-selector');
+        currentScale = parseFloat(scaleSelector.value);
+        const imageWrapper = document.getElementById('image-wrapper');
+        imageWrapper.style.transform = `scale(${currentScale})`;
+    }
 
-    html_css_js += "\n\n\treturn HTML(html_code)"    
+    function changeImage() {
+        let currentIndex = 0;
+        const images = \"\"\" + image_list_js + \"\"\";
+        IPython.notebook.kernel.execute(`
+        currentIndex = (currentIndex + 1) % \"\"\" + str(len(image_list)) + \"\"\"
+        print(currentIndex)
+        `, {
+            iopub: {
+                output: data => {
+                    currentIndex = parseInt(data.content.text, 10);
+                    document.getElementById('image-wrapper').innerHTML = images[currentIndex];
+                }
+            }
+        })
+    }
+\"\"\"
+    # Dynamically add the "Change Image" button if image_list has more than 1 image
+    if len(image_list) > 1:
+        html_code += \"\"\"
+    document.getElementById('changeImageButton').addEventListener('click', changeImage);
+\"\"\"
+    
+    html_code += \"\"\"
+    document.querySelectorAll('.input-button').forEach(button => setupButton(button, toggleButtonState));
+    document.querySelectorAll('.set-signal-button').forEach(button => setupButton(button, setSignals));
+    document.querySelectorAll('.draggable').forEach(makeElementDraggable);
+</script>
+\"\"\"
+
+    return HTML(html_code)
+"""
 
     return html_css_js
 
@@ -1360,7 +1433,27 @@ def create_set_signals_or_run_clock_period_button(clock_enabled: bool) -> str:
         str: The HTML string for the set signals button widget.
     """
     return f"""
-    <button class="set-signal-button draggable lm-Widget p-Widget jupyter-widgets jupyter-button widget-button mod-info" title="">{"Run Clock Period" if clock_enabled else "Set Signals"}</button>
+    <button class="set-signal-button draggable lm-Widget p-Widget jupyter-widgets jupyter-button widget-button mod-info" title=""><i class="{"fa fa-clock-o" if clock_enabled else "fa fa-signal"}"></i>{"Run Clock Period" if clock_enabled else "Set Signals"}</button>
+    """
+
+def generate_change_image_button() -> str:
+    """
+    Generates the HTML string to dynamically generate the "Change Image" button.
+
+    Returns:
+        str: The HTML string to dynamically generate the "Change Image" button.
+    """
+    return """
+    # Dynamically add the "Change Image" button if image_list has more than 1 image
+    if len(image_list) > 1:
+        html_code += \"\"\"
+<div id="change-image-button-wrapper" style="display: flex; justify-content: center;">
+    <button id="changeImageButton" class="lm-Widget p-Widget jupyter-widgets jupyter-button widget-button mod-warning" title="Click me">
+        <i class="fa fa-picture-o"></i>
+        Change Image
+    </button>
+</div>
+\"\"\"
     """
 
 def create_input_textbox(name: str) -> str:
@@ -1401,6 +1494,40 @@ def create_output_textbox(name: str) -> str:
         <div class="lm-Widget p-Widget jupyter-widgets widget-label">{name}</div>
     </div>
     """
+
+def generate_image_scale_selector() -> str:
+    """
+    Generates a HTML string for a image scale selector.
+
+    Returns:
+        str: The HTML string for the image scale selector.
+    """    
+    return """
+<div id="image-size-selector-wrapper" style="display: flex; justify-content: center;"
+    class="output_subarea jupyter-widgets-view" dir="auto">
+    <div class="lm-Widget p-Widget jupyter-widgets widget-inline-hbox widget-dropdown">
+        <label class="widget-label" title="Image Size:" for="image-size-selector" style="">Image Size:</label>
+        <select id="image-size-selector" onchange="changeImageSize()">
+            <option data-value=0.25 value=0.25>0.25x</option>
+            <option data-value=0.5 value=0.5>0.5x</option>
+            <option data-value=0.75 value=0.75>0.75x</option>
+            <option data-value=1 value=1 selected>1x</option>
+            <option data-value=1.25 value=1.25>1.25x</option>
+            <option data-value=1.5 value=1.5>1.5x</option>
+            <option data-value=1.75 value=1.75>1.75x</option>
+            <option data-value=2 value=2>2x</option>
+            <option data-value=2.25 value=2.25>2.25x</option>
+            <option data-value=2.5 value=2.5>2.5x</option>
+            <option data-value=2.75 value=2.75>2.75x</option>
+            <option data-value=3 value=3>3x</option>
+            <option data-value=3.25 value=3.25>3.25x</option>
+            <option data-value=3.5 value=3.5>3.5x</option>
+            <option data-value=3.75 value=3.75>3.75x</option>
+            <option data-value=4 value=4>4x</option>
+        </select>
+    </div>
+</div>
+"""
 
 def generate_set_signals_or_run_clock_period_function(input_textboxes: list[dict], input_buttons: list[str], output_textboxes: list[str], output_buttons: list[str], clock_enabled: bool) -> str:
     """
