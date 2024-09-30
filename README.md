@@ -1,5 +1,7 @@
 # PYNQ SoC Builder for HDLGen-ChatGPT
 
+### If you discover a new error or bug, please [open an issue](https://github.com/Logicademy/PYNQ-SoC-Builder/issues/new) at our GitHub page. Thanks.
+
 ## Overview 
 
 PYNQ SoC Builder is a standalone Python application which:
@@ -11,7 +13,7 @@ PYNQ SoC Builder is a standalone Python application which:
 - Performs synthesis, implementation and bitstream generation
 - Generates Jupyter Notebook project based on provided test plan
 
-PYNQ SoC Builder is compatible with Vivado 2019.1 and 2023.2. Versions in between may work, but are untested.
+PYNQ SoC Builder is compatible with Vivado 2023.2 and 2024.1. Other versions may work, but are untested.
 
 ## Installation
 
