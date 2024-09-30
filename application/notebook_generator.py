@@ -1561,7 +1561,7 @@ def generate_set_signals_or_run_clock_period_function(input_textboxes: list[dict
                         let [{name}_truncated, new_{name}Value] = checkMaxValue({name}_value, {bits});
             {name}_value = new_{name}Value;
             if ({name}_truncated) {{
-                console.log(`{name} value provided is > {bits} bits, input has been truncated to: 0x${{{name}_value.toString(16)}}`);
+                errors.push(`{name} value provided is > {bits} bits, input has been truncated to: 0x${{{name}_value.toString(16)}}`);
             }}
         """
         truncated_checks.append(truncated_check.strip())
@@ -1598,6 +1598,11 @@ def generate_set_signals_or_run_clock_period_function(input_textboxes: list[dict
     
     print_statement_str = ",".join(print_statements)
     generated_code = """\nfunction setSignals(){"""
+    generated_code += """
+        let errors = []
+        const errorArea = document.getElementById('error-message')
+        errorArea.innerHTML = ""
+"""
     if(input_textboxes):
         generated_code += f"""
             const textbox_values = [{textbox_names_str}].map(id => document.getElementById(id).value);
@@ -1618,6 +1623,12 @@ def generate_set_signals_or_run_clock_period_function(input_textboxes: list[dict
 """  
     
     generated_code += f"""
+        if(errors.length > 0){{
+            errors = errors.map(error => `<div style='color: var(--jp-error-color1);'>${{error}}</div>`);
+            const errorMessages = errors.join("\\\\n")
+            errorArea.innerHTML = errorMessages
+        }}
+
             IPython.notebook.kernel.execute(`
 {write_statements_str}
 {run_clock_pulse() if clock_enabled else "                time.sleep(0.00000002)"}
