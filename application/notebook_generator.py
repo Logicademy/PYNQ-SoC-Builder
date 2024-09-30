@@ -161,17 +161,20 @@ def create_jnb(hdlgen_prj, add_to_log_box, force_gen=False):
         print("No TBNoteData - asserting no testplan generation")
         use_testplan = False
     
+
+
     # If any INPUT board I/O are used, switches, buttons and the likes
     # TESTPLAN is not possible as inputs cannot be asserted by the processing system AND an input IO.
     # Hence we check, and if necessary, deassert use_testplan and add explanatory text if a testplan was expected.
     input_io = ["sw0", "sw1", "btn0", "btn1", "btn2", "btn3"]
+    io_cfg_blocked_testplan_generation = False
     for pynq_io, comp_io in io_map.items():
         if pynq_io in input_io:
             print(f"Detected that {input_io} is connected to the following PYNQ board INPUT device - {pynq_io} \nWARNING: Cannot generate testplan in Jupyter Notebook as result (Cannot have two drivers)")
             if use_testplan:
                 use_testplan = False
                 print("Detected that 'use_testplan' was asserted - Deasserting do to incompatibility with current configuration")
-
+                io_cfg_blocked_testplan_generation = True
 
 
     # Test bench parsing code
@@ -762,6 +765,16 @@ def create_jnb(hdlgen_prj, add_to_log_box, force_gen=False):
         # code_cell_contents += "\nstyled_df"
         # code_cell = nbf.v4.new_code_cell(code_cell_contents)
         # notebook.cells.append(code_cell)
+
+    elif io_cfg_blocked_testplan_generation:
+        # In this instance, a testplan was requested but could not be generated due to IO config. Need to add markdown to communicate this to the user.
+        markdown_cell_content = "#### Could not generate automated testplan as model input controlled by PYNQ Input Device\n\n"
+        for pynq_io, comp_io in io_map.items():
+            if pynq_io in input_io:
+                markdown_cell_content += f"Cannot generate testplan as signal {comp_io} is controlled by {pynq_io}\n\n"
+        markdown_cell_content += "\nWhen a signal is controlled by an input mentioned above, it cannot be controlled by the PYNQ's processing system to run tests.\nThis has no impact on any other functionality in this notebook."
+        markdown_cell = nbf.v4.new_markdown_cell(markdown_cell_content)
+        notebook.cells.append(markdown_cell)
 
     # else: # I think this is doubling %run {compName}.py cell
     #     code_cell = nbf.v4.new_code_cell(code_cell_contents)
