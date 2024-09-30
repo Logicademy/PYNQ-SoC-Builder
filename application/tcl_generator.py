@@ -51,12 +51,12 @@ pynq_constraints = {
     "sw1": "set_property -dict { PACKAGE_PIN M19   IOSTANDARD LVCMOS33 } [get_ports { signal_name }];",
 
     # RGB LEDs
-    "led4_b": "set_property -dict { PACKAGE_PIN L15   IOSTANDARD LVCMOS33 } [get_ports { signal_name }];",
-    "led4_g": "set_property -dict { PACKAGE_PIN G17   IOSTANDARD LVCMOS33 } [get_ports { signal_name }];",
-    "led4_r": "set_property -dict { PACKAGE_PIN N15   IOSTANDARD LVCMOS33 } [get_ports { signal_name }];",
-    "led5_b": "set_property -dict { PACKAGE_PIN G14   IOSTANDARD LVCMOS33 } [get_ports { signal_name }];",
-    "led5_g": "set_property -dict { PACKAGE_PIN L14   IOSTANDARD LVCMOS33 } [get_ports { signal_name }];",
-    "led5_r": "set_property -dict { PACKAGE_PIN M15   IOSTANDARD LVCMOS33 } [get_ports { signal_name }];",
+    "led4b": "set_property -dict { PACKAGE_PIN L15   IOSTANDARD LVCMOS33 } [get_ports { signal_name }];",
+    "led4g": "set_property -dict { PACKAGE_PIN G17   IOSTANDARD LVCMOS33 } [get_ports { signal_name }];",
+    "led4r": "set_property -dict { PACKAGE_PIN N15   IOSTANDARD LVCMOS33 } [get_ports { signal_name }];",
+    "led5b": "set_property -dict { PACKAGE_PIN G14   IOSTANDARD LVCMOS33 } [get_ports { signal_name }];",
+    "led5g": "set_property -dict { PACKAGE_PIN L14   IOSTANDARD LVCMOS33 } [get_ports { signal_name }];",
+    "led5r": "set_property -dict { PACKAGE_PIN M15   IOSTANDARD LVCMOS33 } [get_ports { signal_name }];",
 
     # LEDs
     "led0": "set_property -dict { PACKAGE_PIN R14   IOSTANDARD LVCMOS33 } [get_ports { signal_name }];",
@@ -220,12 +220,12 @@ pynq_constraints_mode = {
     "sw0": "in",
     "sw1": "in",
     # RGB LEDs
-    "led4_b": "out",
-    "led4_g": "out",
-    "led4_r": "out",
-    "led5_b": "out",
-    "led5_g": "out",
-    "led5_r": "out",
+    "led4b": "out",
+    "led4g": "out",
+    "led4r": "out",
+    "led5b": "out",
+    "led5g": "out",
+    "led5r": "out",
     # LEDs
     "led0": "out",
     "led1": "out",
@@ -779,16 +779,35 @@ def generate_connections(module_source, all_ports_parsed, io_map, location, add_
             # If its more that should only be a change in the XDC file anyways. :) (if same mode)
             
             if gpio_mode == "in" and pynq_constraints_mode[occurences[0][0]]=="in":
-                # Do not know yet what happens if you have two drivers. Probably not good.
-                
-                add_to_log_box("\nDon't know how to configure inputs yet for gpio_mode = in and pynq_constraints_mode = in. Skipping IO config. (GPIO_width = 1)")
-                file_contents += generate_all_output_no_ext_gpio(gpio_name, gpio_width, module_source, add_to_log_box)
-                
-                # Add signal to the list of GPIO to be connected to interconnect (needed for block automation)
-                # Possible Solution:
-                # - Make the GPIO an ALL OUTPUT (i.e. You cannot write to the signal using Jupyter Notebook anymore.)
 
+                # We still want the I/O to be readable so we must make it an output external.
+                #file_contents += generate_all_output_no_ext_gpio(gpio_name, gpio_width, gpio_name+"_ext")
+                # Make the signal external and do not connect to AXI interconnect...
+                #file_contents += f"\nstartgroup\nmake_bd_pins_external [get_bd_pins {gpio_name}_0/gpio_io_o]\nendgroup"
+                #file_contents += f"\nset_property name {gpio_name}_ext [get_bd_ports {gpio_name}_0]"
+                
+                # Reference Instructions
+                # startgroup
+                # make_bd_pins_external  [get_bd_pins mux21_1_0/A]
+                # endgroup
+                # set_property name A_ext [get_bd_ports A_0]
+                # connect_bd_net [get_bd_ports A_ext] [get_bd_pins A/gpio_io_i]
+
+                # Create AXI Component - Remember, AXI All Input is from perspective of the component. This is an output to the ARM Processor (Input controlled by our board I/O)
+                file_contents += f"\nadd_axi_gpio_all_input {gpio_name} {gpio_width}"
+                # Make the connection external, and rename accordingly
+                file_contents += "\nstartgroup"
+                file_contents += f"\nmake_bd_pins_external [get_bd_pins {module_source}_0/{gpio_name}]"
+                file_contents += "\nendgroup"
+                file_contents += f"\nset_property name {gpio_name}_ext [get_bd_ports {gpio_name}_0]"
+                # Connect External to the GPIO
+                file_contents += f"\nconnect_bd_net [get_bd_ports {gpio_name}_ext] [get_bd_pins {gpio_name}/gpio_io_i]"
+                # Add our AXI name list for connection to the AXI interconnect
                 interconnect_signals.append(gpio_name)
+                # Finally, add our board contraint to the XDC file.
+                xdc_contents += add_line_to_xdc(occurences[0][0], gpio_name+"_ext")
+
+
             elif gpio_mode == "in" and pynq_constraints_mode[occurences[0][0]]=="out":
                 file_contents += generate_all_output_external_gpio(gpio_name, gpio_width, module_source, occurences, add_to_log_box)
                 interconnect_signals.append(gpio_name)
@@ -862,18 +881,8 @@ def generate_connections(module_source, all_ports_parsed, io_map, location, add_
                 # Generate XDC
                 for occur in occurences:
                     xdc_contents += add_line_to_xdc(occur[0], occur[1][0]+"_ext["+str(occur[1][1])+"]")
-            
-
-        # Split Signal Instances
-        
-            ###########################################################################
-            ###########################################################################
-            ###########################################################################
-            ###########################################################################
-            ###########################################################################
-            ###########################################################################
                     
-        # NEEDS URGENT REVIEW
+        # NEEDS REVIEW
         elif gpio_width > 0 and len(occurences) > 0 and gpio_width > len(occurences) and gpio_width <= 32:
             # Need to slice signals -> equal case caught above.
 

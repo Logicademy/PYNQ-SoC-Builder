@@ -101,12 +101,18 @@ class Xml_Manager:
                 "led1":"None",
                 "led2":"None",
                 "led3":"None",
-                "led4_b":"None",
-                "led4_g":"None",
-                "led4_r":"None",
-                "led5_b":"None",
-                "led5_g":"None",
-                "led5_r":"None"
+                "led4b":"None",
+                "led4g":"None",
+                "led4r":"None",
+                "led5b":"None",
+                "led5g":"None",
+                "led5r":"None",
+                "sw0":"None",
+                "sw1":"None",
+                "btn0":"None",
+                "btn1":"None",
+                "btn2":"None",
+                "btn3":"None"
             }
         else:
             io_config = io_configuration
@@ -161,7 +167,7 @@ class Xml_Manager:
             print("No elements to delete")
 
         for pynq_io, comp_io in io_config.items():
-            if comp_io == None or comp_io == "None" or comp_io == ['', 0]:
+            if comp_io == None or comp_io == "None" or comp_io == ['', 0] or []:
                 continue    # Skip empty connections
 
             connection = buildconfig.createElement("connection")

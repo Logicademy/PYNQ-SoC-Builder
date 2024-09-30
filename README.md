@@ -83,11 +83,11 @@ Selecting an option will open the corresponding board's Jupyter Notebook environ
 
 ## Masters Paper
 
-![Master's paper produced as a result of this project may be found here](docs/EE5115_ME_Luke_Canny_19339166.pdf)
+[Master's paper produced as a result of this project may be found here](docs/EE5115_ME_Luke_Canny_19339166.pdf)
 
 ## Project Poster
 
-[Project Poster](https://github.com/Logicademy/PYNQ-SoC-Builder/tree/master/docs/project_poster.png)
+![Project Poster](docs/project_poster.png)
 
 ## Contact Me
 
