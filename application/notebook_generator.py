@@ -1238,9 +1238,6 @@ def get_image_files():
             else:
                 output_textboxes.append(name)
 
-    # we can remove the clk button because we have the "Run Clock Period" button
-    input_buttons = list(filter(lambda x: x["name"] != 'clk', input_buttons))
-
     # Generate HTML for input buttons, output buttons, input textboxes, output textboxes and the set signals button
     html_css_js += '\n'.join(create_input_button(btn["name"], btn["disabled"]) for btn in input_buttons)
     html_css_js += '\n'.join(create_output_button(btn) for btn in output_buttons)
