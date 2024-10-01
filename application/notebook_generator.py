@@ -1045,41 +1045,6 @@ def generate_gui_controller(compName, parsed_all_ports, location, clock_enabled,
     py_code += "\n\telse:"
     py_code += "\n\t\treturn (num >> bit_position) & 1"
 
-    py_code += """
-    
-def get_image_files():
-    global svg_content
-    image_extensions = ['.png', '.jpg', '.jpeg', '.svg']  # Add more if needed
-    files = os.listdir()
-    image_tags = []
-    
-    # add the initial svg file
-    svg_content = svg_content.split('<?xml', 1)[-1]
-    svg_content = svg_content.replace("\\n", "").replace("</script>", "</scr"+"ipt>")
-    formatted_svg_content = f'<svg style="display: block; margin: 50px auto; max-width: 100%; height: auto; transform: scale(1); transform-origin: center;"{svg_content}</svg>'
-    image_tags.append(formatted_svg_content)
-    
-    for f in files:
-        ext = os.path.splitext(f)[1].lower()
-        if ext == '.svg':
-            with open(f, 'r') as svg_file:
-                new_svg_content = svg_file.read()
-                new_svg_content = new_svg_content.split('<?xml', 1)[-1]
-                new_svg_content = new_svg_content.replace("\\n", "").replace("</script>", "</scr"+"ipt>")
-                image_tags.append(f'<svg style="display: block; margin: 50px auto; max-width: 100%; height: auto; transform: scale(1); transform-origin: center;"{new_svg_content}</svg>')
-        elif ext in image_extensions:
-            image_tags.append(f'<img src="{f}" style="display: block; margin: 50px auto; max-width: 100%; height: auto; transform: scale(1); transform-origin: center;"">')
-    
-    return image_tags
-"""
-
-    py_code += "\n\n\ndef generate_gui(svg_content):"
-    
-    py_code += """
-    image_list = get_image_files()
-    image_list_js = '["' + '", "'.join([img.replace('"', '\\\\"') for img in image_list]) + '"]'
-"""
-
     py_code += create_html_css_js(parsed_all_ports, clock_enabled, io_map)
 
     return py_code
@@ -1186,8 +1151,42 @@ def create_html_css_js(parsed_all_ports: list[dict], clock_enabled: bool, io_map
     Returns:
     str: A string combining the HTML, CSS, and JavaScript required for the interactive sandbox.
     """
-
     html_css_js = """
+    
+def get_image_files():
+    global svg_content
+    image_extensions = ['.png', '.jpg', '.jpeg', '.svg']  # Add more if needed
+    files = os.listdir()
+    image_tags = []
+    
+    # add the initial svg file
+    svg_content = svg_content.split('<?xml', 1)[-1]
+    svg_content = svg_content.replace("\\n", "").replace("</script>", "</scr"+"ipt>")
+    formatted_svg_content = f'<svg style="display: block; margin: 50px auto; max-width: 100%; height: auto; transform: scale(1); transform-origin: center;"{svg_content}</svg>'
+    image_tags.append(formatted_svg_content)
+    
+    for f in files:
+        ext = os.path.splitext(f)[1].lower()
+        if ext == '.svg':
+            with open(f, 'r') as svg_file:
+                new_svg_content = svg_file.read()
+                new_svg_content = new_svg_content.split('<?xml', 1)[-1]
+                new_svg_content = new_svg_content.replace("\\n", "").replace("</script>", "</scr"+"ipt>")
+                image_tags.append(f'<svg style="display: block; margin: 50px auto; max-width: 100%; height: auto; transform: scale(1); transform-origin: center;"{new_svg_content}</svg>')
+        elif ext in image_extensions:
+            image_tags.append(f'<img src="{f}" style="display: block; margin: 50px auto; max-width: 100%; height: auto; transform: scale(1); transform-origin: center;"">')
+    
+    return image_tags
+"""
+
+    html_css_js += "\n\n\ndef generate_gui(svg_content):"
+    
+    html_css_js += """
+    image_list = get_image_files()
+    image_list_js = '["' + '", "'.join([img.replace('"', '\\\\"') for img in image_list]) + '"]'
+"""
+
+    html_css_js += """
     html_code = \"\"\"
     
 <!-- Styling the output area with a scrollable content box, a black border, and ensuring the content fits within the defined box size -->
