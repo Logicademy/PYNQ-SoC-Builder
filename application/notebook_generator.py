@@ -1241,7 +1241,7 @@ def get_image_files():
     # Generate HTML for input buttons, output buttons, input textboxes, output textboxes and the set signals button
     html_css_js += '\n'.join(create_input_button(btn["name"], btn["disabled"]) for btn in input_buttons)
     html_css_js += '\n'.join(create_output_button(btn) for btn in output_buttons)
-    html_css_js += '\n'.join(create_input_textbox(tb["name"]) for tb in input_textboxes)
+    html_css_js += '\n'.join(create_input_textbox(tb["name"], tb["bits"]) for tb in input_textboxes)
     html_css_js += '\n'.join(create_output_textbox(tb) for tb in output_textboxes)
     html_css_js += create_set_signals_or_run_clock_period_button(clock_enabled)
 
@@ -1282,37 +1282,6 @@ def get_image_files():
         });
 
         document.addEventListener('mouseup', () => isDragging = false);
-    }
-
-    /**
-    * Sets up a button with a click handler
-    * @param {HTMLElement} button - The button element to be set up.
-    * @param {Function} callback - The function to be executed when the button is clicked.
-    */
-    function setupButton(button, callback) {
-        let isClick = true;
-        button.onmousedown = () => {
-            isClick = true;
-            setTimeout(() => isClick = false, 250); // differentiate a drag from a click
-        };
-
-        button.onclick = event => {
-            if (!isClick) {
-                event.preventDefault();
-            } else {
-                callback(button);
-            }
-        };
-    }
-
-    /**
-    * Toggles the state of a button between two values and updates its styling.
-    * @param {HTMLElement} button - The button element whose state will be toggled.
-    */
-    function toggleButtonState(button) {
-        button.textContent = button.textContent === '0' ? '1' : '0';
-        button.classList.toggle('mod-danger');
-        button.classList.toggle('mod-success');
     }
 
     /**
@@ -1360,7 +1329,7 @@ def get_image_files():
     }
     """
 
-    html_css_js += generate_set_signals_or_run_clock_period_function(input_textboxes, input_buttons, output_textboxes, output_buttons, clock_enabled)
+    html_css_js += generate_set_signals_or_run_clock_period_function(output_textboxes, output_buttons)
 
     # Add the event handlers to the widgets
     html_css_js += """
@@ -1394,10 +1363,20 @@ def get_image_files():
         html_code += \"\"\"
     document.getElementById('changeImageButton').addEventListener('click', changeImage);
 \"\"\"
+    """
     
+    html_css_js += f"""
     html_code += \"\"\"
-    document.querySelectorAll('.input-button').forEach(button => setupButton(button, toggleButtonState));
-    document.querySelectorAll('.set-signal-button').forEach(button => setupButton(button, setSignals));
+    {create_input_button_event_handler()}
+    {create_input_textbox_event_handler()}
+    \"\"\"
+    """
+    
+    html_css_js += """
+    html_code += \"\"\"
+    document.querySelectorAll('.input-button-enabled').forEach(button => button.onclick = () => {inputButtonEventHandler(button.id)});
+    document.querySelectorAll('.input-textbox').forEach(textbox => textbox.onchange = () => {inputTextboxEventHandler(textbox.id, textbox.dataset.bits)});
+    document.querySelectorAll('.set-signal-button').forEach(button => button.onclick = () => {setSignals()});
     document.querySelectorAll('.draggable').forEach(makeElementDraggable);
 </script>
 \"\"\"
@@ -1420,11 +1399,48 @@ def create_input_button(name: str, disabled: bool) -> str:
     """
     return f"""
     <div class="draggable" style="display: inline-flex;align-items: center;gap: 0;">
-        <div class="lm-Widget p-Widget jupyter-widgets">{name}</div>
-        <button class="input-button lm-Widget p-Widget jupyter-widgets jupyter-button widget-toggle-button mod-danger" {"disabled" if disabled else""} style="width: 50px;" id="{name}">0</button>
+        <div class="lm-Widget p-Widget jupyter-widgets" onmousedown="this.style.cursor = 'grabbing';" onmouseover="this.style.cursor = 'grab';">{name}</div>
+        <button class="input-button{"" if disabled else "-enabled"} lm-Widget p-Widget jupyter-widgets jupyter-button widget-toggle-button mod-danger" {"disabled" if disabled else""} style="width: 50px;" id="{name}">0</button>
     </div>
     """
 
+def create_input_button_event_handler() -> str:
+    """
+    Generates a JS string for the input button event handler.
+
+    Returns:
+        str: The JS string for the input button event handler.
+    """
+    return """
+/**
+* Toggles the state of a button between two values, updates its styling and writes the signal.
+* @param {id} button - The id of the button element whose state will be toggled.
+*/
+function inputButtonEventHandler(id) {
+    const button = document.getElementById(`${id}`)
+    let isClick = true;
+    button.onmousedown = () => {
+        isClick = true;
+        setTimeout(() => isClick = false, 250); // differentiate a drag from a click
+    };
+
+    button.onclick = event => {
+        if (!isClick) {
+            event.preventDefault();
+        } else {
+            button.textContent = button.textContent === '0' ? '1' : '0';
+            const value = button.textContent === '1' ? 1 : 0;
+
+            IPython.notebook.kernel.execute(`
+                ${id}.write(0, $value)
+            `);
+
+            button.classList.toggle('mod-danger');
+            button.classList.toggle('mod-success');
+        }
+    };
+}
+"""
 
 def create_output_button(name: str) -> str:
     """
@@ -1439,7 +1455,7 @@ def create_output_button(name: str) -> str:
     return f"""
     <div class="draggable" style="display: inline-flex;align-items: center;gap: 0;">
         <button class="lm-Widget p-Widget jupyter-widgets jupyter-button widget-toggle-button mod-danger" disabled="" title="" style="width: 50px;" id="{name}">0</button>
-        <div class="lm-Widget p-Widget jupyter-widgets">{name}</div>
+        <div class="lm-Widget p-Widget jupyter-widgets" onmousedown="this.style.cursor = 'grabbing';" onmouseover="this.style.cursor = 'grab';">{name}</div>
     </div>
     """
 
@@ -1477,7 +1493,7 @@ def generate_change_image_button() -> str:
 \"\"\"
     """
 
-def create_input_textbox(name: str) -> str:
+def create_input_textbox(name: str, bits: int) -> str:
     """
     Generates a HTML string for a draggable div containing a text input box with a label.
 
@@ -1489,13 +1505,44 @@ def create_input_textbox(name: str) -> str:
     """
     return f"""
     <div class="draggable" style="display: inline-flex;align-items: center;gap: 0;">
-        <div class="lm-Widget p-Widget jupyter-widgets widget-label">{name}</div>
+        <div class="lm-Widget p-Widget jupyter-widgets widget-label" onmousedown="this.style.cursor = 'grabbing';" onmouseover="this.style.cursor = 'grab';">{name}</div>
         <div class="lm-Widget p-Widget jupyter-widgets widget-inline-hbox widget-text" style="width: 200px;">
             <label class="widget-label" title="" for="{name}" style="display: none;"></label>
-            <input type="text" id="{name}" placeholder="" value="0x0">
+            <input class="input-textbox" type="text" id="{name}" data-bits="{bits}" placeholder="" value="0x0"/>
         </div>
     </div>
     """
+
+def create_input_textbox_event_handler() -> str:
+    """
+    Generates a JS string for the input textbox event handler.
+
+    Returns:
+        str: The JS string for the input textbox event handler.
+    """
+    return """
+function inputTextboxEventHandler(name, bits){
+    let errors = [];
+    const errorArea = document.getElementById("error-message");
+    errorArea.innerHTML = "";
+
+    let value = document.getElementById(`${name}`).value;
+    let [truncated, new_value] = checkMaxValue(value, 4);
+    value = new_value;
+
+    if (truncated) {
+        errors.push(`${name} value provided is > ${bits} bits, input has been truncated to: 0x${value.toString(16)}`);
+    }
+
+    if(errors.length > 0){
+        errors = errors.map(error => `<div style='color: var(--jp-error-color1);'>${error}</div>`);
+        const errorMessages = errors.join("\\\\n")
+        errorArea.innerHTML = errorMessages
+    }
+
+    IPython.notebook.kernel.execute(`${name}.write(0, ${value})`);
+}
+"""
 
 def create_output_textbox(name: str) -> str:
     """
@@ -1511,8 +1558,8 @@ def create_output_textbox(name: str) -> str:
     <div class="draggable" style="display: inline-flex;align-items: center;gap: 0;">
         <div class="lm-Widget p-Widget jupyter-widgets widget-inline-hbox widget-text" style="width: 200px;">
         <label class="widget-label" title="" for="{name}" style="display: none;"></label>
-        <input type="text" id="{name}" disabled="" placeholder="" value="0x0"></div>
-        <div class="lm-Widget p-Widget jupyter-widgets widget-label">{name}</div>
+        <input type="text" id="{name}" disabled="" placeholder="" value="0x0"/></div>
+        <div class="lm-Widget p-Widget jupyter-widgets widget-label" onmousedown="this.style.cursor = 'grabbing';" onmouseover="this.style.cursor = 'grab';">{name}</div>
     </div>
     """
 
@@ -1550,55 +1597,19 @@ def generate_image_scale_selector() -> str:
 </div>
 """
 
-def generate_set_signals_or_run_clock_period_function(input_textboxes: list[dict], input_buttons: list[str], output_textboxes: list[str], output_buttons: list[str], clock_enabled: bool) -> str:
+def generate_set_signals_or_run_clock_period_function(output_textboxes: list[str], output_buttons: list[str]) -> str:
     """
     Generates JavaScript code for the setSignals() event handler
 
     Args:
-        input_textboxes (list[dict]): A list of dictionaries representing input textboxes,
-                                       each containing 'name' (str) and 'bits' (int).
-        input_buttons (list[str]): A list of strings representing the names of input buttons.
         output_textboxes (list[str]): A list of strings representing the names of output textboxes.
         output_buttons (list[str]): A list of strings representing the names of output buttons.
-        clockEnabled (bool): Is this circuit clock enabled?
 
     Returns:
         str: A string containing the generated JavaScript function to set signals.
     
-    The generated function retrieves values from input textboxes and buttons, checks for 
-    maximum values, writes values to a backend, reads output values, and updates 
-    the corresponding HTML elements.
-    """    
-    textbox_names = [item["name"] for item in input_textboxes]
-    input_buttons = [item["name"] for item in input_buttons]
-    textbox_names_str = ', '.join([f"'{name}'" for name in textbox_names])
-    value_names_str = ', '.join([f"{name}_value" for name in textbox_names])
-    
-    truncated_checks = []
-    for item in input_textboxes:
-        name = item["name"]
-        bits = item["bits"]
-        truncated_check = f"""
-                        let [{name}_truncated, new_{name}Value] = checkMaxValue({name}_value, {bits});
-            {name}_value = new_{name}Value;
-            if ({name}_truncated) {{
-                errors.push(`{name} value provided is > {bits} bits, input has been truncated to: 0x${{{name}_value.toString(16)}}`);
-            }}
-        """
-        truncated_checks.append(truncated_check.strip())
-    
-    truncated_checks_str = "\n\n".join(truncated_checks)
-    button_names_str = ', '.join([f"'{name}'" for name in input_buttons])
-    button_value_names_str = ', '.join([f"{name}_value" for name in input_buttons])
-    write_statements = []
-    if(input_textboxes):
-        for item in input_textboxes:
-            write_statements.append(f"                {item['name']}.write(0, ${{{item['name']}_value}})")
-    
-    if(input_buttons):
-        for name in input_buttons:
-            write_statements.append(f"                {name}.write(0, ${{{name}_value}})")
-    write_statements_str = "\n".join(write_statements)
+    The generated function reads output values, and updates the corresponding HTML elements.
+    """            
     output_reads = []
     if(output_textboxes):
         for name in output_textboxes:
@@ -1619,40 +1630,8 @@ def generate_set_signals_or_run_clock_period_function(input_textboxes: list[dict
     
     print_statement_str = ",".join(print_statements)
     generated_code = """\nfunction setSignals(){"""
-    generated_code += """
-        let errors = []
-        const errorArea = document.getElementById('error-message')
-        errorArea.innerHTML = ""
-"""
-    if(input_textboxes):
-        generated_code += f"""
-            const textbox_values = [{textbox_names_str}].map(id => document.getElementById(id).value);
-            let [{value_names_str}] = textbox_values;
-    {truncated_checks_str}
-"""
-    if(input_buttons):
-        generated_code += f"""
-            const values = [{button_names_str}].map(id => document.getElementById(id).textContent === '1' ? 1 : 0);
-            const [{button_value_names_str}] = values;
-"""  
-    def run_clock_pulse():
-        return """
-                time.sleep(0.0000002)
-                clk.write(0,1)
-                time.sleep(0.0000002)
-                clk.write(0,0)
-"""  
-    
     generated_code += f"""
-        if(errors.length > 0){{
-            errors = errors.map(error => `<div style='color: var(--jp-error-color1);'>${{error}}</div>`);
-            const errorMessages = errors.join("\\\\n")
-            errorArea.innerHTML = errorMessages
-        }}
-
             IPython.notebook.kernel.execute(`
-{write_statements_str}
-{run_clock_pulse() if clock_enabled else "                time.sleep(0.00000002)"}
 {output_reads_str}
                 print(f"{print_statement_str}")
             `, {{
