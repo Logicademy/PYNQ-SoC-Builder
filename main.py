@@ -7,7 +7,7 @@ import git
 import os
 import subprocess
 import sys
-
+from tkinter import PhotoImage
 
 
 
@@ -221,9 +221,10 @@ if __name__ == "__main__":
     try:
         current_dir = os.getcwd()
         # Set the icon using the ctypes library
-        icon_path = current_dir + "\\docs\\images\\pynq.ico"  # Replace with the actual path
-        print(icon_path)
-        root.iconbitmap(icon_path)
+        icon_path = current_dir + "/docs/images/favicon.png"  # Replace with the actual path
+        #print(icon_path)
+        #root.iconbitmap(icon_path)
+        root.iconphoto(False, PhotoImage(file=icon_path))
     except Exception as e:
         print(f"Could not set taskbar image: {e}")
 
