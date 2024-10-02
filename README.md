@@ -89,6 +89,3 @@ Selecting an option will open the corresponding board's Jupyter Notebook environ
 
 [Master's project poster](docs/project_poster.png)
 
-## Contact Me
-
-You may contact me at lcanny8@gmail.com if you have any additional queries
