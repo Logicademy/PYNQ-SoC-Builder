@@ -1003,7 +1003,7 @@ def generate_io_visuals(io_map):
         py_code += f"\n\t\t\t\tupdate_button({pynq_io}_new_value, {pynq_io}_button)"
             
     py_code += """
-            except Exception as e:
+            except NameError as ne:
                 break
                 # when the notebook is re-run, the entire script is reloaded and all previously 
                 # defined variables are cleared. However, this thread continues running because 
