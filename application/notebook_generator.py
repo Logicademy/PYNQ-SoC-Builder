@@ -266,8 +266,14 @@ def create_jnb(hdlgen_prj, add_to_log_box, force_gen=False):
     markdown_cell = nbf.v4.new_markdown_cell(markdown_cell_contents)
     notebook.cells.append(markdown_cell)
 
-
-
+    py_file_contents += """
+    
+# Kill unnecessary threads
+threads = threading.enumerate()
+for thread in threads:
+    if(thread.name in ["work"]):
+        thread.join()
+"""
     # Python Set Up Code Block
     # Import Overlay
     py_file_contents += "\n\n# Import Overlay"
@@ -950,7 +956,8 @@ def generate_io_visuals(io_map):
 
     py_code += "\n\n\tdef work():"
     py_code += "\n\t\twhile True:"
-    py_code += "\n\t\t\ttime.sleep(0.1)"
+    py_code += "\n\t\t\ttry:"
+    py_code += "\n\t\t\t\ttime.sleep(0.1)"
     py_code += "\n\t\t\t"
 
     # Here we need to use the IO map.
@@ -982,8 +989,8 @@ def generate_io_visuals(io_map):
         # 3) Update button
         comp_signal_name = comp_io[0]
         if comp_signal_name not in already_scanned_signals:
-            py_code += f"\n\t\t\tglobal {comp_signal_name}" # Possibly adds reduces chance an inconsistent bug in Jupyter Notebook where {comp_signal_name} cannot be found
-            py_code += f"\n\t\t\t{comp_signal_name}_value = {comp_signal_name}.read(0)"
+            py_code += f"\n\t\t\t\tglobal {comp_signal_name}" # Possibly adds reduces chance an inconsistent bug in Jupyter Notebook where {comp_signal_name} cannot be found
+            py_code += f"\n\t\t\t\t{comp_signal_name}_value = {comp_signal_name}.read(0)"
             already_scanned_signals.append(comp_signal_name)
         comp_bit = 0 # Default assignment
         try:
@@ -992,10 +999,19 @@ def generate_io_visuals(io_map):
             # If there is an index out of bounds error, it means theres no [x] and therefore its a 1-bit signal.
             # comp_bit = 0
             pass
-        py_code += f"\n\t\t\t{pynq_io}_new_value = get_bit({comp_bit}, {comp_signal_name}_value)"
-        py_code += f"\n\t\t\tupdate_button({pynq_io}_new_value, {pynq_io}_button)"
+        py_code += f"\n\t\t\t\t{pynq_io}_new_value = get_bit({comp_bit}, {comp_signal_name}_value)"
+        py_code += f"\n\t\t\t\tupdate_button({pynq_io}_new_value, {pynq_io}_button)"
+            
+    py_code += """
+            except NameError as ne:
+                break
+                # when the notebook is re-run, the entire script is reloaded and all previously 
+                # defined variables are cleared. However, this thread continues running because 
+                # it's independent of the variable scoping. This leads to a situation where the 
+                # thread is still trying to access variables that no longer exist in the current execution context.
+"""
 
-    py_code += "\n\tthread = threading.Thread(target=work)"
+    py_code += "\n\tthread = threading.Thread(target=work, name=\"work\")"
     py_code += "\n\tthread.start()"
 
     py_code += "\n\n\thbox_layout = widgets.Layout(display='flex', justify_content='center', align_items='center', flex_flow='row')"
