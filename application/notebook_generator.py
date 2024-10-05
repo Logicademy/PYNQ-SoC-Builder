@@ -1151,65 +1151,19 @@ def create_html_css_js(parsed_all_ports: list[dict], clock_enabled: bool, io_map
     Returns:
     str: A string combining the HTML, CSS, and JavaScript required for the interactive sandbox.
     """
-    html_css_js = """
-    
-def get_image_files():
-    global svg_content
-    image_extensions = ['.png', '.jpg', '.jpeg', '.svg']  # Add more if needed
-    files = os.listdir()
-    image_tags = []
-    
-    # add the initial svg file
-    svg_content = svg_content.split('<?xml', 1)[-1]
-    svg_content = svg_content.replace("\\n", "").replace("</script>", "</scr"+"ipt>")
-    formatted_svg_content = f'<svg style="display: block; margin: 50px auto; max-width: 100%; height: auto; transform: scale(1); transform-origin: center;"{svg_content}</svg>'
-    image_tags.append(formatted_svg_content)
-    
-    for f in files:
-        ext = os.path.splitext(f)[1].lower()
-        if ext == '.svg':
-            with open(f, 'r') as svg_file:
-                new_svg_content = svg_file.read()
-                new_svg_content = new_svg_content.split('<?xml', 1)[-1]
-                new_svg_content = new_svg_content.replace("\\n", "").replace("</script>", "</scr"+"ipt>")
-                image_tags.append(f'<svg style="display: block; margin: 50px auto; max-width: 100%; height: auto; transform: scale(1); transform-origin: center;"{new_svg_content}</svg>')
-        elif ext in image_extensions:
-            image_tags.append(f'<img src="{f}" style="display: block; margin: 50px auto; max-width: 100%; height: auto; transform: scale(1); transform-origin: center;"">')
-    
-    return image_tags
-"""
+    html_css_js = generate_get_image_files_function()
 
     html_css_js += "\n\n\ndef generate_gui(svg_content):"
     
     html_css_js += """
     image_list = get_image_files()
     image_list_js = '["' + '", "'.join([img.replace('"', '\\\\"') for img in image_list]) + '"]'
-"""
 
-    html_css_js += """
-    html_code = \"\"\"
-    
-<!-- Styling the output area with a scrollable content box, a black border, and ensuring the content fits within the defined box size -->
-<style>
-    .output-content-area {
-        position: relative;
-        border: 1px solid black;
-        overflow: scroll;
-        box-sizing: border-box;
-    }
-</style>
+    html_code = \"\"\""""
 
-<!-- Output area for interactive sandbox -->
-"""
-
+    html_css_js += generate_css() 
     html_css_js += generate_image_scale_selector()
-
-    html_css_js += """
-<div class="output-content-area" id="output-content-area">
-    <div id="image-wrapper">
-    \"\"\"+image_list[0]+\"\"\"
-    </div>
-    """
+    html_css_js += generate_output_area()
 
     controlled_by_board_inputs = []
     board_input_io = ["sw0", "sw1", "btn0", "btn1", "btn2", "btn3"]
@@ -1257,127 +1211,26 @@ def get_image_files():
     html_code += \"\"\"
 <div id="error-message" class="error-message"></div> 
 <script type="text/javascript">
-    /**
-    * Makes an HTML element draggable within a specified container.
-    * @param {HTMLElement} element - The element to be made draggable.
-    */
-    function makeElementDraggable(element) {
-        let isDragging = false,
-            offsetX = 0,
-            offsetY = 0;
+"""
 
-        element.addEventListener('mousedown', event => {
-            isDragging = true;
-            offsetX = event.clientX - element.getBoundingClientRect().left;
-            offsetY = event.clientY - element.getBoundingClientRect().top;
-        });
-
-        document.addEventListener('mousemove', event => {
-            if (isDragging) {
-                const containerRect = document.querySelector('.output-content-area').getBoundingClientRect();
-                element.style.position = 'absolute';
-                element.style.left = `${Math.max(containerRect.left, Math.min(event.clientX - offsetX, containerRect.right - element.offsetWidth)) - containerRect.left}px`;
-                element.style.top = `${Math.max(containerRect.top, Math.min(event.clientY - offsetY, containerRect.bottom - element.offsetHeight)) - containerRect.top}px`;
-            }
-        });
-
-        document.addEventListener('mouseup', () => isDragging = false);
-    }
-
-    /**
-    * Converts the input numeric string into an integer and checks if it exceeds the maximum value             
-    * @param {string} numberStr - The numeric string to be evaluated, can be positive or negative and in decimal, hexadecimal, or binary format
-    * @param {number} numBits - The number of bits used to represent the maximum value
-    * @returns {[boolean, number|null]} - An array where the first element indicates whether the value exceeded 
-    *          the maximum limit (true if exceeded, false otherwise), and the second element is either the 
-    *          truncated value if it exceeded the limit, or the original value if it did not. Returns null if 
-    *          an error occurs during conversion.
-    */
-    function checkMaxValue(numberStr, numBits) {
-        function userStringToInt(numberStr) {
-            let radix = 10;
-            if (numberStr.startsWith("0x")) {
-                radix = 16;
-            } else if (numberStr.startsWith("0b")) {
-                radix = 2;
-            } else if (numberStr.slice(1).startsWith("0x")) {
-                radix = 16;
-            } else if (numberStr.slice(1).startsWith("0b")) {
-                radix = 2;
-            } else {
-                return parseInt(numberStr)
-            }
-
-            const skipSign = (numberStr[0] === '+' || numberStr[0] === '-') ? 1 : 0;
-            const noRadixString = numberStr.slice(0, skipSign) + numberStr.slice(skipSign + 2);
-            return parseInt(noRadixString, radix);
-        }
-
-        const value = userStringToInt(numberStr)
-        try {
-            let maxValue = 2 ** numBits - 1
-
-            if (value > maxValue) {
-                let truncatedValue = value % (2 ** numBits)
-                return [true, truncatedValue];
-            } else {
-                return [false, value];
-            }
-        } catch (error) {
-            return [false, null];
-        }
-    }
-    """
-
+    html_css_js += generate_make_element_draggable_function()
+    html_css_js += generate_check_max_value_function()
     html_css_js += generate_set_signals_or_run_clock_period_function(output_textboxes, output_buttons)
 
     # Add the event handlers to the widgets
-    html_css_js += """
-    }
-    
-    function changeImageSize() {
-        const scaleSelector = document.getElementById('image-size-selector');
-        currentScale = parseFloat(scaleSelector.value);
-        const imageWrapper = document.getElementById('image-wrapper');
-        imageWrapper.style.transform = `scale(${currentScale})`;
-    }
+    html_css_js += generate_background_image_functions()
 
-    function changeImage() {
-        let currentIndex = 0;
-        const images = \"\"\" + image_list_js + \"\"\";
-        IPython.notebook.kernel.execute(`
-        currentIndex = (currentIndex + 1) % \"\"\" + str(len(image_list)) + \"\"\"
-        print(currentIndex)
-        `, {
-            iopub: {
-                output: data => {
-                    currentIndex = parseInt(data.content.text, 10);
-                    document.getElementById('image-wrapper').innerHTML = images[currentIndex];
-                }
-            }
-        })
-    }
-\"\"\"
-    # Dynamically add the "Change Image" button if image_list has more than 1 image
-    if len(image_list) > 1:
-        html_code += \"\"\"
-    document.getElementById('changeImageButton').addEventListener('click', changeImage);
-\"\"\"
-    """
-    
-    html_css_js += f"""
-    html_code += \"\"\"
-    {create_input_button_event_handler()}
-    {create_input_textbox_event_handler()}
-    \"\"\"
-    """
-    
     html_css_js += """
-    html_code += \"\"\"
-    document.querySelectorAll('.input-button-enabled').forEach(button => button.onclick = () => {inputButtonEventHandler(button.id)});
-    document.querySelectorAll('.input-textbox').forEach(textbox => textbox.onchange = () => {inputTextboxEventHandler(textbox.id, textbox.dataset.bits)});
-    document.querySelectorAll('.set-signal-button').forEach(button => button.onclick = () => {setSignals()});
-    document.querySelectorAll('.draggable').forEach(makeElementDraggable);
+    html_code += \"\"\""""
+
+    html_css_js += f"""
+    {create_input_button_event_handler() if len(input_buttons) > 0 else ''}
+    {create_input_textbox_event_handler() if len(input_textboxes) > 0 else ''}
+    document.querySelectorAll('.set-signal-button').forEach(button => button.onclick = () => {{setSignals()}});
+    """
+
+    html_css_js += """
+        document.querySelectorAll('.draggable').forEach(makeElementDraggable);
 </script>
 \"\"\"
 
@@ -1432,7 +1285,7 @@ function inputButtonEventHandler(id) {
             const value = button.textContent === '1' ? 1 : 0;
 
             IPython.notebook.kernel.execute(`
-                ${id}.write(0, $value)
+                ${id}.write(0, ${value})
             `);
 
             button.classList.toggle('mod-danger');
@@ -1440,6 +1293,9 @@ function inputButtonEventHandler(id) {
         }
     };
 }
+
+document.querySelectorAll('.input-button-enabled').forEach(button =>inputButtonEventHandler(button.id));
+
 """
 
 def create_output_button(name: str) -> str:
@@ -1542,6 +1398,8 @@ function inputTextboxEventHandler(name, bits){
 
     IPython.notebook.kernel.execute(`${name}.write(0, ${value})`);
 }
+
+document.querySelectorAll('.input-textbox').forEach(textbox => textbox.onchange = () => {{inputTextboxEventHandler(textbox.id, textbox.dataset.bits)}});
 """
 
 def create_output_textbox(name: str) -> str:
@@ -1597,6 +1455,166 @@ def generate_image_scale_selector() -> str:
 </div>
 """
 
+def generate_get_image_files_function(): 
+    return """
+    
+def get_image_files():
+    global svg_content
+    image_extensions = ['.png', '.jpg', '.jpeg', '.svg']  # Add more if needed
+    files = os.listdir()
+    image_tags = []
+    
+    # add the initial svg file
+    svg_content = svg_content.split('<?xml', 1)[-1]
+    svg_content = svg_content.replace("\\n", "").replace("</script>", "</scr"+"ipt>")
+    formatted_svg_content = f'<svg style="display: block; margin: 50px auto; max-width: 100%; height: auto; transform: scale(1); transform-origin: center;"{svg_content}</svg>'
+    image_tags.append(formatted_svg_content)
+    
+    for f in files:
+        ext = os.path.splitext(f)[1].lower()
+        if ext == '.svg':
+            with open(f, 'r') as svg_file:
+                new_svg_content = svg_file.read()
+                new_svg_content = new_svg_content.split('<?xml', 1)[-1]
+                new_svg_content = new_svg_content.replace("\\n", "").replace("</script>", "</scr"+"ipt>")
+                image_tags.append(f'<svg style="display: block; margin: 50px auto; max-width: 100%; height: auto; transform: scale(1); transform-origin: center;"{new_svg_content}</svg>')
+        elif ext in image_extensions:
+            image_tags.append(f'<img src="{f}" style="display: block; margin: 50px auto; max-width: 100%; height: auto; transform: scale(1); transform-origin: center;"">')
+    
+    return image_tags
+"""
+
+def generate_make_element_draggable_function():
+    return"""
+   /**
+    * Makes an HTML element draggable within a specified container.
+    * @param {HTMLElement} element - The element to be made draggable.
+    */
+    function makeElementDraggable(element) {
+        let isDragging = false,
+            offsetX = 0,
+            offsetY = 0;
+
+        element.addEventListener('mousedown', event => {
+            isDragging = true;
+            offsetX = event.clientX - element.getBoundingClientRect().left;
+            offsetY = event.clientY - element.getBoundingClientRect().top;
+        });
+
+        document.addEventListener('mousemove', event => {
+            if (isDragging) {
+                const containerRect = document.querySelector('.output-content-area').getBoundingClientRect();
+                element.style.position = 'absolute';
+                element.style.left = `${Math.max(containerRect.left, Math.min(event.clientX - offsetX, containerRect.right - element.offsetWidth)) - containerRect.left}px`;
+                element.style.top = `${Math.max(containerRect.top, Math.min(event.clientY - offsetY, containerRect.bottom - element.offsetHeight)) - containerRect.top}px`;
+            }
+        });
+
+        document.addEventListener('mouseup', () => isDragging = false);
+    }"""
+
+def generate_check_max_value_function():
+    return """
+
+    /**
+    * Converts the input numeric string into an integer and checks if it exceeds the maximum value             
+    * @param {string} numberStr - The numeric string to be evaluated, can be positive or negative and in decimal, hexadecimal, or binary format
+    * @param {number} numBits - The number of bits used to represent the maximum value
+    * @returns {[boolean, number|null]} - An array where the first element indicates whether the value exceeded 
+    *          the maximum limit (true if exceeded, false otherwise), and the second element is either the 
+    *          truncated value if it exceeded the limit, or the original value if it did not. Returns null if 
+    *          an error occurs during conversion.
+    */
+    function checkMaxValue(numberStr, numBits) {
+        function userStringToInt(numberStr) {
+            let radix = 10;
+            if (numberStr.startsWith("0x")) {
+                radix = 16;
+            } else if (numberStr.startsWith("0b")) {
+                radix = 2;
+            } else if (numberStr.slice(1).startsWith("0x")) {
+                radix = 16;
+            } else if (numberStr.slice(1).startsWith("0b")) {
+                radix = 2;
+            } else {
+                return parseInt(numberStr)
+            }
+
+            const skipSign = (numberStr[0] === '+' || numberStr[0] === '-') ? 1 : 0;
+            const noRadixString = numberStr.slice(0, skipSign) + numberStr.slice(skipSign + 2);
+            return parseInt(noRadixString, radix);
+        }
+
+        const value = userStringToInt(numberStr)
+        try {
+            let maxValue = 2 ** numBits - 1
+
+            if (value > maxValue) {
+                let truncatedValue = value % (2 ** numBits)
+                return [true, truncatedValue];
+            } else {
+                return [false, value];
+            }
+        } catch (error) {
+            return [false, null];
+        }
+    }
+    """
+
+def generate_background_image_functions():
+    return """
+    function changeImageSize() {
+        const scaleSelector = document.getElementById('image-size-selector');
+        currentScale = parseFloat(scaleSelector.value);
+        const imageWrapper = document.getElementById('image-wrapper');
+        imageWrapper.style.transform = `scale(${currentScale})`;
+    }
+
+    function changeImage() {
+        let currentIndex = 0;
+        const images = \"\"\" + image_list_js + \"\"\";
+        IPython.notebook.kernel.execute(`
+        currentIndex = (currentIndex + 1) % \"\"\" + str(len(image_list)) + \"\"\"
+        print(currentIndex)
+        `, {
+            iopub: {
+                output: data => {
+                    currentIndex = parseInt(data.content.text, 10);
+                    document.getElementById('image-wrapper').innerHTML = images[currentIndex];
+                }
+            }
+        })
+    }
+\"\"\"
+    # Dynamically add the "Change Image" button if image_list has more than 1 image
+    if len(image_list) > 1:
+        html_code += \"\"\"
+    document.getElementById('changeImageButton').addEventListener('click', changeImage);
+\"\"\"
+    """
+
+def generate_css():
+    return     """
+<!-- Styling the output area with a scrollable content box, a black border, and ensuring the content fits within the defined box size -->
+<style>
+    .output-content-area {
+        position: relative;
+        border: 1px solid black;
+        overflow: scroll;
+        box-sizing: border-box;
+    }
+</style>
+"""
+
+def generate_output_area():
+    return """
+    <!-- Output area for interactive sandbox -->
+<div class="output-content-area" id="output-content-area">
+    <div id="image-wrapper">
+    \"\"\"+image_list[0]+\"\"\"
+    </div>
+    """
+
 def generate_set_signals_or_run_clock_period_function(output_textboxes: list[str], output_buttons: list[str]) -> str:
     """
     Generates JavaScript code for the setSignals() event handler
@@ -1629,8 +1647,7 @@ def generate_set_signals_or_run_clock_period_function(output_textboxes: list[str
             print_statements.append(f"{name}:{{{name}_value}}")
     
     print_statement_str = ",".join(print_statements)
-    generated_code = """\nfunction setSignals(){"""
-    generated_code += f"""
+    generated_code = f"""\nfunction setSignals(){{
             IPython.notebook.kernel.execute(`
 {output_reads_str}
                 print(f"{print_statement_str}")
@@ -1653,6 +1670,7 @@ def generate_set_signals_or_run_clock_period_function(output_textboxes: list[str
                     }}
                 }}
             }});
+        }}
 """        
                 
     return generated_code.strip()
