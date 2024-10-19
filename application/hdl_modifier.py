@@ -127,8 +127,16 @@ def inject_vhdl_assignment_statement(vhdl_file, target_signal, source_signal):
     lines = None
     with open(vhdl_file, 'r') as file:
         lines = file.readlines()
-    
+
         for line in lines:
+            temp_line = line.strip()
+            # If the line is a comment, we restart loop.
+            #if len(temp_line) >= 2:
+            #    print(f"Temp Line: '{temp_line}', and 0:1 is {temp_line[0:2]}")
+            if len(temp_line) >= 2 and temp_line[0:2] == "--":
+                # print("Skipping comment line")
+                continue
+            
             if "begin" in line:
                 target_line = lines.index(line)
                 break
