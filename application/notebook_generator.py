@@ -1061,41 +1061,6 @@ def generate_gui_controller(compName, parsed_all_ports, location, clock_enabled,
     py_code += "\n\telse:"
     py_code += "\n\t\treturn (num >> bit_position) & 1"
 
-    py_code += """
-    
-def get_image_files():
-    global svg_content
-    image_extensions = ['.png', '.jpg', '.jpeg', '.svg']  # Add more if needed
-    files = os.listdir()
-    image_tags = []
-    
-    # add the initial svg file
-    svg_content = svg_content.split('<?xml', 1)[-1]
-    svg_content = svg_content.replace("\\n", "").replace("</script>", "</scr"+"ipt>")
-    formatted_svg_content = f'<svg style="display: block; margin: 50px auto; max-width: 100%; height: auto; transform: scale(1); transform-origin: center;"{svg_content}</svg>'
-    image_tags.append(formatted_svg_content)
-    
-    for f in files:
-        ext = os.path.splitext(f)[1].lower()
-        if ext == '.svg':
-            with open(f, 'r') as svg_file:
-                new_svg_content = svg_file.read()
-                new_svg_content = new_svg_content.split('<?xml', 1)[-1]
-                new_svg_content = new_svg_content.replace("\\n", "").replace("</script>", "</scr"+"ipt>")
-                image_tags.append(f'<svg style="display: block; margin: 50px auto; max-width: 100%; height: auto; transform: scale(1); transform-origin: center;"{new_svg_content}</svg>')
-        elif ext in image_extensions:
-            image_tags.append(f'<img src="{f}" style="display: block; margin: 50px auto; max-width: 100%; height: auto; transform: scale(1); transform-origin: center;"">')
-    
-    return image_tags
-"""
-
-    py_code += "\n\n\ndef generate_gui(svg_content):"
-    
-    py_code += """
-    image_list = get_image_files()
-    image_list_js = '["' + '", "'.join([img.replace('"', '\\\\"') for img in image_list]) + '"]'
-"""
-
     py_code += create_html_css_js(parsed_all_ports, clock_enabled, io_map)
 
     return py_code
@@ -1202,31 +1167,19 @@ def create_html_css_js(parsed_all_ports: list[dict], clock_enabled: bool, io_map
     Returns:
     str: A string combining the HTML, CSS, and JavaScript required for the interactive sandbox.
     """
+    html_css_js = generate_get_image_files_function()
 
-    html_css_js = """
-    html_code = \"\"\"
+    html_css_js += "\n\n\ndef generate_gui(svg_content):"
     
-<!-- Styling the output area with a scrollable content box, a black border, and ensuring the content fits within the defined box size -->
-<style>
-    .output-content-area {
-        position: relative;
-        border: 1px solid black;
-        overflow: scroll;
-        box-sizing: border-box;
-    }
-</style>
-
-<!-- Output area for interactive sandbox -->
-"""
-
-    html_css_js += generate_image_scale_selector()
-
     html_css_js += """
-<div class="output-content-area" id="output-content-area">
-    <div id="image-wrapper">
-    \"\"\"+image_list[0]+\"\"\"
-    </div>
-    """
+    image_list = get_image_files()
+    image_list_js = '["' + '", "'.join([img.replace('"', '\\\\"') for img in image_list]) + '"]'
+
+    html_code = \"\"\""""
+
+    html_css_js += generate_css() 
+    html_css_js += generate_image_scale_selector()
+    html_css_js += generate_output_area()
 
     controlled_by_board_inputs = []
     board_input_io = ["sw0", "sw1", "btn0", "btn1", "btn2", "btn3"]
@@ -1255,13 +1208,10 @@ def create_html_css_js(parsed_all_ports: list[dict], clock_enabled: bool, io_map
             else:
                 output_textboxes.append(name)
 
-    # we can remove the clk button because we have the "Run Clock Period" button
-    input_buttons = list(filter(lambda x: x["name"] != 'clk', input_buttons))
-
     # Generate HTML for input buttons, output buttons, input textboxes, output textboxes and the set signals button
     html_css_js += '\n'.join(create_input_button(btn["name"], btn["disabled"]) for btn in input_buttons)
     html_css_js += '\n'.join(create_output_button(btn) for btn in output_buttons)
-    html_css_js += '\n'.join(create_input_textbox(tb["name"]) for tb in input_textboxes)
+    html_css_js += '\n'.join(create_input_textbox(tb["name"], tb["bits"]) for tb in input_textboxes)
     html_css_js += '\n'.join(create_output_textbox(tb) for tb in output_textboxes)
     html_css_js += create_set_signals_or_run_clock_period_button(clock_enabled)
 
@@ -1277,7 +1227,282 @@ def create_html_css_js(parsed_all_ports: list[dict], clock_enabled: bool, io_map
     html_code += \"\"\"
 <div id="error-message" class="error-message"></div> 
 <script type="text/javascript">
-    /**
+"""
+
+    html_css_js += generate_make_element_draggable_function()
+    html_css_js += generate_check_max_value_function()
+    html_css_js += generate_set_signals_or_run_clock_period_function(output_textboxes, output_buttons)
+
+    # Add the event handlers to the widgets
+    html_css_js += generate_background_image_functions()
+
+    html_css_js += """
+    html_code += \"\"\""""
+
+    html_css_js += f"""
+    {create_input_button_event_handler() if len(input_buttons) > 0 else ''}
+    {create_input_textbox_event_handler() if len(input_textboxes) > 0 else ''}
+    document.querySelectorAll('.set-signal-button').forEach(button => button.onclick = () => {{setSignals()}});
+    """
+
+    html_css_js += """
+        document.querySelectorAll('.draggable').forEach(makeElementDraggable);
+</script>
+\"\"\"
+
+    return HTML(html_code)
+"""
+
+    return html_css_js
+
+def create_input_button(name: str, disabled: bool) -> str:
+    """
+    Generates a HTML string for a draggable div containing a label and an input button
+
+    Args:
+        name (str): The name of the button.
+        disabled (bool): is the button disabled (driven inputs should be disabled)
+
+    Returns:
+        str: The HTML string for the input button widget.
+    """
+    return f"""
+    <div class="draggable" style="display: inline-flex;align-items: center;gap: 0;">
+        <div class="lm-Widget p-Widget jupyter-widgets" onmousedown="this.style.cursor = 'grabbing';" onmouseover="this.style.cursor = 'grab';">{name}</div>
+        <button class="input-button{"" if disabled else "-enabled"} lm-Widget p-Widget jupyter-widgets jupyter-button widget-toggle-button mod-danger" {"disabled" if disabled else""} style="width: 50px;" id="{name}">0</button>
+    </div>
+    """
+
+def create_input_button_event_handler() -> str:
+    """
+    Generates a JS string for the input button event handler.
+
+    Returns:
+        str: The JS string for the input button event handler.
+    """
+    return """
+/**
+* Toggles the state of a button between two values, updates its styling and writes the signal.
+* @param {id} button - The id of the button element whose state will be toggled.
+*/
+function inputButtonEventHandler(id) {
+    const button = document.getElementById(`${id}`)
+    let isClick = true;
+    button.onmousedown = () => {
+        isClick = true;
+        setTimeout(() => isClick = false, 250); // differentiate a drag from a click
+    };
+
+    button.onclick = event => {
+        if (!isClick) {
+            event.preventDefault();
+        } else {
+            button.textContent = button.textContent === '0' ? '1' : '0';
+            const value = button.textContent === '1' ? 1 : 0;
+
+            IPython.notebook.kernel.execute(`
+                ${id}.write(0, ${value})
+            `);
+
+            button.classList.toggle('mod-danger');
+            button.classList.toggle('mod-success');
+        }
+    };
+}
+
+document.querySelectorAll('.input-button-enabled').forEach(button =>inputButtonEventHandler(button.id));
+
+"""
+
+def create_output_button(name: str) -> str:
+    """
+    Generates a HTML string for a draggable div containing a label and a disabled output button
+
+    Args:
+        name (str): The name of the output button.
+
+    Returns:
+        str: The HTML string for the output button widget.
+    """
+    return f"""
+    <div class="draggable" style="display: inline-flex;align-items: center;gap: 0;">
+        <button class="lm-Widget p-Widget jupyter-widgets jupyter-button widget-toggle-button mod-danger" disabled="" title="" style="width: 50px;" id="{name}">0</button>
+        <div class="lm-Widget p-Widget jupyter-widgets" onmousedown="this.style.cursor = 'grabbing';" onmouseover="this.style.cursor = 'grab';">{name}</div>
+    </div>
+    """
+
+def create_set_signals_or_run_clock_period_button(clock_enabled: bool) -> str:
+    """
+    Generates an HTML string for a draggable 'Set Signals' button.
+
+    Args:
+        clockEnabled (bool): Is this circuit clock enabled?
+
+    Returns:
+        str: The HTML string for the set signals button widget.
+    """
+    return f"""
+    <button class="set-signal-button draggable lm-Widget p-Widget jupyter-widgets jupyter-button widget-button mod-info" title=""><i class="{"fa fa-clock-o" if clock_enabled else "fa fa-signal"}"></i>{"Run Clock Period" if clock_enabled else "Set Signals"}</button>
+    """
+
+def generate_change_image_button() -> str:
+    """
+    Generates the HTML string to dynamically generate the "Change Image" button.
+
+    Returns:
+        str: The HTML string to dynamically generate the "Change Image" button.
+    """
+    return """
+    # Dynamically add the "Change Image" button if image_list has more than 1 image
+    if len(image_list) > 1:
+        html_code += \"\"\"
+<div id="change-image-button-wrapper" style="display: flex; justify-content: center;">
+    <button id="changeImageButton" class="lm-Widget p-Widget jupyter-widgets jupyter-button widget-button mod-warning" title="Click me">
+        <i class="fa fa-picture-o"></i>
+        Change Image
+    </button>
+</div>
+\"\"\"
+    """
+
+def create_input_textbox(name: str, bits: int) -> str:
+    """
+    Generates a HTML string for a draggable div containing a text input box with a label.
+
+    Args:
+        name (str): The name of the text input box.
+
+    Returns:
+        str: The HTML string for the input text box widget.
+    """
+    return f"""
+    <div class="draggable" style="display: inline-flex;align-items: center;gap: 0;">
+        <div class="lm-Widget p-Widget jupyter-widgets widget-label" onmousedown="this.style.cursor = 'grabbing';" onmouseover="this.style.cursor = 'grab';">{name}</div>
+        <div class="lm-Widget p-Widget jupyter-widgets widget-inline-hbox widget-text" style="width: 200px;">
+            <label class="widget-label" title="" for="{name}" style="display: none;"></label>
+            <input class="input-textbox" type="text" id="{name}" data-bits="{bits}" placeholder="" value="0x0"/>
+        </div>
+    </div>
+    """
+
+def create_input_textbox_event_handler() -> str:
+    """
+    Generates a JS string for the input textbox event handler.
+
+    Returns:
+        str: The JS string for the input textbox event handler.
+    """
+    return """
+function inputTextboxEventHandler(name, bits){
+    let errors = [];
+    const errorArea = document.getElementById("error-message");
+    errorArea.innerHTML = "";
+
+    let value = document.getElementById(`${name}`).value;
+    let [truncated, new_value] = checkMaxValue(value, 4);
+    value = new_value;
+
+    if (truncated) {
+        errors.push(`${name} value provided is > ${bits} bits, input has been truncated to: 0x${value.toString(16)}`);
+    }
+
+    if(errors.length > 0){
+        errors = errors.map(error => `<div style='color: var(--jp-error-color1);'>${error}</div>`);
+        const errorMessages = errors.join("\\\\n")
+        errorArea.innerHTML = errorMessages
+    }
+
+    IPython.notebook.kernel.execute(`${name}.write(0, ${value})`);
+}
+
+document.querySelectorAll('.input-textbox').forEach(textbox => textbox.onchange = () => {{inputTextboxEventHandler(textbox.id, textbox.dataset.bits)}});
+"""
+
+def create_output_textbox(name: str) -> str:
+    """
+    Generates a HTML string for a draggable div containing a disabled output text box with a label.
+
+    Args:
+        name (str): The name of the text box.
+
+    Returns:
+        str: The HTML string for the output text box widget.
+    """
+    return f"""
+    <div class="draggable" style="display: inline-flex;align-items: center;gap: 0;">
+        <div class="lm-Widget p-Widget jupyter-widgets widget-inline-hbox widget-text" style="width: 200px;">
+        <label class="widget-label" title="" for="{name}" style="display: none;"></label>
+        <input type="text" id="{name}" disabled="" placeholder="" value="0x0"/></div>
+        <div class="lm-Widget p-Widget jupyter-widgets widget-label" onmousedown="this.style.cursor = 'grabbing';" onmouseover="this.style.cursor = 'grab';">{name}</div>
+    </div>
+    """
+
+def generate_image_scale_selector() -> str:
+    """
+    Generates a HTML string for a image scale selector.
+
+    Returns:
+        str: The HTML string for the image scale selector.
+    """    
+    return """
+<div id="image-size-selector-wrapper" style="display: flex; justify-content: center;"
+    class="output_subarea jupyter-widgets-view" dir="auto">
+    <div class="lm-Widget p-Widget jupyter-widgets widget-inline-hbox widget-dropdown">
+        <label class="widget-label" title="Image Size:" for="image-size-selector" style="">Image Size:</label>
+        <select id="image-size-selector" onchange="changeImageSize()">
+            <option data-value=0.25 value=0.25>0.25x</option>
+            <option data-value=0.5 value=0.5>0.5x</option>
+            <option data-value=0.75 value=0.75>0.75x</option>
+            <option data-value=1 value=1 selected>1x</option>
+            <option data-value=1.25 value=1.25>1.25x</option>
+            <option data-value=1.5 value=1.5>1.5x</option>
+            <option data-value=1.75 value=1.75>1.75x</option>
+            <option data-value=2 value=2>2x</option>
+            <option data-value=2.25 value=2.25>2.25x</option>
+            <option data-value=2.5 value=2.5>2.5x</option>
+            <option data-value=2.75 value=2.75>2.75x</option>
+            <option data-value=3 value=3>3x</option>
+            <option data-value=3.25 value=3.25>3.25x</option>
+            <option data-value=3.5 value=3.5>3.5x</option>
+            <option data-value=3.75 value=3.75>3.75x</option>
+            <option data-value=4 value=4>4x</option>
+        </select>
+    </div>
+</div>
+"""
+
+def generate_get_image_files_function(): 
+    return """
+    
+def get_image_files():
+    global svg_content
+    image_extensions = ['.png', '.jpg', '.jpeg', '.svg']  # Add more if needed
+    files = os.listdir()
+    image_tags = []
+    
+    # add the initial svg file
+    svg_content = svg_content.split('<?xml', 1)[-1]
+    svg_content = svg_content.replace("\\n", "").replace("</script>", "</scr"+"ipt>")
+    formatted_svg_content = f'<svg style="display: block; margin: 50px auto; max-width: 100%; height: auto; transform: scale(1); transform-origin: center;"{svg_content}</svg>'
+    image_tags.append(formatted_svg_content)
+    
+    for f in files:
+        ext = os.path.splitext(f)[1].lower()
+        if ext == '.svg':
+            with open(f, 'r') as svg_file:
+                new_svg_content = svg_file.read()
+                new_svg_content = new_svg_content.split('<?xml', 1)[-1]
+                new_svg_content = new_svg_content.replace("\\n", "").replace("</script>", "</scr"+"ipt>")
+                image_tags.append(f'<svg style="display: block; margin: 50px auto; max-width: 100%; height: auto; transform: scale(1); transform-origin: center;"{new_svg_content}</svg>')
+        elif ext in image_extensions:
+            image_tags.append(f'<img src="{f}" style="display: block; margin: 50px auto; max-width: 100%; height: auto; transform: scale(1); transform-origin: center;"">')
+    
+    return image_tags
+"""
+
+def generate_make_element_draggable_function():
+    return"""
+   /**
     * Makes an HTML element draggable within a specified container.
     * @param {HTMLElement} element - The element to be made draggable.
     */
@@ -1302,38 +1527,10 @@ def create_html_css_js(parsed_all_ports: list[dict], clock_enabled: bool, io_map
         });
 
         document.addEventListener('mouseup', () => isDragging = false);
-    }
+    }"""
 
-    /**
-    * Sets up a button with a click handler
-    * @param {HTMLElement} button - The button element to be set up.
-    * @param {Function} callback - The function to be executed when the button is clicked.
-    */
-    function setupButton(button, callback) {
-        let isClick = true;
-        button.onmousedown = () => {
-            isClick = true;
-            setTimeout(() => isClick = false, 250); // differentiate a drag from a click
-        };
-
-        button.onclick = event => {
-            if (!isClick) {
-                event.preventDefault();
-            } else {
-                callback(button);
-            }
-        };
-    }
-
-    /**
-    * Toggles the state of a button between two values and updates its styling.
-    * @param {HTMLElement} button - The button element whose state will be toggled.
-    */
-    function toggleButtonState(button) {
-        button.textContent = button.textContent === '0' ? '1' : '0';
-        button.classList.toggle('mod-danger');
-        button.classList.toggle('mod-success');
-    }
+def generate_check_max_value_function():
+    return """
 
     /**
     * Converts the input numeric string into an integer and checks if it exceeds the maximum value             
@@ -1380,12 +1577,8 @@ def create_html_css_js(parsed_all_ports: list[dict], clock_enabled: bool, io_map
     }
     """
 
-    html_css_js += generate_set_signals_or_run_clock_period_function(input_textboxes, input_buttons, output_textboxes, output_buttons, clock_enabled)
-
-    # Add the event handlers to the widgets
-    html_css_js += """
-    }
-    
+def generate_background_image_functions():
+    return """
     function changeImageSize() {
         const scaleSelector = document.getElementById('image-size-selector');
         currentScale = parseFloat(scaleSelector.value);
@@ -1414,211 +1607,43 @@ def create_html_css_js(parsed_all_ports: list[dict], clock_enabled: bool, io_map
         html_code += \"\"\"
     document.getElementById('changeImageButton').addEventListener('click', changeImage);
 \"\"\"
-    
-    html_code += \"\"\"
-    document.querySelectorAll('.input-button').forEach(button => setupButton(button, toggleButtonState));
-    document.querySelectorAll('.set-signal-button').forEach(button => setupButton(button, setSignals));
-    document.querySelectorAll('.draggable').forEach(makeElementDraggable);
-</script>
-\"\"\"
+    """
 
-    return HTML(html_code)
+def generate_css():
+    return     """
+<!-- Styling the output area with a scrollable content box, a black border, and ensuring the content fits within the defined box size -->
+<style>
+    .output-content-area {
+        position: relative;
+        border: 1px solid black;
+        overflow: scroll;
+        box-sizing: border-box;
+    }
+</style>
 """
 
-    return html_css_js
-
-def create_input_button(name: str, disabled: bool) -> str:
-    """
-    Generates a HTML string for a draggable div containing a label and an input button
-
-    Args:
-        name (str): The name of the button.
-        disabled (bool): is the button disabled (driven inputs should be disabled)
-
-    Returns:
-        str: The HTML string for the input button widget.
-    """
-    return f"""
-    <div class="draggable" style="display: inline-flex;align-items: center;gap: 0;">
-        <div class="lm-Widget p-Widget jupyter-widgets">{name}</div>
-        <button class="input-button lm-Widget p-Widget jupyter-widgets jupyter-button widget-toggle-button mod-danger" {"disabled" if disabled else""} style="width: 50px;" id="{name}">0</button>
-    </div>
-    """
-
-
-def create_output_button(name: str) -> str:
-    """
-    Generates a HTML string for a draggable div containing a label and a disabled output button
-
-    Args:
-        name (str): The name of the output button.
-
-    Returns:
-        str: The HTML string for the output button widget.
-    """
-    return f"""
-    <div class="draggable" style="display: inline-flex;align-items: center;gap: 0;">
-        <button class="lm-Widget p-Widget jupyter-widgets jupyter-button widget-toggle-button mod-danger" disabled="" title="" style="width: 50px;" id="{name}">0</button>
-        <div class="lm-Widget p-Widget jupyter-widgets">{name}</div>
-    </div>
-    """
-
-def create_set_signals_or_run_clock_period_button(clock_enabled: bool) -> str:
-    """
-    Generates an HTML string for a draggable 'Set Signals' button.
-
-    Args:
-        clockEnabled (bool): Is this circuit clock enabled?
-
-    Returns:
-        str: The HTML string for the set signals button widget.
-    """
-    return f"""
-    <button class="set-signal-button draggable lm-Widget p-Widget jupyter-widgets jupyter-button widget-button mod-info" title=""><i class="{"fa fa-clock-o" if clock_enabled else "fa fa-signal"}"></i>{"Run Clock Period" if clock_enabled else "Set Signals"}</button>
-    """
-
-def generate_change_image_button() -> str:
-    """
-    Generates the HTML string to dynamically generate the "Change Image" button.
-
-    Returns:
-        str: The HTML string to dynamically generate the "Change Image" button.
-    """
+def generate_output_area():
     return """
-    # Dynamically add the "Change Image" button if image_list has more than 1 image
-    if len(image_list) > 1:
-        html_code += \"\"\"
-<div id="change-image-button-wrapper" style="display: flex; justify-content: center;">
-    <button id="changeImageButton" class="lm-Widget p-Widget jupyter-widgets jupyter-button widget-button mod-warning" title="Click me">
-        <i class="fa fa-picture-o"></i>
-        Change Image
-    </button>
-</div>
-\"\"\"
-    """
-
-def create_input_textbox(name: str) -> str:
-    """
-    Generates a HTML string for a draggable div containing a text input box with a label.
-
-    Args:
-        name (str): The name of the text input box.
-
-    Returns:
-        str: The HTML string for the input text box widget.
-    """
-    return f"""
-    <div class="draggable" style="display: inline-flex;align-items: center;gap: 0;">
-        <div class="lm-Widget p-Widget jupyter-widgets widget-label">{name}</div>
-        <div class="lm-Widget p-Widget jupyter-widgets widget-inline-hbox widget-text" style="width: 200px;">
-            <label class="widget-label" title="" for="{name}" style="display: none;"></label>
-            <input type="text" id="{name}" placeholder="" value="0x0">
-        </div>
+    <!-- Output area for interactive sandbox -->
+<div class="output-content-area" id="output-content-area">
+    <div id="image-wrapper">
+    \"\"\"+image_list[0]+\"\"\"
     </div>
     """
 
-def create_output_textbox(name: str) -> str:
-    """
-    Generates a HTML string for a draggable div containing a disabled output text box with a label.
-
-    Args:
-        name (str): The name of the text box.
-
-    Returns:
-        str: The HTML string for the output text box widget.
-    """
-    return f"""
-    <div class="draggable" style="display: inline-flex;align-items: center;gap: 0;">
-        <div class="lm-Widget p-Widget jupyter-widgets widget-inline-hbox widget-text" style="width: 200px;">
-        <label class="widget-label" title="" for="{name}" style="display: none;"></label>
-        <input type="text" id="{name}" disabled="" placeholder="" value="0x0"></div>
-        <div class="lm-Widget p-Widget jupyter-widgets widget-label">{name}</div>
-    </div>
-    """
-
-def generate_image_scale_selector() -> str:
-    """
-    Generates a HTML string for a image scale selector.
-
-    Returns:
-        str: The HTML string for the image scale selector.
-    """    
-    return """
-<div id="image-size-selector-wrapper" style="display: flex; justify-content: center;"
-    class="output_subarea jupyter-widgets-view" dir="auto">
-    <div class="lm-Widget p-Widget jupyter-widgets widget-inline-hbox widget-dropdown">
-        <label class="widget-label" title="Image Size:" for="image-size-selector" style="">Image Size:</label>
-        <select id="image-size-selector" onchange="changeImageSize()">
-            <option data-value=0.25 value=0.25>0.25x</option>
-            <option data-value=0.5 value=0.5>0.5x</option>
-            <option data-value=0.75 value=0.75>0.75x</option>
-            <option data-value=1 value=1 selected>1x</option>
-            <option data-value=1.25 value=1.25>1.25x</option>
-            <option data-value=1.5 value=1.5>1.5x</option>
-            <option data-value=1.75 value=1.75>1.75x</option>
-            <option data-value=2 value=2>2x</option>
-            <option data-value=2.25 value=2.25>2.25x</option>
-            <option data-value=2.5 value=2.5>2.5x</option>
-            <option data-value=2.75 value=2.75>2.75x</option>
-            <option data-value=3 value=3>3x</option>
-            <option data-value=3.25 value=3.25>3.25x</option>
-            <option data-value=3.5 value=3.5>3.5x</option>
-            <option data-value=3.75 value=3.75>3.75x</option>
-            <option data-value=4 value=4>4x</option>
-        </select>
-    </div>
-</div>
-"""
-
-def generate_set_signals_or_run_clock_period_function(input_textboxes: list[dict], input_buttons: list[str], output_textboxes: list[str], output_buttons: list[str], clock_enabled: bool) -> str:
+def generate_set_signals_or_run_clock_period_function(output_textboxes: list[str], output_buttons: list[str]) -> str:
     """
     Generates JavaScript code for the setSignals() event handler
 
     Args:
-        input_textboxes (list[dict]): A list of dictionaries representing input textboxes,
-                                       each containing 'name' (str) and 'bits' (int).
-        input_buttons (list[str]): A list of strings representing the names of input buttons.
         output_textboxes (list[str]): A list of strings representing the names of output textboxes.
         output_buttons (list[str]): A list of strings representing the names of output buttons.
-        clockEnabled (bool): Is this circuit clock enabled?
 
     Returns:
         str: A string containing the generated JavaScript function to set signals.
     
-    The generated function retrieves values from input textboxes and buttons, checks for 
-    maximum values, writes values to a backend, reads output values, and updates 
-    the corresponding HTML elements.
-    """    
-    textbox_names = [item["name"] for item in input_textboxes]
-    input_buttons = [item["name"] for item in input_buttons]
-    textbox_names_str = ', '.join([f"'{name}'" for name in textbox_names])
-    value_names_str = ', '.join([f"{name}_value" for name in textbox_names])
-    
-    truncated_checks = []
-    for item in input_textboxes:
-        name = item["name"]
-        bits = item["bits"]
-        truncated_check = f"""
-                        let [{name}_truncated, new_{name}Value] = checkMaxValue({name}_value, {bits});
-            {name}_value = new_{name}Value;
-            if ({name}_truncated) {{
-                errors.push(`{name} value provided is > {bits} bits, input has been truncated to: 0x${{{name}_value.toString(16)}}`);
-            }}
-        """
-        truncated_checks.append(truncated_check.strip())
-    
-    truncated_checks_str = "\n\n".join(truncated_checks)
-    button_names_str = ', '.join([f"'{name}'" for name in input_buttons])
-    button_value_names_str = ', '.join([f"{name}_value" for name in input_buttons])
-    write_statements = []
-    if(input_textboxes):
-        for item in input_textboxes:
-            write_statements.append(f"                {item['name']}.write(0, ${{{item['name']}_value}})")
-    
-    if(input_buttons):
-        for name in input_buttons:
-            write_statements.append(f"                {name}.write(0, ${{{name}_value}})")
-    write_statements_str = "\n".join(write_statements)
+    The generated function reads output values, and updates the corresponding HTML elements.
+    """            
     output_reads = []
     if(output_textboxes):
         for name in output_textboxes:
@@ -1638,41 +1663,8 @@ def generate_set_signals_or_run_clock_period_function(input_textboxes: list[dict
             print_statements.append(f"{name}:{{{name}_value}}")
     
     print_statement_str = ",".join(print_statements)
-    generated_code = """\nfunction setSignals(){"""
-    generated_code += """
-        let errors = []
-        const errorArea = document.getElementById('error-message')
-        errorArea.innerHTML = ""
-"""
-    if(input_textboxes):
-        generated_code += f"""
-            const textbox_values = [{textbox_names_str}].map(id => document.getElementById(id).value);
-            let [{value_names_str}] = textbox_values;
-    {truncated_checks_str}
-"""
-    if(input_buttons):
-        generated_code += f"""
-            const values = [{button_names_str}].map(id => document.getElementById(id).textContent === '1' ? 1 : 0);
-            const [{button_value_names_str}] = values;
-"""  
-    def run_clock_pulse():
-        return """
-                time.sleep(0.0000002)
-                clk.write(0,1)
-                time.sleep(0.0000002)
-                clk.write(0,0)
-"""  
-    
-    generated_code += f"""
-        if(errors.length > 0){{
-            errors = errors.map(error => `<div style='color: var(--jp-error-color1);'>${{error}}</div>`);
-            const errorMessages = errors.join("\\\\n")
-            errorArea.innerHTML = errorMessages
-        }}
-
+    generated_code = f"""\nfunction setSignals(){{
             IPython.notebook.kernel.execute(`
-{write_statements_str}
-{run_clock_pulse() if clock_enabled else "                time.sleep(0.00000002)"}
 {output_reads_str}
                 print(f"{print_statement_str}")
             `, {{
@@ -1694,6 +1686,7 @@ def generate_set_signals_or_run_clock_period_function(input_textboxes: list[dict
                     }}
                 }}
             }});
+        }}
 """        
                 
     return generated_code.strip()
