@@ -162,19 +162,19 @@ def create_jnb(hdlgen_prj, add_to_log_box, force_gen=False):
         use_testplan = False
     
 
-
-    # If any INPUT board I/O are used, switches, buttons and the likes
-    # TESTPLAN is not possible as inputs cannot be asserted by the processing system AND an input IO.
-    # Hence we check, and if necessary, deassert use_testplan and add explanatory text if a testplan was expected.
-    input_io = ["sw0", "sw1", "btn0", "btn1", "btn2", "btn3"]
-    io_cfg_blocked_testplan_generation = False
-    for pynq_io, comp_io in io_map.items():
-        if pynq_io in input_io:
-            print(f"Detected that {input_io} is connected to the following PYNQ board INPUT device - {pynq_io} \nWARNING: Cannot generate testplan in Jupyter Notebook as result (Cannot have two drivers)")
-            if use_testplan:
-                use_testplan = False
-                print("Detected that 'use_testplan' was asserted - Deasserting do to incompatibility with current configuration")
-                io_cfg_blocked_testplan_generation = True
+    if io_map:
+        # If any INPUT board I/O are used, switches, buttons and the likes
+        # TESTPLAN is not possible as inputs cannot be asserted by the processing system AND an input IO.
+        # Hence we check, and if necessary, deassert use_testplan and add explanatory text if a testplan was expected.
+        input_io = ["sw0", "sw1", "btn0", "btn1", "btn2", "btn3"]
+        io_cfg_blocked_testplan_generation = False
+        for pynq_io, comp_io in io_map.items():
+            if pynq_io in input_io:
+                print(f"Detected that {input_io} is connected to the following PYNQ board INPUT device - {pynq_io} \nWARNING: Cannot generate testplan in Jupyter Notebook as result (Cannot have two drivers)")
+                if use_testplan:
+                    use_testplan = False
+                    print("Detected that 'use_testplan' was asserted - Deasserting do to incompatibility with current configuration")
+                    io_cfg_blocked_testplan_generation = True
 
 
     # Test bench parsing code
