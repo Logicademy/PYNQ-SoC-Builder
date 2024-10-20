@@ -1,4 +1,6 @@
-![Logo](docs/images/pynq_title.png)
+<p align="center">
+  <img src="docs/images/pynq_title.png" />
+</p>
 
 ### If you discover a new error or bug, please [open an issue](https://github.com/Logicademy/PYNQ-SoC-Builder/issues/new) at our GitHub page. Thanks.
 
