@@ -1,4 +1,4 @@
-# PYNQ SoC Builder for HDLGen-ChatGPT
+![Logo](docs/images/pynq_title.png)
 
 ### If you discover a new error or bug, please [open an issue](https://github.com/Logicademy/PYNQ-SoC-Builder/issues/new) at our GitHub page. Thanks.
 
@@ -15,24 +15,14 @@ PYNQ SoC Builder is a standalone Python application which:
 
 PYNQ SoC Builder is compatible with Vivado 2023.2 and 2024.1. Other versions may work, but are untested.
 
+![Main Menu GUI](docs/images/MainMenu.png)
+
 ## Installation
 
-1. Clone this repo to any directory. (It is recommended to use a short directory such as C:\logicademy\ to avoid Vivado path length issues caused when subdirectories become >255 characters)
+1. Clone this repo to any directory. (It is recommended to use a short directory such as C:\logicademy\ to avoid Windows & Vivado path length issues caused when subdirectories become >255 characters)
 3. Open CommandPrompt/Terminal and go to the cloned repo directory
 4. Install the required libraries using ```pip install -r requirements.txt```
 5. Run Application using ```python main.py```
-
-## How to Use
-
-To open a HDLGen project use the browse option to find the project's .hdlgen file.
-
-### Open Project Prompt
-
-![Open Project Prompt](docs/open_project_page.png)
-
-### Main Menu
-
-![Main Menu GUI](docs/main_menu.png)
 
 #### Options
 
@@ -65,9 +55,6 @@ Once configured, the program may be run. Once the build has been completed, all 
 
 ![In Progress](docs/build_status.png)
 
-Once the build has completed and you are ready to use PYNQ Z2 remote lab, select the "Remote Lab" option on the Main Menu. You will have an opportunity to select online boards or a livestream of the boards (for viewing LED I/O output).
-
-<!-- ![Remote Menu](docs/open_remote_lab.png) -->
 
 Selecting an option will open the corresponding board's Jupyter Notebook environment in your default web-browser.
 
