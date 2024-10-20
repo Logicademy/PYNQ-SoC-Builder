@@ -17,22 +17,12 @@ PYNQ SoC Builder is compatible with Vivado 2023.2 and 2024.1. Other versions may
 
 ## Installation
 
-1. Clone this repo to any directory. (It is recommended to use a short directory such as C:\logicademy\ to avoid Vivado path length issues caused when subdirectories become >255 characters)
+1. Clone this repo to any directory. (It is recommended to use a short directory such as C:\logicademy\ to avoid Windows & Vivado path length issues caused when subdirectories become >255 characters)
 3. Open CommandPrompt/Terminal and go to the cloned repo directory
 4. Install the required libraries using ```pip install -r requirements.txt```
 5. Run Application using ```python main.py```
 
-## How to Use
-
-To open a HDLGen project use the browse option to find the project's .hdlgen file.
-
-### Open Project Prompt
-
-![Open Project Prompt](docs/open_project_page.png)
-
-### Main Menu
-
-![Main Menu GUI](docs/main_menu.png)
+![Main Menu GUI](docs/images/MainMenu.png)
 
 #### Options
 
