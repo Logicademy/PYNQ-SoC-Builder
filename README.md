@@ -55,7 +55,7 @@ From the Configure I/O config menu, any HDLGen port (or externalized internal si
 
 Once configured, the program may be run. Once the build has been completed, all output files are available at ```<SoC-Builder-Directory>\output\```, this folder can be reached using the "Open Project Directory" button on the sidebar.
 
-![In Progress](docs/build_status.png)
+![In Progress](docs/in_progress.png)
 
 <!-- Selecting an option will open the corresponding board's Jupyter Notebook environment in your default web-browser.
 
