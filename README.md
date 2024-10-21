@@ -26,7 +26,8 @@ PYNQ SoC Builder is compatible with both Vivado 2023.2 and 2024.1. Other version
 4. Install the required libraries using ```pip install -r requirements.txt```
 5. Run Application using ```python main.py```
 
-#### Options
+
+## Project Configuration
 
 **Vivado Settings**
 
@@ -43,7 +44,7 @@ PYNQ SoC Builder is compatible with both Vivado 2023.2 and 2024.1. Other version
 
 - **Select FPGA:** This dropdown menu allows users to select between the PYNQ-Z1 and PYNQ-Z2 boards.
 
-### IO Config Menu
+## I/O Configuration
 
 From the Configure I/O config menu, any HDLGen port (or externalized internal signal) may be connected to PYNQ ports.
 
