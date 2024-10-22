@@ -1209,8 +1209,10 @@ def create_html_css_js(parsed_all_ports: list[dict], clock_enabled: bool, io_map
                 output_textboxes.append(name)
 
     # Generate HTML for input buttons, output buttons, input textboxes, output textboxes and the set signals button
-    html_css_js += '\n'.join(create_input_button(btn["name"], btn["disabled"]) for btn in input_buttons)
-    html_css_js += '\n'.join(create_output_button(btn) for btn in output_buttons)
+    html_css_js += '\n'.join(create_input_button(btn["name"], btn["disabled"], f"str({btn['name']}.read(0))") for btn in input_buttons)
+    html_css_js += '\n'.join(create_output_button(btn, f"str({btn}.read(0))") for btn in output_buttons)
+    html_css_js += "\nhtml_code += \"\"\""
+
     html_css_js += '\n'.join(create_input_textbox(tb["name"], tb["bits"]) for tb in input_textboxes)
     html_css_js += '\n'.join(create_output_textbox(tb) for tb in output_textboxes)
     html_css_js += create_set_signals_or_run_clock_period_button(clock_enabled)
@@ -1255,23 +1257,33 @@ def create_html_css_js(parsed_all_ports: list[dict], clock_enabled: bool, io_map
 
     return html_css_js
 
-def create_input_button(name: str, disabled: bool) -> str:
+def create_input_button(name: str, disabled: bool, initial_value: str) -> str:
+    print(initial_value)
     """
     Generates a HTML string for a draggable div containing a label and an input button
 
     Args:
         name (str): The name of the button.
-        disabled (bool): is the button disabled (driven inputs should be disabled)
+        disabled (bool): Is the button disabled (driven inputs should be disabled)
+        initial_value (str): The initial value of the button
 
     Returns:
         str: The HTML string for the input button widget.
     """
     return f"""
-    <div class="draggable" style="display: inline-flex;align-items: center;gap: 0;">
-        <div class="lm-Widget p-Widget jupyter-widgets" onmousedown="this.style.cursor = 'grabbing';" onmouseover="this.style.cursor = 'grab';">{name}</div>
-        <button class="input-button{"" if disabled else "-enabled"} lm-Widget p-Widget jupyter-widgets jupyter-button widget-toggle-button mod-danger" {"disabled" if disabled else""} style="width: 50px;" id="{name}">0</button>
+    html_code += \"\"\"
+    <div class="draggable" style="display: inline-flex; align-items: center; gap: 0;">
+        <div class="lm-Widget p-Widget jupyter-widgets"
+             onmousedown="this.style.cursor = 'grabbing';"
+             onmouseover="this.style.cursor = 'grab';">
+            {name}
+        </div>
+        <button class="input-button-enabled lm-Widget p-Widget jupyter-widgets jupyter-button widget-toggle-button {{status_class}}" 
+                style="width: 50px;" 
+                id="{name}"
+                {"disabled" if disabled else""}>{{button_text}}</button>
     </div>
-    """
+    \"\"\".format(status_class="mod-success" if {initial_value} == "1" else "mod-danger", button_text={initial_value})"""
 
 def create_input_button_event_handler() -> str:
     """
@@ -1314,22 +1326,29 @@ document.querySelectorAll('.input-button-enabled').forEach(button =>inputButtonE
 
 """
 
-def create_output_button(name: str) -> str:
+def create_output_button(name: str, initial_value: str) -> str:
     """
     Generates a HTML string for a draggable div containing a label and a disabled output button
 
     Args:
         name (str): The name of the output button.
+        initial_value (str): The initial value of the button
 
     Returns:
         str: The HTML string for the output button widget.
     """
     return f"""
-    <div class="draggable" style="display: inline-flex;align-items: center;gap: 0;">
-        <button class="lm-Widget p-Widget jupyter-widgets jupyter-button widget-toggle-button mod-danger" disabled="" title="" style="width: 50px;" id="{name}">0</button>
-        <div class="lm-Widget p-Widget jupyter-widgets" onmousedown="this.style.cursor = 'grabbing';" onmouseover="this.style.cursor = 'grab';">{name}</div>
+    html_code += \"\"\"
+    <div class="draggable" style="display: inline-flex; align-items: center; gap: 0;">
+        <button class="lm-Widget p-Widget jupyter-widgets jupyter-button widget-toggle-button {{status_class}}" 
+                disabled title="" style="width: 50px;" id="{name}">{{button_text}}</button>
+        <div class="lm-Widget p-Widget jupyter-widgets" 
+            onmousedown="this.style.cursor = 'grabbing';" 
+            onmouseover="this.style.cursor = 'grab';">
+            {name}
+        </div>
     </div>
-    """
+    \"\"\".format(status_class="mod-success" if {initial_value} == "1" else "mod-danger", button_text={initial_value})"""
 
 def create_set_signals_or_run_clock_period_button(clock_enabled: bool) -> str:
     """
@@ -1628,7 +1647,7 @@ def generate_output_area():
 <div class="output-content-area" id="output-content-area">
     <div id="image-wrapper">
     \"\"\"+image_list[0]+\"\"\"
-    </div>
+    </div>\"\"\"
     """
 
 def generate_set_signals_or_run_clock_period_function(output_textboxes: list[str], output_buttons: list[str]) -> str:
