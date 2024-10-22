@@ -2,7 +2,7 @@
   <img src="docs/images/pynq_title.png" />
 </p>
 
-### If you discover a new error or bug, please [open an issue](https://github.com/Logicademy/PYNQ-SoC-Builder/issues/new) at our GitHub page. Thanks.
+** If you encounter any issues, please don't hesitate to [open an issue](https://github.com/Logicademy/PYNQ-SoC-Builder/issues/new) at our GitHub page. Thanks :)**
 
 ## Overview 
 
