@@ -50,7 +50,7 @@ jobs:
         id: create_release
         uses: softprops/action-gh-release@v1  # Use action to create a GitHub release
         with:
-          tag: v${{ env.VERSION }}  # Use the version from version.txt as the tag
+          tag_name: v${{ env.VERSION }}  # Use the version from version.txt as the tag
           name: Release ${{ env.VERSION }}  # Release name
           body: |
             - Built application version: ${{ env.VERSION }}
