@@ -19,6 +19,9 @@ class Application:
     ##############################
     def __init__(self, root):
 
+        # Set viewing mode
+        # ctk.set_appearance_mode("light")  # Options are "light", "dark", or "system"
+
         # Set root and title
         self.root = root
         self.root.title("PYNQ SoC Builder")
