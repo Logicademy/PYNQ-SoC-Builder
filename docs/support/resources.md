@@ -2,9 +2,9 @@
 
 ## Contents
 
-1. [Videos](##Videos)
-2. [Pages](##Pages)
-3. [Papers](##Papers)
+1. [Videos](#Videos)
+2. [Pages](#Pages)
+3. [Papers](#Papers)
 
 ## Videos
 
