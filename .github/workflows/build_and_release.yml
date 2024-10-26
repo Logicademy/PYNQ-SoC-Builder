@@ -63,7 +63,8 @@ jobs:
           body: |
             - Built application version: ${{ env.VERSION }}
             - Download the executable below.
-            Note: This free, open-source application is not digitally signed since code signing certificates cost several hundred dollars annually. When you first run the application, Windows Defender may show a warning message - this is normal for unsigned applications. You can safely proceed by clicking "More info" and then "Run anyway". The source code is available at github.com/Logicademy/PYNQ-SoC-Builder if you'd like to review it or build it yourself.
+            
+            Please Note: This free, open-source application is not digitally signed since code signing certificates cost several hundred dollars annually. When you first run the application, Windows Defender may show a warning message - this is normal for unsigned applications. You can safely proceed by clicking "More info" and then "Run anyway". The source code is available at github.com/Logicademy/PYNQ-SoC-Builder if you'd like to review it or build it yourself.
           draft: true
           files: dist/PYNQ-SoC-Builder.exe  # Path to the executable
         env:
