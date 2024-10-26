@@ -1,23 +1,36 @@
-import os
-import sys
-
 ##########################
 # SoC Builder Utils File #
 ##########################
 
-def get_resource_path(relative_path, caller_file=None):
-    """ Get the absolute path to the resource, works for development and PyInstaller.
+import os
+import sys
+
+def get_resource_path(relative_path, file=__file__):
+    """Get the absolute path to the resource, works for development and PyInstaller."""
+    # Define the name of the project root directory
+    project_root_name = "PYNQ-SoC-Builder"
+
+    if getattr(sys, 'frozen', False):
+        print(sys._MEIPASS)
+        # If the application is frozen, use the _MEIPASS folder
+        base_path = sys._MEIPASS
     
-    Parameters:
-    - relative_path: str, path to the resource relative to the caller.
-    - caller_file: str, optional, path to the calling file to base the resource path on.
-    """
-    if caller_file is None:
-        # Use the current file's location if no caller_file is provided
-        caller_file = os.path.abspath(__file__)
-    
-    base_path = getattr(sys, '_MEIPASS', os.path.dirname(caller_file))
+    else:
+        # If the application is not frozen, navigate up to the project root
+        current_path = os.path.abspath(file)
+        
+        # Pop directories until we find the project root
+        while current_path and project_root_name not in os.path.basename(current_path):
+            current_path = os.path.dirname(current_path)
+        
+        # If we exited the loop and found the project root
+        if project_root_name in os.path.basename(current_path):
+            base_path = current_path  # Set base path to the project root
+        else:
+            raise FileNotFoundError(f"Could not find project root '{project_root_name}' in the path.")
+
     return os.path.join(base_path, relative_path)
+
 
 def is_running_as_executable():
     """Check if the application is running as a bundled executable."""

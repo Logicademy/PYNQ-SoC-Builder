@@ -9,6 +9,7 @@ import os
 import shutil 
 import application.checks as checks
 import psutil
+from application.builder_utils import *
 
 # Define location of vivado exe, this might need to be the bat file we will see.
 # D:\Xilinx\Vivado\2019.1\bin\vivado.bat -mode tcl
@@ -65,8 +66,8 @@ class Pynq_Manager:
             
             try:
                 # This is the way to fix paths which works for Linux or Windows - Not consistently used in this project
-                current_path = os.getcwd()
-                current_path = os.path.normpath(current_path).replace(os.sep, '/')
+                current_path = get_resource_path('/')
+                # current_path = os.path.normpath(current_path).replace(os.sep, '/')
 
                 board_files_folder = os.path.join(current_path, "board_files")
 

@@ -10,5 +10,4 @@ NA/
 .vscode/
 *.swp
 dist/
-main.spec
 build/

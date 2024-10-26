@@ -3,6 +3,7 @@ import os
 import re
 import application.xml_manager as xmlman
 from application.config import *
+from application.builder_utils import *
 # tcl_generator.py
 # This Python 3 script is responsible for generating a Tcl script file dynamically depending on the project.
 
@@ -529,7 +530,6 @@ def generate_tcl(hdlgen_prj, add_to_log_box):
         
         # Export SVG image of the created model
         print(f"Attempting to export SVG at {hdlgen_prj.location}/PYNQBuild/generated/{hdlgen_prj.name}.svg")
-        friendly_cwd = os.getcwd().replace('\\', '/')
         file_contents += f"\nwrite_bd_layout -force -format svg {hdlgen_prj.location}/PYNQBuild/generated/{hdlgen_prj.name}.svg"
 
         # Delete it all again
@@ -1293,8 +1293,6 @@ def import_xdc_constraints_file(full_path_to_xdc, location):
     file_contents += "\n}"
 
     # Step 3: Add XDC file
-    current_dir = os.getcwd()
-    friendly_current_dir = current_dir.replace("\\", "/")
     path_to_constraints = location + "/PYNQBuild/generated/physical_constr.xdc"       # This needs to be updated with generated constraints
 
     file_contents += "\nadd_files -fileset constrs_1 -norecurse {"
@@ -1344,9 +1342,8 @@ def create_verilog_wrapper(bd_filename, path_to_bd):
 #   Import generate_procs.tcl  #
 ################################
 def source_generate_procs():
-    current_dir = os.getcwd()
-    friendly_current_dir = current_dir.replace("\\", "/")
-    file_contents = "source " + friendly_current_dir + "/application/generate_procs.tcl"  # Source the procedures
+    friendly_current_dir = get_resource_path('application/generate_procs.tcl').replace("\\", "/")
+    file_contents = "source " + friendly_current_dir # Source the procedures
     return file_contents
 
 ##########################################

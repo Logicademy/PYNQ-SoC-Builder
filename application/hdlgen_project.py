@@ -8,6 +8,7 @@ import application.pynq_manager as pm
 import application.hdl_modifier as hdl_modifier
 import html
 import copy
+from application.builder_utils import *
 
 class HdlgenProject:
 
@@ -616,8 +617,7 @@ class HdlgenProject:
     ###### Used to flag the various stages for Build Status #####
     #############################################################
     def vivado_state_logger(self):
-        vivado_log_path = os.path.join(os.getcwd(), "vivado.log")
-        
+        vivado_log_path = get_resource_path('vivado.log', os.path.abspath(__file__))
         # If the vivado.log file hasn't been created yet just wait 1 second.
         
         while not os.path.exists(vivado_log_path):
@@ -855,7 +855,8 @@ class HdlgenProject:
         
         # Find Vivado log file and delete it.
         try:
-            os.remove(os.path.join(os.getcwd(), "vivado.log"))
+            vivado_log_path = get_resource_path('vivado.log', os.path.abspath(__file__))
+            os.remove(vivado_log_path)
             print("Successfully deleted Vivado.log file")
         except FileNotFoundError:
             print("No vivado.log file to delete")
@@ -864,7 +865,8 @@ class HdlgenProject:
         
         # Find Vivado jou file and delete it.
         try:
-            os.remove(os.path.join(os.getcwd(), "vivado.jou"))
+            vivado_jou_path = get_resource_path('vivado.jou', os.path.abspath(__file__))
+            os.remove(vivado_jou_path)
             print("Successfully deleted Vivado.jou file")
         except FileNotFoundError:
             print("No vivado.jou file to delete")

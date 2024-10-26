@@ -1040,7 +1040,6 @@ def generate_gui_controller(compName, parsed_all_ports, location, clock_enabled,
 
     py_code = ""
 
-    current_cwd = os.getcwd().replace("\\", "/")
     svg_path = location.replace("\\", "/") + f"/PYNQBuild/generated/{compName}.svg"
      
     svg_data = ""
