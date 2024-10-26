@@ -6,6 +6,10 @@ on:
     branches:
       - "pyinstaller"
 
+permissions:
+  contents: write  # Allows writing to repository contents, including creating releases
+  issues: write    # Allows creating issues if necessary
+
 jobs:
   build:
     runs-on: ubuntu-latest  # Use the latest Ubuntu environment
