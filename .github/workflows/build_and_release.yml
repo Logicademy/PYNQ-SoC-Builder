@@ -1,7 +1,10 @@
 name: Build Application
 
 on:
-  workflow_dispatch:  # Trigger the workflow manually
+  #workflow_dispatch:  # Trigger the workflow manually
+  push:
+    branches:
+      - "pyinstaller"
 
 jobs:
   build:
