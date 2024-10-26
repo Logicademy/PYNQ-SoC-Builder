@@ -28,7 +28,7 @@ jobs:
       - name: Read version from version.txt
         id: get_version
         run: |
-          VERSION=$(cat version.txt)  # Read the version string from version.txt
+          VERSION=$(head -n 1 version.txt | xargs)  # Read the first line and strip whitespace
           echo "VERSION=${VERSION}" >> $GITHUB_ENV  # Set the version as an environment variable
 
       - name: Build application with PyInstaller
