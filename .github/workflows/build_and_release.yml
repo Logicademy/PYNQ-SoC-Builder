@@ -12,7 +12,7 @@ permissions:
 
 jobs:
   build:
-    runs-on: windows-latest  # Use the latest Ubuntu environment
+    runs-on: windows-latest  # Use the latest Windows environment
 
     steps:
       - name: Checkout code
@@ -32,7 +32,7 @@ jobs:
       - name: Read version from version.txt
         id: get_version
         run: |
-          VERSION=$(head -n 1 version.txt | xargs)  # Read the first line and strip whitespace
+          VERSION=$(Get-Content version.txt -TotalCount 1 | ForEach-Object { $_.Trim() })  # Read the first line and strip whitespace
           echo "VERSION=${VERSION}" >> $GITHUB_ENV  # Set the version as an environment variable
 
       - name: Build application with PyInstaller
@@ -41,8 +41,7 @@ jobs:
 
       - name: List contents of dist directory
         run: |
-          ls -l dist/  # List files in the dist directory
-      
+          dir dist  # List files in the dist directory (using Windows command)
 
       - name: Upload built executable
         uses: actions/upload-artifact@v3  # Updated to the latest version (v3) of upload-artifact
