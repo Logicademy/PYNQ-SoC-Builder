@@ -2,9 +2,11 @@
 
 ## Contents
 
-1. [Videos](#Videos)
-2. [Pages](#Pages)
-3. [Papers](#Papers)
+- [Resources](#resources)
+  - [Contents](#contents)
+  - [Videos](#videos)
+  - [Pages](#pages)
+  - [Papers](#papers)
 
 ## Videos
 
@@ -34,6 +36,6 @@
 
 ## Papers
 
-[PYNQ SoC Builder master's paper](docs/EE5115_ME_Luke_Canny_19339166.pdf)
+[PYNQ SoC Builder master's paper](docs/pdf/EE5115_ME_Luke_Canny_19339166.pdf)
 
-[Master's project poster](docs/project_poster.png)
+[Master's project poster](docs/images/project_poster.png)

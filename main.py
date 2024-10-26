@@ -210,7 +210,7 @@ if __name__ == "__main__":
 
     except git.InvalidGitRepositoryError:
         app.top_level_message = "Could not find Git repository - Cannot check for updates."
-        app.problem_link = "https://github.com/Logicademy/PYNQ-SoC-Builder/blob/master/docs/support/git_not_found.md"
+        app.problem_link = "https://github.com/Logicademy/PYNQ-SoC-Builder/blob/master/docs/markdown/git_not_found.md"
         app.open_problem()
         app.toplevel_window.wait_window() # Wait for user's response
 
