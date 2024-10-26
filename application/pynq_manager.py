@@ -139,7 +139,7 @@ class Pynq_Manager:
             self.check_generated_path_and_mkdir()
             print("Starting Vivado")
             # Need to add a check here to see if the destination tcl file exists.
-            vivado_process = subprocess.Popen([self.vivado_bat_path, "-mode", "tcl", "-nojournal -log", f"{self.pynq_build_generated_path}", "-source", f"{self.pynq_build_generated_path}/generate_script.tcl"], shell=True, text=True)
+            vivado_process = subprocess.Popen([self.vivado_bat_path, "-mode", "tcl", "-log", f"{self.pynq_build_generated_path}/vivado.log", "-source", f"{self.pynq_build_generated_path}/generate_script.tcl", "-nojournal"], shell=True, text=True)
             
             time.sleep(1)
 
