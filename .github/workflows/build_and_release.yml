@@ -1,7 +1,7 @@
 name: Build Application
 
 on:
-  #workflow_dispatch:  # Trigger the workflow manually
+  # workflow_dispatch:  # Uncomment this to trigger the workflow manually
   push:
     branches:
       - "pyinstaller"
@@ -33,10 +33,10 @@ jobs:
 
       - name: Build application with PyInstaller
         run: |
-          pyinstaller main.spec
+          pyinstaller main.spec  # Build the application using the spec file
 
       - name: Upload built executable
-        uses: actions/upload-artifact@v2  # Upload the built executable
+        uses: actions/upload-artifact@v3  # Updated to the latest version (v3) of upload-artifact
         with:
           name: PYNQ-SoC-Builder  # Name of the artifact
           path: dist/PYNQ-SoC-Builder.exe  # Path to the generated executable
