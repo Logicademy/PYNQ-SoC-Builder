@@ -9,6 +9,7 @@ import os
 import shutil 
 import application.checks as checks
 import psutil
+from application.builder_utils import *
 
 # Define location of vivado exe, this might need to be the bat file we will see.
 # D:\Xilinx\Vivado\2019.1\bin\vivado.bat -mode tcl
@@ -65,8 +66,8 @@ class Pynq_Manager:
             
             try:
                 # This is the way to fix paths which works for Linux or Windows - Not consistently used in this project
-                current_path = os.getcwd()
-                current_path = os.path.normpath(current_path).replace(os.sep, '/')
+                current_path = get_resource_path('/')
+                # current_path = os.path.normpath(current_path).replace(os.sep, '/')
 
                 board_files_folder = os.path.join(current_path, "board_files")
 
@@ -138,7 +139,7 @@ class Pynq_Manager:
             self.check_generated_path_and_mkdir()
             print("Starting Vivado")
             # Need to add a check here to see if the destination tcl file exists.
-            vivado_process = subprocess.Popen([self.vivado_bat_path, "-mode", "tcl", "-source", f"{self.pynq_build_generated_path}/generate_script.tcl"], shell=True, text=True)
+            vivado_process = subprocess.Popen([self.vivado_bat_path, "-mode", "tcl", "-log", f"{self.pynq_build_generated_path}/vivado.log", "-source", f"{self.pynq_build_generated_path}/generate_script.tcl", "-nojournal"], shell=True, text=True)
             
             time.sleep(1)
 

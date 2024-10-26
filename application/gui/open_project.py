@@ -1,6 +1,7 @@
 import customtkinter as ctk
 import os
 from PIL import Image
+from application.builder_utils import *
 
 class OpenProjectPage(ctk.CTkFrame):
     def __init__(self, app):
@@ -23,9 +24,9 @@ class OpenProjectPage(ctk.CTkFrame):
         current_mode = ctk.get_appearance_mode()
         print("Current appearance mode:", current_mode)
         if (current_mode == "Light"):
-            image_path = os.getcwd() + "/docs/images/pynq_title_app_light.png"
+            image_path = get_resource_path('docs/images/pynq_title_app_light.png', os.path.abspath(__file__))
         else:
-            image_path = os.getcwd() + "/docs/images/pynq_title_app_dark.png"
+            image_path = get_resource_path('docs/images/pynq_title_app_dark.png', os.path.abspath(__file__))
         image = Image.open(image_path)
 
 

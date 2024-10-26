@@ -1,0 +1,82 @@
+name: Build Executable
+
+on:
+  workflow_dispatch:  
+  ### For debugging Workflows use this:
+  # push:
+  #   branches:
+  #     - "pyinstaller"
+
+permissions:
+  contents: write  # Allows writing to repository contents, including creating releases
+  issues: write    # Allows creating issues if necessary
+
+jobs:
+  setup:
+    runs-on: windows-latest  # Use the latest Windows environment
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2  # Checkout the repository code
+
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v4  # Set up Python environment
+        with:
+          python-version: '3.10'  # Specify Python version
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip  # Upgrade pip
+          pip install pyinstaller  # Install PyInstaller
+          pip install -r requirements.txt  # Install other dependencies from requirements.txt if you have one
+
+      - name: Debug - Check contents of version.txt
+        run: |
+          type version.txt  # Display the contents of version.txt for debugging
+
+      - name: Read version from version.txt
+        id: get_version
+        run: |
+          $VERSION = Get-Content version.txt -TotalCount 1 | ForEach-Object { $_.Trim() }  # Read the first line and strip whitespace
+          echo "VERSION=$VERSION" >> $env:GITHUB_ENV  # Set the version as an environment variable
+          echo "Extracted VERSION: $VERSION"  # Print the extracted version for debugging
+
+
+  build:
+    runs-on: windows-latest  # Use the latest Windows environment
+    needs: setup
+    steps:
+      - name: Build application with PyInstaller
+        run: |
+          pyinstaller main.spec  # Build the application using the spec file
+
+      - name: List contents of dist directory
+        run: |
+          dir dist  # List files in the dist directory (using Windows command)
+
+      - name: Upload built executable
+        uses: actions/upload-artifact@v3  # Updated to the latest version (v3) of upload-artifact
+        with:
+          name: PYNQ-SoC-Builder  # Name of the artifact
+          path: dist/PYNQ-SoC-Builder.exe  # Path to the generated executable
+
+
+  release:
+    runs-on: windows-latest  # Use the latest Windows environment
+    needs: build
+    steps:
+      - name: Create Release
+        id: create_release
+        uses: softprops/action-gh-release@v1  # Use action to create a GitHub release
+        with:
+          tag_name: ${{ env.VERSION }}  # Use the version from version.txt as the tag
+          name: Release ${{ env.VERSION }}  # Release name
+          body: |
+            - Built application version: ${{ env.VERSION }}
+            - Download the executable below.
+            
+            Please Note: This free, open-source application is not digitally signed since code signing certificates cost several hundred dollars annually. When you first run the application, Windows Defender may show a warning message - this is normal for unsigned applications. You can safely proceed by clicking "More info" and then "Run anyway". The source code is available at github.com/Logicademy/PYNQ-SoC-Builder if you'd like to review it or build it yourself.
+          draft: true
+          files: dist/PYNQ-SoC-Builder.exe  # Path to the executable
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Token for authentication

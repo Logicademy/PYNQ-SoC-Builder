@@ -9,3 +9,5 @@ NA/
 *.str
 .vscode/
 *.swp
+dist/
+build/

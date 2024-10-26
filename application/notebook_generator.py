@@ -169,7 +169,9 @@ def create_jnb(hdlgen_prj, add_to_log_box, force_gen=False):
         input_io = ["sw0", "sw1", "btn0", "btn1", "btn2", "btn3"]
         io_cfg_blocked_testplan_generation = False
         for pynq_io, comp_io in io_map.items():
-            if pynq_io in input_io:
+            if (comp_io == "None" or comp_io == None):
+                continue
+            if (pynq_io in input_io):
                 print(f"Detected that {input_io} is connected to the following PYNQ board INPUT device - {pynq_io} \nWARNING: Cannot generate testplan in Jupyter Notebook as result (Cannot have two drivers)")
                 if use_testplan:
                     use_testplan = False
@@ -1040,7 +1042,6 @@ def generate_gui_controller(compName, parsed_all_ports, location, clock_enabled,
 
     py_code = ""
 
-    current_cwd = os.getcwd().replace("\\", "/")
     svg_path = location.replace("\\", "/") + f"/PYNQBuild/generated/{compName}.svg"
      
     svg_data = ""
