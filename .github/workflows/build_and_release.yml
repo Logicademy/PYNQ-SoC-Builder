@@ -32,8 +32,8 @@ jobs:
       - name: Read version from version.txt
         id: get_version
         run: |
-          VERSION=$(Get-Content version.txt -TotalCount 1 | ForEach-Object { $_.Trim() })  # Read the first line and strip whitespace
-          echo "VERSION=${VERSION}" >> $GITHUB_ENV  # Set the version as an environment variable
+          $VERSION = Get-Content version.txt -TotalCount 1 | ForEach-Object { $_.Trim() }  # Read the first line and strip whitespace
+          echo "VERSION=$VERSION" >> $GITHUB_ENV  # Set the version as an environment variable
 
       - name: Build application with PyInstaller
         run: |
