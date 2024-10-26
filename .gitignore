@@ -8,4 +8,7 @@ NA/
 *.ipynb
 *.str
 .vscode/
-*.swp
+*.swp 
+dist/
+main.spec
+build/
