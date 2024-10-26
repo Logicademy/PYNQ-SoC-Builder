@@ -1,17 +1,18 @@
 name: Build Executable
 
 on:
-  # workflow_dispatch:  # Uncomment this to trigger the workflow manually
-  push:
-    branches:
-      - "pyinstaller"
+  workflow_dispatch:  
+  ### For debugging Workflows use this:
+  # push:
+  #   branches:
+  #     - "pyinstaller"
 
 permissions:
   contents: write  # Allows writing to repository contents, including creating releases
   issues: write    # Allows creating issues if necessary
 
 jobs:
-  build:
+  setup:
     runs-on: windows-latest  # Use the latest Windows environment
 
     steps:
@@ -40,6 +41,11 @@ jobs:
           echo "VERSION=$VERSION" >> $env:GITHUB_ENV  # Set the version as an environment variable
           echo "Extracted VERSION: $VERSION"  # Print the extracted version for debugging
 
+
+  build:
+    runs-on: windows-latest  # Use the latest Windows environment
+    needs: setup
+    steps:
       - name: Build application with PyInstaller
         run: |
           pyinstaller main.spec  # Build the application using the spec file
@@ -54,6 +60,11 @@ jobs:
           name: PYNQ-SoC-Builder  # Name of the artifact
           path: dist/PYNQ-SoC-Builder.exe  # Path to the generated executable
 
+
+  release:
+    runs-on: windows-latest  # Use the latest Windows environment
+    needs: build
+    steps:
       - name: Create Release
         id: create_release
         uses: softprops/action-gh-release@v1  # Use action to create a GitHub release
