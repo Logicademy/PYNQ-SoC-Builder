@@ -35,5 +35,5 @@ exe = EXE(
     codesign_identity=None,
     entitlements_file=None,
 	icon='docs/images/pynq.ico',
-	name='PYNQ-SoC-Builder',
+	name='PYNQ-SoC-Builder.exe',
 )
