@@ -1,0 +1,52 @@
+name: Build Application
+
+on:
+  workflow_dispatch:  # Trigger the workflow manually
+
+jobs:
+  build:
+    runs-on: ubuntu-latest  # Use the latest Ubuntu environment
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2  # Checkout the repository code
+
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v4  # Set up Python environment
+        with:
+          python-version: '3.10'  # Specify Python version
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip  # Upgrade pip
+          pip install pyinstaller  # Install PyInstaller
+          pip install -r requirements.txt  # Install other dependencies from requirements.txt if you have one
+
+      - name: Read version from version.txt
+        id: get_version
+        run: |
+          VERSION=$(cat version.txt)  # Read the version string from version.txt
+          echo "VERSION=${VERSION}" >> $GITHUB_ENV  # Set the version as an environment variable
+
+      - name: Build application with PyInstaller
+        run: |
+          pyinstaller main.spec
+
+      - name: Upload built executable
+        uses: actions/upload-artifact@v2  # Upload the built executable
+        with:
+          name: PYNQ-SoC-Builder  # Name of the artifact
+          path: dist/PYNQ-SoC-Builder.exe  # Path to the generated executable
+
+      - name: Create Release
+        id: create_release
+        uses: softprops/action-gh-release@v1  # Use action to create a GitHub release
+        with:
+          tag: v${{ env.VERSION }}  # Use the version from version.txt as the tag
+          name: Release ${{ env.VERSION }}  # Release name
+          body: |
+            - Built application version: ${{ env.VERSION }}
+            - Download the executable below.
+          files: dist/PYNQ-SoC-Builder.exe  # Path to the executable
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Token for authentication
