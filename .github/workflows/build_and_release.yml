@@ -1,4 +1,4 @@
-name: Build Application
+name: Build Executable
 
 on:
   # workflow_dispatch:  # Uncomment this to trigger the workflow manually
