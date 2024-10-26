@@ -29,11 +29,16 @@ jobs:
           pip install pyinstaller  # Install PyInstaller
           pip install -r requirements.txt  # Install other dependencies from requirements.txt if you have one
 
+      - name: Debug - Check contents of version.txt
+        run: |
+          type version.txt  # Display the contents of version.txt for debugging
+
       - name: Read version from version.txt
         id: get_version
         run: |
           $VERSION = Get-Content version.txt -TotalCount 1 | ForEach-Object { $_.Trim() }  # Read the first line and strip whitespace
           echo "VERSION=$VERSION" >> $GITHUB_ENV  # Set the version as an environment variable
+          echo "Extracted VERSION: $VERSION"  # Print the extracted version for debugging
 
       - name: Build application with PyInstaller
         run: |
@@ -53,7 +58,7 @@ jobs:
         id: create_release
         uses: softprops/action-gh-release@v1  # Use action to create a GitHub release
         with:
-          tag_name: v${{ env.VERSION }}  # Use the version from version.txt as the tag
+          tag_name: ${{ env.VERSION }}  # Use the version from version.txt as the tag
           name: Release ${{ env.VERSION }}  # Release name
           body: |
             - Built application version: ${{ env.VERSION }}
