@@ -1118,8 +1118,8 @@ def create_html_css_js(parsed_all_ports: list[dict], clock_enabled: bool, io_map
 
     return HTML(html_code)
 
-    display(Javascript(\"\"\"
-        for (let i = 0; i < 1000; i++) {
+display(Javascript(\"\"\"
+        for (let i = 0; i < 10000; i++) {
             clearInterval(i);
         }
     \"\"\"))
@@ -1405,17 +1405,17 @@ def generate_set_signals_or_run_clock_period_function(output_textboxes: list[str
                     output: data => {{
                         if (data.content.text && data.content.text.trim() !== '') {{
 
-                        let output = data.content.text.trim().split(",")
+                            let output = data.content.text.trim().split(",")
                             output.forEach(output => {{
-                                output  = output.split(":")
+                                output = output.split(":")
                                 const element = document.getElementById(output[0])
                                 const value = parseInt(output[1], 10)
                                 if (element.tagName === "INPUT") {{
                                     element.value = "0x" + value.toString(16)
-                                }} else if (element.tagName === ("BUTTON")){{
+                                }} else if (element.tagName === ("BUTTON")) {{
                                     element.textContent = value === 1 ? '1' : '0';
                                     element.classList.remove('mod-success', 'mod-danger');
-                                    element.classList.add(value === 1 ? 'mod-success' : 'mod-danger');  
+                                    element.classList.add(value === 1 ? 'mod-success' : 'mod-danger');
                                 }}
                             }})
                         }}
