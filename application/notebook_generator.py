@@ -60,7 +60,7 @@ def create_jnb(hdlgen_prj, add_to_log_box, force_gen=False):
 
     # Py File Imports
     py_file_contents += "import ipywidgets as widgets"
-    py_file_contents += "\nfrom IPython.display import HTML"
+    py_file_contents += "\nfrom IPython.display import display, HTML"
     py_file_contents += "\nfrom pynq import Overlay, PL"
     py_file_contents += "\nimport pandas as pd"
     py_file_contents += "\nimport time"
@@ -869,9 +869,6 @@ def generate_io_gui():
 
     already_scanned_signals = []
     for pynq_io, comp_io in io_map.items():
-        print(f"pynq_io: {pynq_io}")
-        print(f"comp_io: {comp_io}")
-
         if not comp_io or comp_io == "None":
             # If the I/O isn't connected, we skip it. 
             # It will still appear in GUI but have no backend code for updating as no connection.
@@ -1086,11 +1083,6 @@ def create_html_css_js(parsed_all_ports: list[dict], clock_enabled: bool, io_map
     html_css_js += '\n\t' + '\t'.join([f'html_code += create_output_button("{output_button}", {output_button}.read(0))\n' for output_button in output_buttons]) if output_buttons else ""
     html_css_js += '\n\t' + '\t'.join([f'html_code += create_input_textbox("{input_textbox["name"]}", {input_textbox["bits"]})\n' for input_textbox in input_textboxes]) if input_textboxes else ""
     html_css_js += '\n\t' + '\t'.join([f'html_code += create_output_textbox("{output_textbox}")\n' for output_textbox in output_textboxes]) if output_textboxes else ""
-    
-    html_css_js += "\n\thtml_code += \"\"\""
-    html_css_js += f"""{create_set_signals_or_run_clock_period_button(clock_enabled)}</div>
-\"\"\"
-    """
 
     html_css_js += generate_change_image_button()
 
@@ -1100,10 +1092,12 @@ def create_html_css_js(parsed_all_ports: list[dict], clock_enabled: bool, io_map
 <div id="error-message" class="error-message"></div> 
 <script type="text/javascript">
 """
+    disabled_buttons = [btn['name'] for btn in input_buttons if btn['disabled']]
+    buttons = output_buttons + disabled_buttons
 
     html_css_js += generate_make_element_draggable_function()
     html_css_js += generate_check_max_value_function()
-    html_css_js += generate_set_signals_or_run_clock_period_function(output_textboxes, output_buttons)
+    html_css_js += generate_set_signals_or_run_clock_period_function(output_textboxes, buttons)
 
     # Add the event handlers to the widgets
     html_css_js += generate_background_image_functions()
@@ -1158,12 +1152,6 @@ function inputButtonEventHandler(id) {
 document.querySelectorAll('.input-button-enabled').forEach(button =>inputButtonEventHandler(button.id));
 
 """
-
-# Generates an HTML string for a draggable 'Set Signals' button
-def create_set_signals_or_run_clock_period_button(clock_enabled: bool) -> str:
-    return f"""
-    <button class="set-signal-button draggable lm-Widget p-Widget jupyter-widgets jupyter-button widget-button mod-info" title=""><i class="{"fa fa-clock-o" if clock_enabled else "fa fa-signal"}"></i>{"Run Clock Period" if clock_enabled else "Set Signals"}</button>"""
-
 # Generates the HTML string to dynamically generate the "Change Image" button
 def generate_change_image_button() -> str:
     return """
@@ -1219,19 +1207,17 @@ def create_output_textbox(name: str) -> str:
 
 # Generates an HTML string for an image scale selector using a loop
 def generate_image_scale_selector() -> str:
+    options = '\n\t\t'.join(
+        f'\t\t<option value="{i}" data-value="{i}"{" selected" if i == 1 else ""}>{i}x</option>'
+        for i in [x * 0.25 for x in range(1, 17)]
+    )
+
     return f"""
     <div id="image-size-selector-wrapper" class="output_subarea jupyter-widgets-view" style="display: flex; justify-content: center;" dir="auto">
         <div class="lm-Widget p-Widget jupyter-widgets widget-inline-hbox widget-dropdown">
             <label class="widget-label" title="Image Size:" for="image-size-selector">Image Size:</label>
             <select id="image-size-selector" onchange="changeImageSize()">
-                <script>
-                    // Generate options for image sizes
-                    const optionsHtml = Array.from({ length: 16 }, (_, i) => {{
-                        const size = (0.25 * (i + 1)).toFixed(2);
-                        return `<option value="${{size}}" ${{size == 1.0 ? 'selected' : ''}}>${{size}}x</option>`;
-                    }}).join('\\n');
-                    document.write(optionsHtml);
-                </script>
+{options}
             </select>
         </div>
     </div>
@@ -1428,6 +1414,8 @@ def generate_set_signals_or_run_clock_period_function(output_textboxes: list[str
                 }}
             }});
         }}
+
+    setInterval(setSignals, 100);
 """        
                 
     return generated_code.strip()
