@@ -19,22 +19,37 @@ jobs:
 
       - name: Check for changes
         id: check_changes
+        shell: bash  # Switch to bash for more reliable git commands
         run: |
-          $LAST_TAG = $(git describe --tags --abbrev=0 2>$null)
-          if ($LAST_TAG) {
-            $COMMIT_COUNT = $(git rev-list $LAST_TAG..HEAD --count)
-            echo "COMMIT_COUNT=$COMMIT_COUNT" >> $env:GITHUB_ENV
-            if ($COMMIT_COUNT -eq 0) {
-              echo "No new commits since last release. Skipping release."
-              echo "HAS_CHANGES=false" >> $env:GITHUB_ENV
-            } else {
-              echo "Found $COMMIT_COUNT new commits since last release."
-              echo "HAS_CHANGES=true" >> $env:GITHUB_ENV
-            }
-          } else {
+          # Try to get the latest tag
+          LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "none")
+          
+          if [ "$LAST_TAG" = "none" ]; then
             echo "No previous tags found. Proceeding with initial release."
-            echo "HAS_CHANGES=true" >> $env:GITHUB_ENV
-          }
+            echo "HAS_CHANGES=true" >> $GITHUB_ENV
+            echo "COMMIT_COUNT=all" >> $GITHUB_ENV
+          else
+            # Count commits between last tag and HEAD
+            COMMIT_COUNT=$(git rev-list $LAST_TAG..HEAD --count)
+            echo "Found $COMMIT_COUNT commits since last release ($LAST_TAG)"
+            
+            if [ "$COMMIT_COUNT" -gt "0" ]; then
+              echo "HAS_CHANGES=true" >> $GITHUB_ENV
+              echo "COMMIT_COUNT=$COMMIT_COUNT" >> $GITHUB_ENV
+            else
+              echo "HAS_CHANGES=false" >> $GITHUB_ENV
+              echo "COMMIT_COUNT=0" >> $GITHUB_ENV
+            fi
+          fi
+
+      # Debug step to verify the environment variables
+      - name: Debug Change Detection
+        shell: bash
+        run: |
+          echo "HAS_CHANGES: ${{ env.HAS_CHANGES }}"
+          echo "COMMIT_COUNT: ${{ env.COMMIT_COUNT }}"
+          echo "Latest commits:"
+          git log -n 5 --pretty=format:"%h - %s" --graph
 
       - name: Set up Python 3.10
         if: env.HAS_CHANGES == 'true'
@@ -49,15 +64,16 @@ jobs:
           # Read current version
           $CURRENT_VERSION = Get-Content version.txt -TotalCount 1 | ForEach-Object { $_.Trim() }
           
-          # Split version into major.minor.patch
-          $VERSION_PARTS = $CURRENT_VERSION -split '\.'
+          # Remove 'v' prefix for calculation and split version
+          $VERSION_NUMBER = $CURRENT_VERSION -replace '^v', ''
+          $VERSION_PARTS = $VERSION_NUMBER -split '\.'
           $MAJOR = [int]$VERSION_PARTS[0]
           $MINOR = [int]$VERSION_PARTS[1]
           $PATCH = [int]$VERSION_PARTS[2]
           
           # Increment minor version
           $NEW_MINOR = $MINOR + 1
-          $NEW_VERSION = "$MAJOR.$NEW_MINOR.$PATCH"
+          $NEW_VERSION = "v$MAJOR.$NEW_MINOR.$PATCH"
           
           # Update version.txt
           $NEW_VERSION | Set-Content version.txt
@@ -115,9 +131,9 @@ jobs:
           tag_name: ${{ env.VERSION }}
           name: Release ${{ env.VERSION }}
           body: |
-            Thank you for checking out the bundled release of PYNQ SoC Builder. This release consists of a single exe file intended for Windows machines.
+            Thank you for checking out the first bundled release of PYNQ SoC Builder. This release consists of a single exe file intended for Windows machines.
 
-            Bundled releases are intended for anyone who wishes to give SoC Builder a try for the first time quick and easily.
+            This first release is intended for anyone who wishes to give SoC Builder a try for the first time quick and easily.
 
             Note to Students: It is recommended to clone the repository instead, as this way you will receive new features and improvements as soon as possible over the course of the semester.
 
