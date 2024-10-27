@@ -19,6 +19,10 @@ PYNQ SoC Builder is compatible with both Vivado 2023.2 and 2024.1. Other version
 
 ![Main Menu GUI](docs/images/MainMenu.png)
 
+## Learn More
+
+A database of videos and tutorials can be found [here](docs/markdown/resources.md)
+
 ## Installation
 
 1. Clone this repo to any directory. (It is recommended to use a short directory such as C:\logicademy\ to avoid Windows & Vivado path length issues caused when subdirectories become >255 characters)

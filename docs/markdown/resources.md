@@ -2,11 +2,9 @@
 
 ## Contents
 
-- [Resources](#resources)
-  - [Contents](#contents)
-  - [Videos](#videos)
-  - [Pages](#pages)
-  - [Papers](#papers)
+- [Videos](#videos)
+- [Pages](#pages)
+- [Papers](#papers)
 
 ## Videos
 
