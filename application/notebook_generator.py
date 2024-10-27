@@ -60,7 +60,7 @@ def create_jnb(hdlgen_prj, add_to_log_box, force_gen=False):
 
     # Py File Imports
     py_file_contents += "import ipywidgets as widgets"
-    py_file_contents += "\nfrom IPython.display import display, HTML"
+    py_file_contents += "\nfrom IPython.display import display, HTML, Javascript"
     py_file_contents += "\nfrom pynq import Overlay, PL"
     py_file_contents += "\nimport pandas as pd"
     py_file_contents += "\nimport time"
@@ -1117,6 +1117,12 @@ def create_html_css_js(parsed_all_ports: list[dict], clock_enabled: bool, io_map
 \"\"\"
 
     return HTML(html_code)
+
+    display(Javascript(\"\"\"
+        for (let i = 0; i < 1000; i++) {
+            clearInterval(i);
+        }
+    \"\"\"))
 """
 
     return html_css_js
@@ -1397,19 +1403,22 @@ def generate_set_signals_or_run_clock_period_function(output_textboxes: list[str
             `, {{
                 iopub: {{
                     output: data => {{
+                        if (data.content.text && data.content.text.trim() !== '') {{
+
                         let output = data.content.text.trim().split(",")
-                        output.forEach(output => {{
-                            output  = output.split(":")
-                            const element = document.getElementById(output[0])
-                            const value = parseInt(output[1], 10)
-                            if (element.tagName === "INPUT") {{
-                                element.value = "0x" + value.toString(16)
-                            }} else if (element.tagName === ("BUTTON")){{
-                                element.textContent = value === 1 ? '1' : '0';
-                                element.classList.remove('mod-success', 'mod-danger');
-                                element.classList.add(value === 1 ? 'mod-success' : 'mod-danger');  
-                            }}
-                        }})
+                            output.forEach(output => {{
+                                output  = output.split(":")
+                                const element = document.getElementById(output[0])
+                                const value = parseInt(output[1], 10)
+                                if (element.tagName === "INPUT") {{
+                                    element.value = "0x" + value.toString(16)
+                                }} else if (element.tagName === ("BUTTON")){{
+                                    element.textContent = value === 1 ? '1' : '0';
+                                    element.classList.remove('mod-success', 'mod-danger');
+                                    element.classList.add(value === 1 ? 'mod-success' : 'mod-danger');  
+                                }}
+                            }})
+                        }}
                     }}
                 }}
             }});
