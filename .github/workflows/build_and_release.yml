@@ -129,7 +129,7 @@ jobs:
 
             Please Note: This free, open-source application is not digitally signed since code signing certificates cost several hundred dollars annually. When you first run the application, Windows Defender may show a warning message - this is normal for unsigned applications. You can safely proceed by clicking "More info" and then "Run anyway". The source code is available at github.com/Logicademy/PYNQ-SoC-Builder if you'd like to review it or build it yourself.
 
-            **Full Changelog:** https://github.com/Logicademy/PYNQ-SoC-Builder/compare/${{ env.PREV_VERION }}...${{ env.VERSION}}
+            **Full Changelog:** https://github.com/Logicademy/PYNQ-SoC-Builder/compare/${{ env.PREV_VERSION }}...${{ env.VERSION}}
 
           draft: false
           files: dist/PYNQ-SoC-Builder.exe
