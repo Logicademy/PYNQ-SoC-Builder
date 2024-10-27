@@ -2,6 +2,12 @@
   <img src="docs/images/pynq_title.png" />
 </p>
 
+<div align="center">
+  <a href="https://github.com/Logicademy/PYNQ-SoC-Builder/actions/workflows/build_and_release.yml">
+    <img src="https://github.com/Logicademy/PYNQ-SoC-Builder/actions/workflows/build_and_release.yml/badge.svg" alt="Weekly Build and Release">
+  </a>
+</div>
+
 If you encounter any issues, please don't hesitate to [open an issue](https://github.com/Logicademy/PYNQ-SoC-Builder/issues/new) at our GitHub page. Thanks!
 
 ## Overview 
@@ -68,4 +74,3 @@ Once configured, the program may be run. Once the build has been completed, all 
 [Master's paper produced as a result of this project may be found here](docs/pdf/EE5115_ME_Luke_Canny_19339166.pdf)
 
 [Master's project poster](docs/images/project_poster.png)
-
