@@ -807,12 +807,12 @@ class PortConfigTab(ctk.CTkScrollableFrame):
     def int_sig_help(self):
         # This is the command associated with the "Make Internal Signal an External Port" help button
         # It opens a link to GitHub pages 
-        webbrowser.open("https://github.com/Logicademy/PYNQ-SoC-Builder/blob/master/docs/support/internal_signal_support.md")
+        webbrowser.open("https://github.com/Logicademy/PYNQ-SoC-Builder/blob/master/docs/markdown/internal_signal_support.md")
 
     def help_btn_io_ports(self):
         # This is the command associated with the "Board I/O Configuration" help button
         # It opens a link to GitHub pages 
-        webbrowser.open("https://github.com/Logicademy/PYNQ-SoC-Builder/blob/master/docs/support/board_io.md")
+        webbrowser.open("https://github.com/Logicademy/PYNQ-SoC-Builder/blob/master/docs/markdown/board_io.md")
 
     def read_io_config(self):
         io_config = {

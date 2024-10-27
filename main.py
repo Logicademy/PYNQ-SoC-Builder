@@ -7,8 +7,8 @@ import git
 import os
 import subprocess
 import sys
-
-
+from tkinter import PhotoImage
+from application.builder_utils import *
 
 
 
@@ -18,6 +18,9 @@ class Application:
     ##### Set Up Application #####
     ##############################
     def __init__(self, root):
+
+        # Set viewing mode
+        # ctk.set_appearance_mode("light")  # Options are "light", "dark", or "system"
 
         # Set root and title
         self.root = root
@@ -160,70 +163,77 @@ if __name__ == "__main__":
     ctk.deactivate_automatic_dpi_awareness()
     app = Application(root)
 
+
+    if (not is_running_as_executable()):
+        try:
+            repo = git.Repo(os.getcwd())
+        
+            # Get the active branch
+            current_branch = repo.active_branch
+            print(f"Current branch: {current_branch}")
+            if current_branch.name == "master":    # Temporarily changed to auto_updater for testing purposes 
+                # Fetch updates from the remote
+                # Configure remote URL with credentials (for HTTPS)
+                repo.remotes.origin.set_url("https://github.com/Logicademy/PYNQ-SoC-Builder.git")
+                origin = repo.remotes.origin
+                origin.fetch()
+
+                # Compare local and remote commits
+                local_commit = repo.head.commit  # Local commit
+                remote_commit = repo.refs['origin/master'].commit  # Remote branch's commit
+
+                print(f"Local Hash: {local_commit.hexsha}")
+                print(f"Local Commit: {local_commit}")
+                print(f"Remote Commit: {remote_commit}")
+
+                if local_commit.hexsha != remote_commit.hexsha:
+                    print("New commits are available!")
+                    # Launch User Prompt
+                    app.top_level_message = "An update is available, would you like to install it?"
+                    app.open_dialog()
+                    app.toplevel_window.wait_window() # Wait for user's response
+                else:
+                    print("Your branch is up-to-date.")
+
+                if app.dialog_response == "yes":
+                    origin.pull()
+                    # Step 2: Restart the application
+                    print("Restarting the application with updated code...")
+                    #time.sleep(2)  # Optional: delay to show messages or log to a file
+
+                    # Use subprocess to start a new process
+                    new_process = subprocess.Popen([sys.executable] + sys.argv)
+
+                    # Optional: Log the new process ID
+                    print(f"Started new process with PID: {new_process.pid}")
+                    
+                    # Step 3: Exit the current process
+                    sys.exit()
+
+                else:
+                    print("Skipping update, running application...")
+
+        except git.InvalidGitRepositoryError:
+            app.top_level_message = "Could not find Git repository - Cannot check for updates."
+            app.problem_link = "https://github.com/Logicademy/PYNQ-SoC-Builder/blob/master/docs/markdown/git_not_found.md"
+            app.open_problem()
+            app.toplevel_window.wait_window() # Wait for user's response
+
+        except Exception as e:
+            print(f"Could not auto-update project, please do manually or re-clone from Github.com/Logicademy/PYNQ-SoC-Builder - {e}")
+
+
     try:
-        repo = git.Repo(os.getcwd())
-    
-        # Get the active branch
-        current_branch = repo.active_branch
-        print(f"Current branch: {current_branch}")
-        if current_branch.name == "master":    # Temporarily changed to auto_updater for testing purposes 
-            # Fetch updates from the remote
-            # Configure remote URL with credentials (for HTTPS)
-            repo.remotes.origin.set_url("https://github.com/Logicademy/PYNQ-SoC-Builder.git")
-            origin = repo.remotes.origin
-            origin.fetch()
 
-            # Compare local and remote commits
-            local_commit = repo.head.commit  # Local commit
-            remote_commit = repo.refs['origin/master'].commit  # Remote branch's commit
-
-            print(f"Local Hash: {local_commit.hexsha}")
-            print(f"Local Commit: {local_commit}")
-            print(f"Remote Commit: {remote_commit}")
-
-            if local_commit.hexsha != remote_commit.hexsha:
-                print("New commits are available!")
-                # Launch User Prompt
-                app.top_level_message = "An update is available, would you like to install it?"
-                app.open_dialog()
-                app.toplevel_window.wait_window() # Wait for user's response
-            else:
-                print("Your branch is up-to-date.")
-
-            if app.dialog_response == "yes":
-                origin.pull()
-                # Step 2: Restart the application
-                print("Restarting the application with updated code...")
-                #time.sleep(2)  # Optional: delay to show messages or log to a file
-
-                # Use subprocess to start a new process
-                new_process = subprocess.Popen([sys.executable] + sys.argv)
-
-                # Optional: Log the new process ID
-                print(f"Started new process with PID: {new_process.pid}")
-                
-                # Step 3: Exit the current process
-                sys.exit()
-
-            else:
-                print("Skipping update, running application...")
-
-    except git.InvalidGitRepositoryError:
-        app.top_level_message = "Could not find Git repository - Cannot check for updates."
-        app.problem_link = "https://github.com/Logicademy/PYNQ-SoC-Builder/blob/master/docs/support/git_not_found.md"
-        app.open_problem()
-        app.toplevel_window.wait_window() # Wait for user's response
-
-    except Exception as e:
-        print(f"Could not auto-update project, please do manually or re-clone from Github.com/Logicademy/PYNQ-SoC-Builder - {e}")
-
-
-    try:
-        current_dir = os.getcwd()
+        # current_dir = os.getcwd()
         # Set the icon using the ctypes library
-        icon_path = current_dir + "\\docs\\images\\pynq.ico"  # Replace with the actual path
-        print(icon_path)
-        root.iconbitmap(icon_path)
+        # icon_path = current_dir + "/docs/images/favicon.png"  # Replace with the actual path
+        #print(icon_path)
+        #root.iconbitmap(icon_path)
+        
+        icon_path = get_resource_path('docs/images/favicon.png', os.path.abspath(__file__))
+        
+        root.iconphoto(False, PhotoImage(file=icon_path))
     except Exception as e:
         print(f"Could not set taskbar image: {e}")
 

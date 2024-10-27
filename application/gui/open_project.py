@@ -1,5 +1,7 @@
 import customtkinter as ctk
 import os
+from PIL import Image
+from application.builder_utils import *
 
 class OpenProjectPage(ctk.CTkFrame):
     def __init__(self, app):
@@ -16,7 +18,25 @@ class OpenProjectPage(ctk.CTkFrame):
         
         inner_frame = ctk.CTkFrame(self)
 
-        self.title_text = ctk.CTkLabel(inner_frame, text="PYNQ SoC Builder", font=self.title_font)
+
+
+        # Load the PNG with transparent areas
+        current_mode = ctk.get_appearance_mode()
+        print("Current appearance mode:", current_mode)
+        if (current_mode == "Light"):
+            image_path = get_resource_path('docs/images/pynq_title_app_light.png', os.path.abspath(__file__))
+        else:
+            image_path = get_resource_path('docs/images/pynq_title_app_dark.png', os.path.abspath(__file__))
+        image = Image.open(image_path)
+
+
+        # Convert the image to a format Tkinter can use
+        tk_image = ctk.CTkImage(image, size=(250, 35))
+
+        self.title_text = ctk.CTkLabel(inner_frame, text="", image=tk_image)
+
+
+
         self.sub_text = ctk.CTkLabel(inner_frame, text="Open a HDLGen-ChatGPT project to continue.", font=self.sub_text_font)
         self.browse_button = ctk.CTkButton(inner_frame, text="Browse", command=self.browse_projects, font=self.button_font)
         self.help_button = ctk.CTkButton(inner_frame, text="Help", command=self.open_help, font=self.button_font)

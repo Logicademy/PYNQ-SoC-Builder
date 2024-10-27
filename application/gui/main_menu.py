@@ -7,6 +7,8 @@ import application.hdlgen_project as hdlgenprj
 import webbrowser
 import application.file_manager as fm
 from application.config import * 
+from PIL import Image
+from application.builder_utils import *
 
 ctk.set_appearance_mode("Dark")       # 'Light' 'Dark' or 'System
 ctk.set_default_color_theme("blue")
@@ -52,7 +54,20 @@ class SidebarMenu(ctk.CTkScrollableFrame):
         yellow_fg_clr = "#b7950b"
         yellow_hv_clr = "#7d6608"
 
-        self.label = ctk.CTkLabel(self, text="PYNQ SoC Builder", font=title_font, width=250)
+        # Load the PNG with transparent areas
+        current_mode = ctk.get_appearance_mode()
+        print("Current appearance mode:", current_mode)
+        if (current_mode == "Light"):
+            
+            image_path = get_resource_path('docs/images/pynq_title_app_light.png', os.path.abspath(__file__))
+        else:
+            image_path = get_resource_path('docs/images/pynq_title_app_dark.png', os.path.abspath(__file__))
+        image = Image.open(image_path)
+
+        # Convert the image to a format Tkinter can use
+        tk_image = ctk.CTkImage(image, size=(250, 35))
+
+        self.label = ctk.CTkLabel(self, text="", image=tk_image, font=title_font, width=250)
         self.label.grid(row=0, column=0, pady=10)
 
         self.build_button = ctk.CTkButton(
