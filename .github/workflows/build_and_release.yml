@@ -131,7 +131,7 @@ jobs:
 
             **Full Changelog:** https://github.com/Logicademy/PYNQ-SoC-Builder/compare/${{ env.PREV_VERSION }}...${{ env.VERSION}}
 
-          draft: false
+          draft: true
           files: dist/PYNQ-SoC-Builder.exe
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
