@@ -835,7 +835,6 @@ def hex_to_padded_chunks(hex_number, desired_bits):
 def generate_io_visuals(io_map):
     py_code = """
 def generate_io_gui():
-    # Function to create an LED button with specified properties
     def create_led_button(description):
         return widgets.ToggleButton(
             value=False,
@@ -1037,24 +1036,9 @@ def create_large_classes_from_port_map(parsed_port_map):
     return code
 
 # The following functions are responsible for generating the HTML, CSS and JavaScript for the interavtive sandbox
+
+# This function takes an input SVG string that represents the default circuit diagram for the Pynq-Soc-Builder project and generates the HTML, CSS and JavaScript code for creating an interactive sandbox
 def create_html_css_js(parsed_all_ports: list[dict], clock_enabled: bool, io_map: dict) -> str:
-    """
-    This function takes an input SVG string that represents the default circuit diagram 
-    for the Pynq-Soc-Builder project and generates the HTML, CSS and JavaScript code for 
-    creating an interactive sandbox. The returned string contains:
-
-    - HTML structure for rendering the sandbox
-    - CSS for styling the sandbox elements.
-    - JavaScript for event handling within the sandbox.
-
-    Parameters:
-    parsed_all_ports (list[dict]): A list of all port dicts
-    clock_enabled (bool): Is the circuit clock enabled?
-
-    Returns:
-    str: A string combining the HTML, CSS, and JavaScript required for the interactive sandbox.
-    """
-
     html_css_js = """"""
 
     controlled_by_board_inputs = []
@@ -1104,12 +1088,9 @@ def create_html_css_js(parsed_all_ports: list[dict], clock_enabled: bool, io_map
     html_css_js += '\n\t' + '\t'.join([f'html_code += create_output_textbox("{output_textbox}")\n' for output_textbox in output_textboxes]) if output_textboxes else ""
     
     html_css_js += "\n\thtml_code += \"\"\""
-    html_css_js += create_set_signals_or_run_clock_period_button(clock_enabled)
-
-    html_css_js += """
-</div>
+    html_css_js += f"""{create_set_signals_or_run_clock_period_button(clock_enabled)}</div>
 \"\"\"
-"""
+    """
 
     html_css_js += generate_change_image_button()
 
@@ -1146,18 +1127,9 @@ def create_html_css_js(parsed_all_ports: list[dict], clock_enabled: bool, io_map
 
     return html_css_js
 
+# Generates a JS string for the input button event handler
 def create_input_button_event_handler() -> str:
-    """
-    Generates a JS string for the input button event handler.
-
-    Returns:
-        str: The JS string for the input button event handler.
-    """
     return """
-/**
-* Toggles the state of a button between two values, updates its styling and writes the signal.
-* @param {id} button - The id of the button element whose state will be toggled.
-*/
 function inputButtonEventHandler(id) {
     const button = document.getElementById(`${id}`)
     let isClick = true;
@@ -1187,29 +1159,14 @@ document.querySelectorAll('.input-button-enabled').forEach(button =>inputButtonE
 
 """
 
+# Generates an HTML string for a draggable 'Set Signals' button
 def create_set_signals_or_run_clock_period_button(clock_enabled: bool) -> str:
-    """
-    Generates an HTML string for a draggable 'Set Signals' button.
-
-    Args:
-        clockEnabled (bool): Is this circuit clock enabled?
-
-    Returns:
-        str: The HTML string for the set signals button widget.
-    """
     return f"""
-    <button class="set-signal-button draggable lm-Widget p-Widget jupyter-widgets jupyter-button widget-button mod-info" title=""><i class="{"fa fa-clock-o" if clock_enabled else "fa fa-signal"}"></i>{"Run Clock Period" if clock_enabled else "Set Signals"}</button>
-    """
+    <button class="set-signal-button draggable lm-Widget p-Widget jupyter-widgets jupyter-button widget-button mod-info" title=""><i class="{"fa fa-clock-o" if clock_enabled else "fa fa-signal"}"></i>{"Run Clock Period" if clock_enabled else "Set Signals"}</button>"""
 
+# Generates the HTML string to dynamically generate the "Change Image" button
 def generate_change_image_button() -> str:
-    """
-    Generates the HTML string to dynamically generate the "Change Image" button.
-
-    Returns:
-        str: The HTML string to dynamically generate the "Change Image" button.
-    """
     return """
-    # Dynamically add the "Change Image" button if image_list has more than 1 image
     if len(image_list) > 1:
         html_code += \"\"\"
 <div id="change-image-button-wrapper" style="display: flex; justify-content: center;">
@@ -1221,13 +1178,8 @@ def generate_change_image_button() -> str:
 \"\"\"
     """
 
+# Generates a JS string for the input textbox event handler
 def create_input_textbox_event_handler() -> str:
-    """
-    Generates a JS string for the input textbox event handler.
-
-    Returns:
-        str: The JS string for the input textbox event handler.
-    """
     return """
 function inputTextboxEventHandler(name, bits){
     let errors = [];
@@ -1254,16 +1206,8 @@ function inputTextboxEventHandler(name, bits){
 document.querySelectorAll('.input-textbox').forEach(textbox => textbox.onchange = () => {{inputTextboxEventHandler(textbox.id, textbox.dataset.bits)}});
 """
 
+# Generates a HTML string for a draggable div containing a disabled output text box with a label
 def create_output_textbox(name: str) -> str:
-    """
-    Generates a HTML string for a draggable div containing a disabled output text box with a label.
-
-    Args:
-        name (str): The name of the text box.
-
-    Returns:
-        str: The HTML string for the output text box widget.
-    """
     return f"""
     <div class="draggable" style="display: inline-flex;align-items: center;gap: 0;">
         <div class="lm-Widget p-Widget jupyter-widgets widget-inline-hbox widget-text" style="width: 200px;">
@@ -1273,29 +1217,25 @@ def create_output_textbox(name: str) -> str:
     </div>
     """
 
+# Generates an HTML string for an image scale selector using a loop
 def generate_image_scale_selector() -> str:
-    """
-    Generates an HTML string for an image scale selector using a loop.
-
-    Returns:
-        str: The HTML string for the image scale selector.
-    """
-    options = '\n\t\t'.join(
-        f'<option value="{i}" data-value="{i}"{" selected" if i == 1 else ""}>{i}x</option>'
-        for i in [x * 0.25 for x in range(1, 17)]
-    )
-
     return f"""
     <div id="image-size-selector-wrapper" class="output_subarea jupyter-widgets-view" style="display: flex; justify-content: center;" dir="auto">
         <div class="lm-Widget p-Widget jupyter-widgets widget-inline-hbox widget-dropdown">
             <label class="widget-label" title="Image Size:" for="image-size-selector">Image Size:</label>
             <select id="image-size-selector" onchange="changeImageSize()">
-                {options}
+                <script>
+                    // Generate options for image sizes
+                    const optionsHtml = Array.from({ length: 16 }, (_, i) => {{
+                        const size = (0.25 * (i + 1)).toFixed(2);
+                        return `<option value="${{size}}" ${{size == 1.0 ? 'selected' : ''}}>${{size}}x</option>`;
+                    }}).join('\\n');
+                    document.write(optionsHtml);
+                </script>
             </select>
         </div>
     </div>
     """
-
 
 def generate_get_image_files_function(): 
     return """
@@ -1328,10 +1268,6 @@ def get_image_files():
 
 def generate_make_element_draggable_function():
     return"""
-   /**
-    * Makes an HTML element draggable within a specified container.
-    * @param {HTMLElement} element - The element to be made draggable.
-    */
     function makeElementDraggable(element) {
         let isDragging = false,
             offsetX = 0,
@@ -1357,16 +1293,6 @@ def generate_make_element_draggable_function():
 
 def generate_check_max_value_function():
     return """
-
-    /**
-    * Converts the input numeric string into an integer and checks if it exceeds the maximum value             
-    * @param {string} numberStr - The numeric string to be evaluated, can be positive or negative and in decimal, hexadecimal, or binary format
-    * @param {number} numBits - The number of bits used to represent the maximum value
-    * @returns {[boolean, number|null]} - An array where the first element indicates whether the value exceeded 
-    *          the maximum limit (true if exceeded, false otherwise), and the second element is either the 
-    *          truncated value if it exceeded the limit, or the original value if it did not. Returns null if 
-    *          an error occurs during conversion.
-    */
     function checkMaxValue(numberStr, numBits) {
         function userStringToInt(numberStr) {
             let radix = 10;
@@ -1457,19 +1383,8 @@ def generate_output_area():
     </div>\"\"\"
     """
 
-def generate_set_signals_or_run_clock_period_function(output_textboxes: list[str], output_buttons: list[str]) -> str:
-    """
-    Generates JavaScript code for the setSignals() event handler
-
-    Args:
-        output_textboxes (list[str]): A list of strings representing the names of output textboxes.
-        output_buttons (list[str]): A list of strings representing the names of output buttons.
-
-    Returns:
-        str: A string containing the generated JavaScript function to set signals.
-    
-    The generated function reads output values, and updates the corresponding HTML elements.
-    """            
+# Generates JavaScript code for the setSignals() event handler
+def generate_set_signals_or_run_clock_period_function(output_textboxes: list[str], output_buttons: list[str]) -> str:          
     output_reads = []
     if(output_textboxes):
         for name in output_textboxes:
