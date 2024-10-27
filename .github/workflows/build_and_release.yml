@@ -1,72 +1,135 @@
-name: Build Executable
-
+name: Weekly Build and Release
 on:
-  workflow_dispatch:  
-  ### For debugging Workflows use this:
-  # push:
-  #   branches:
-  #     - "pyinstaller"
-
+  schedule:
+    - cron: '0 0 * * 0'  # Runs at midnight (UTC) every Sunday
+  workflow_dispatch:  # Keep manual trigger for testing
+  
 permissions:
-  contents: write  # Allows writing to repository contents, including creating releases
-  issues: write    # Allows creating issues if necessary
+  contents: write
+  issues: write
 
 jobs:
-   build:
-    runs-on: windows-latest  # Use the latest Windows environment
-
+  check_and_build:
+    runs-on: windows-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2  # Checkout the repository code
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0  # Fetch all history for calculating version
+
+      - name: Check for changes
+        id: check_changes
+        run: |
+          $LAST_TAG = $(git describe --tags --abbrev=0 2>$null)
+          if ($LAST_TAG) {
+            $COMMIT_COUNT = $(git rev-list $LAST_TAG..HEAD --count)
+            echo "COMMIT_COUNT=$COMMIT_COUNT" >> $env:GITHUB_ENV
+            if ($COMMIT_COUNT -eq 0) {
+              echo "No new commits since last release. Skipping release."
+              echo "HAS_CHANGES=false" >> $env:GITHUB_ENV
+            } else {
+              echo "Found $COMMIT_COUNT new commits since last release."
+              echo "HAS_CHANGES=true" >> $env:GITHUB_ENV
+            }
+          } else {
+            echo "No previous tags found. Proceeding with initial release."
+            echo "HAS_CHANGES=true" >> $env:GITHUB_ENV
+          }
 
       - name: Set up Python 3.10
-        uses: actions/setup-python@v4  # Set up Python environment
+        if: env.HAS_CHANGES == 'true'
+        uses: actions/setup-python@v4
         with:
-          python-version: '3.10'  # Specify Python version
+          python-version: '3.10'
+
+      - name: Update Version
+        if: env.HAS_CHANGES == 'true'
+        id: version
+        run: |
+          # Read current version
+          $CURRENT_VERSION = Get-Content version.txt -TotalCount 1 | ForEach-Object { $_.Trim() }
+          
+          # Split version into major.minor.patch
+          $VERSION_PARTS = $CURRENT_VERSION -split '\.'
+          $MAJOR = [int]$VERSION_PARTS[0]
+          $MINOR = [int]$VERSION_PARTS[1]
+          $PATCH = [int]$VERSION_PARTS[2]
+          
+          # Increment minor version
+          $NEW_MINOR = $MINOR + 1
+          $NEW_VERSION = "$MAJOR.$NEW_MINOR.$PATCH"
+          
+          # Update version.txt
+          $NEW_VERSION | Set-Content version.txt
+          
+          # Set as environment variable
+          echo "VERSION=$NEW_VERSION" >> $env:GITHUB_ENV
+          echo "Updated version from $CURRENT_VERSION to $NEW_VERSION"
+          
+          # Stage version.txt for commit
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add version.txt
+          git commit -m "Bump version to $NEW_VERSION"
+          git push
+
+      - name: Generate Release Notes
+        if: env.HAS_CHANGES == 'true'
+        id: release_notes
+        run: |
+          $LAST_TAG = $(git describe --tags --abbrev=0 2>$null)
+          if ($LAST_TAG) {
+            $CHANGES = git log --pretty=format:"- %s" $LAST_TAG..HEAD
+          } else {
+            $CHANGES = git log --pretty=format:"- %s"
+          }
+          $CHANGES = $CHANGES -join "`n"
+          echo "CHANGES<<EOF" >> $env:GITHUB_ENV
+          echo "$CHANGES" >> $env:GITHUB_ENV
+          echo "EOF" >> $env:GITHUB_ENV
 
       - name: Install dependencies
+        if: env.HAS_CHANGES == 'true'
         run: |
-          python -m pip install --upgrade pip  # Upgrade pip
-          pip install pyinstaller  # Install PyInstaller
-          pip install -r requirements.txt  # Install other dependencies from requirements.txt if you have one
-
-      - name: Debug - Check contents of version.txt
-        run: |
-          type version.txt  # Display the contents of version.txt for debugging
-
-      - name: Read version from version.txt
-        id: get_version
-        run: |
-          $VERSION = Get-Content version.txt -TotalCount 1 | ForEach-Object { $_.Trim() }  # Read the first line and strip whitespace
-          echo "VERSION=$VERSION" >> $env:GITHUB_ENV  # Set the version as an environment variable
-          echo "Extracted VERSION: $VERSION"  # Print the extracted version for debugging
+          python -m pip install --upgrade pip
+          pip install pyinstaller
+          pip install -r requirements.txt
 
       - name: Build application with PyInstaller
+        if: env.HAS_CHANGES == 'true'
         run: |
-          pyinstaller main.spec  # Build the application using the spec file
-
-      - name: List contents of dist directory
-        run: |
-          dir dist  # List files in the dist directory (using Windows command)
+          pyinstaller main.spec
 
       - name: Upload built executable
-        uses: actions/upload-artifact@v3  # Updated to the latest version (v3) of upload-artifact
+        if: env.HAS_CHANGES == 'true'
+        uses: actions/upload-artifact@v3
         with:
-          name: PYNQ-SoC-Builder  # Name of the artifact
-          path: dist/PYNQ-SoC-Builder.exe  # Path to the generated executable
+          name: PYNQ-SoC-Builder
+          path: dist/PYNQ-SoC-Builder.exe
 
       - name: Create Release
+        if: env.HAS_CHANGES == 'true'
         id: create_release
-        uses: softprops/action-gh-release@v1  # Use action to create a GitHub release
+        uses: softprops/action-gh-release@v1
         with:
-          tag_name: ${{ env.VERSION }}  # Use the version from version.txt as the tag
-          name: Release ${{ env.VERSION }}  # Release name
+          tag_name: ${{ env.VERSION }}
+          name: Release ${{ env.VERSION }}
           body: |
-            - Built application version: ${{ env.VERSION }}
-            - Download the executable below.
-            
+            Thank you for checking out the bundled release of PYNQ SoC Builder. This release consists of a single exe file intended for Windows machines.
+
+            Bundled releases are intended for anyone who wishes to give SoC Builder a try for the first time quick and easily.
+
+            Note to Students: It is recommended to clone the repository instead, as this way you will receive new features and improvements as soon as possible over the course of the semester.
+
+            If you encounter any problems, please open an issue or reach out to @lukecanny.
+
+            All the best, Logicademy Team 😎
+
             Please Note: This free, open-source application is not digitally signed since code signing certificates cost several hundred dollars annually. When you first run the application, Windows Defender may show a warning message - this is normal for unsigned applications. You can safely proceed by clicking "More info" and then "Run anyway". The source code is available at github.com/Logicademy/PYNQ-SoC-Builder if you'd like to review it or build it yourself.
-          draft: true
-          files: dist/PYNQ-SoC-Builder.exe  # Path to the executable
+
+            ## Changes in this release:
+            ${{ env.CHANGES }}
+          draft: false
+          files: dist/PYNQ-SoC-Builder.exe
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Token for authentication
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
