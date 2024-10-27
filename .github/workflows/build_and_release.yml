@@ -79,6 +79,7 @@ jobs:
           $NEW_VERSION | Set-Content version.txt
           
           # Set as environment variable
+          echo "PREV_VERSION=$CURRENT_VERSION" >> $env:GITHUB_ENV
           echo "VERSION=$NEW_VERSION" >> $env:GITHUB_ENV
           echo "Updated version from $CURRENT_VERSION to $NEW_VERSION"
           
@@ -88,21 +89,6 @@ jobs:
           git add version.txt
           git commit -m "Bump version to $NEW_VERSION"
           git push
-
-      - name: Generate Release Notes
-        if: env.HAS_CHANGES == 'true'
-        id: release_notes
-        run: |
-          $LAST_TAG = $(git describe --tags --abbrev=0 2>$null)
-          if ($LAST_TAG) {
-            $CHANGES = git log --pretty=format:"- %s" $LAST_TAG..HEAD
-          } else {
-            $CHANGES = git log --pretty=format:"- %s"
-          }
-          $CHANGES = $CHANGES -join "`n"
-          echo "CHANGES<<EOF" >> $env:GITHUB_ENV
-          echo "$CHANGES" >> $env:GITHUB_ENV
-          echo "EOF" >> $env:GITHUB_ENV
 
       - name: Install dependencies
         if: env.HAS_CHANGES == 'true'
@@ -131,9 +117,9 @@ jobs:
           tag_name: ${{ env.VERSION }}
           name: Release ${{ env.VERSION }}
           body: |
-            Thank you for checking out the first bundled release of PYNQ SoC Builder. This release consists of a single exe file intended for Windows machines.
+            Thank you for checking out the bundled release of PYNQ SoC Builder. This release consists of a single exe file intended for Windows machines.
 
-            This first release is intended for anyone who wishes to give SoC Builder a try for the first time quick and easily.
+            Bundled releases are intended for anyone who wishes to give SoC Builder a try for the first time quick and easily.
 
             Note to Students: It is recommended to clone the repository instead, as this way you will receive new features and improvements as soon as possible over the course of the semester.
 
@@ -143,9 +129,10 @@ jobs:
 
             Please Note: This free, open-source application is not digitally signed since code signing certificates cost several hundred dollars annually. When you first run the application, Windows Defender may show a warning message - this is normal for unsigned applications. You can safely proceed by clicking "More info" and then "Run anyway". The source code is available at github.com/Logicademy/PYNQ-SoC-Builder if you'd like to review it or build it yourself.
 
-            ## Changes in this release:
-            ${{ env.CHANGES }}
+            **Full Changelog:** https://github.com/Logicademy/PYNQ-SoC-Builder/compare/${{ env.PREV_VERION }}...${{ env.VERSION}}
+
           draft: false
           files: dist/PYNQ-SoC-Builder.exe
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
