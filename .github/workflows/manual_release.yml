@@ -1,15 +1,13 @@
-name: Initial Release 
+name: Manual Release 
 on:
-#   schedule:
-    # - cron: '0 0 * * 0'  # Runs at midnight (UTC) every Sunday
-  workflow_dispatch:  # Keep manual trigger for testing
+  workflow_dispatch:  
   
 permissions:
   contents: write
   issues: write
 
 jobs:
-  check_and_build:
+  build_and_draft_release:
     runs-on: windows-latest
     steps:
       - name: Checkout code

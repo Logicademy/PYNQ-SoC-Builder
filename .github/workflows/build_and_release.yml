@@ -73,8 +73,9 @@ jobs:
           
           # Increment minor version
           $NEW_MINOR = $MINOR + 1
-          $NEW_VERSION = "v$MAJOR.$NEW_MINOR.$PATCH"
-          
+          $NEW_VERSION = "v$MAJOR.$NEW_MINOR.0"
+          # Note: Patch gets reset back to zero as we increment minor
+
           # Update version.txt
           $NEW_VERSION | Set-Content version.txt
           
