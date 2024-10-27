@@ -26,7 +26,7 @@ def make_copy_and_inject(hdlgen_prj):
     
     # Get Filepaths for Backup
     model_file = hdlgen_prj.model_file + extension
-    backup_file = hdlgen_prj.model_file + ".socbuilder"
+    backup_file = hdlgen_prj.model_file + ".original"
 
     # Create Backup
     make_backup(model_file, backup_file)
@@ -51,7 +51,7 @@ def restore(hdlgen_prj):
         extension = ".v"
     # Derive the filepaths
     model_file = hdlgen_prj.model_file + extension
-    backup_file = hdlgen_prj.model_file + ".socbuilder"
+    backup_file = hdlgen_prj.model_file + ".original"
     modified_file_backup = hdlgen_prj.model_file + ".modified"
 
     make_backup(backup_file, modified_file_backup)
