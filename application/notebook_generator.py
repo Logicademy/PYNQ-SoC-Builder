@@ -944,7 +944,7 @@ def generate_gui_controller(compName, parsed_all_ports, location, clock_enabled,
     py_code += "\n\telse:"
     py_code += "\n\t\treturn (num >> bit_position) & 1"
 
-    py_code += create_html_css_js(parsed_all_ports, clock_enabled, io_map)
+    py_code += create_html_css_js(parsed_all_ports, io_map)
 
     return py_code
 
@@ -1035,7 +1035,7 @@ def create_large_classes_from_port_map(parsed_port_map):
 # The following functions are responsible for generating the HTML, CSS and JavaScript for the interavtive sandbox
 
 # This function takes an input SVG string that represents the default circuit diagram for the Pynq-Soc-Builder project and generates the HTML, CSS and JavaScript code for creating an interactive sandbox
-def create_html_css_js(parsed_all_ports: list[dict], clock_enabled: bool, io_map: dict) -> str:
+def create_html_css_js(parsed_all_ports: list[dict], io_map: dict) -> str:
     html_css_js = """"""
 
     controlled_by_board_inputs = []
@@ -1078,7 +1078,7 @@ def create_html_css_js(parsed_all_ports: list[dict], clock_enabled: bool, io_map
     html_css_js += generate_image_scale_selector()
     html_css_js += generate_output_area()
 
-    # Generate HTML for input buttons, output buttons, input textboxes, output textboxes and the set signals button
+    # Generate HTML for input buttons, output buttons, input textboxes, output textboxes
     html_css_js += '\n\t' + '\t'.join([f'html_code += create_input_button("{input_button["name"]}", {input_button["name"]}.read(0), {input_button["disabled"]})\n' for input_button in input_buttons]) if input_buttons else ""
     html_css_js += '\n\t' + '\t'.join([f'html_code += create_output_button("{output_button}", {output_button}.read(0))\n' for output_button in output_buttons]) if output_buttons else ""
     html_css_js += '\n\t' + '\t'.join([f'html_code += create_input_textbox("{input_textbox["name"]}", {input_textbox["bits"]})\n' for input_textbox in input_textboxes]) if input_textboxes else ""
@@ -1097,7 +1097,7 @@ def create_html_css_js(parsed_all_ports: list[dict], clock_enabled: bool, io_map
 
     html_css_js += generate_make_element_draggable_function()
     html_css_js += generate_check_max_value_function()
-    html_css_js += generate_set_signals_or_run_clock_period_function(output_textboxes, buttons)
+    html_css_js += generate_set_signal_function(output_textboxes, buttons)
 
     # Add the event handlers to the widgets
     html_css_js += generate_background_image_functions()
@@ -1108,7 +1108,6 @@ def create_html_css_js(parsed_all_ports: list[dict], clock_enabled: bool, io_map
     html_css_js += f"""
     {create_input_button_event_handler() if input_buttons else ''}
     {create_input_textbox_event_handler() if input_textboxes else ''}
-    document.querySelectorAll('.set-signal-button').forEach(button => button.onclick = () => {{setSignals()}});
     """
 
     html_css_js += """
@@ -1376,7 +1375,7 @@ def generate_output_area():
     """
 
 # Generates JavaScript code for the setSignals() event handler
-def generate_set_signals_or_run_clock_period_function(output_textboxes: list[str], output_buttons: list[str]) -> str:          
+def generate_set_signal_function(output_textboxes: list[str], output_buttons: list[str]) -> str:          
     output_reads = []
     if(output_textboxes):
         for name in output_textboxes:
@@ -1433,25 +1432,29 @@ def input_button_generation():
     return """def create_input_button(button_id, read_value, is_disabled):
     status_class = "mod-success" if str(read_value) == "1" else "mod-danger"
     disabled_attr = "disabled" if is_disabled else ""
-    
-    return \"\"\"
+    cursor_class = "cursor-disabled" if is_disabled else ""
+
+    return \"\"\"  
+    <style>.cursor-disabled {{cursor: not-allowed;}}</style>
     <div class="draggable" style="display: inline-flex; align-items: center; gap: 0;">
         <div class="lm-Widget p-Widget jupyter-widgets"
              onmousedown="this.style.cursor = 'grabbing';"
              onmouseover="this.style.cursor = 'grab';">
-            {id}
+            {button_id}
         </div>
-        <button class="input-button-enabled lm-Widget p-Widget jupyter-widgets jupyter-button widget-toggle-button {status_class}" 
+        <button class="input-button-enabled lm-Widget p-Widget jupyter-widgets jupyter-button widget-toggle-button {status_class} {cursor_class}" 
                 style="width: 50px;" 
-                id="{id}"
+                id="{button_id}"
                 {disabled}>{button_text}</button>
     </div>
     \"\"\".format(
         status_class=status_class,
-        id=button_id,
+        button_id=button_id,
         disabled=disabled_attr,
-        button_text=str(read_value)
-    )"""
+        button_text=str(read_value),
+        cursor_class=cursor_class
+    )
+"""
 
 def input_textbox_generation():
         return """def create_input_textbox(textbox_id, data_bits):
