@@ -1180,7 +1180,7 @@ function inputTextboxEventHandler(name, bits){
     errorArea.innerHTML = "";
 
     let value = document.getElementById(`${name}`).value;
-    let [truncated, new_value] = checkMaxValue(value, 4);
+    let [truncated, new_value] = checkMaxValue(value, bits);
     value = new_value;
 
     if (truncated) {
