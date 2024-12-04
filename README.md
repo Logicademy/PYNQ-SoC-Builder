@@ -4,7 +4,7 @@
 
 <div align="center">
   <a href="https://github.com/Logicademy/PYNQ-SoC-Builder/actions/workflows/build_and_release.yml">
-    <img src="https://github.com/Logicademy/PYNQ-SoC-Builder/actions/workflows/build_and_release.yml/badge.svg" alt="Weekly Build and Release">
+    <img src="https://github.com/Logicademy/PYNQ-SoC-Builder/actions/workflows/build_and_release.yml/badge.svg" alt="Build and Release">
   </a>
 </div>
 
