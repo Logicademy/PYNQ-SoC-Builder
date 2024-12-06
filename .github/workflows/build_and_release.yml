@@ -105,7 +105,7 @@ jobs:
 
       - name: Upload built executable
         if: env.HAS_CHANGES == 'true'
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: PYNQ-SoC-Builder
           path: dist/PYNQ-SoC-Builder.exe
