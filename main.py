@@ -22,9 +22,21 @@ class Application:
         # Set viewing mode
         # ctk.set_appearance_mode("light")  # Options are "light", "dark", or "system"
 
+        
+        version_txt_path = get_resource_path('version.txt', os.path.abspath(__file__))
+        version = "Unversioned"
+        try:
+            with open(version_txt_path, 'r') as file:
+                version = file.readline().strip()
+        except Exception as e:
+            print(f"Couldn't find version.txt correctly: {e}")
+
+        # Window Title
+        window_title = "PYNQ SoC Builder "+version
+
         # Set root and title
         self.root = root
-        self.root.title("PYNQ SoC Builder")
+        self.root.title(window_title)
         self.root.geometry("1200x800")
 
         self.root.minsize(800, 500)
