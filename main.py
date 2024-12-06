@@ -174,18 +174,9 @@ class Application:
 
 def restart_program():
     print("Restarting the application with updated code...")
-
-    new_process = None
-
-    # Use subprocess to start a new process
-    if is_running_as_executable():
-        new_process = subprocess.Popen(sys.executable)
-    else:
-        new_process = subprocess.Popen([sys.executable] + sys.argv)
-
+    new_process = subprocess.Popen([sys.executable] + sys.argv)
     # Log the new process ID
     print(f"Started new process with PID: {new_process.pid}")
-    
     # Exit the current process
     sys.exit()
 
