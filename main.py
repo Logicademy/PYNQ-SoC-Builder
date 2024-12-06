@@ -166,6 +166,19 @@ class Application:
         self.root.destroy()     # kill tkinter window
         exit()                  # quit app
 
+    #################################
+    ##### Close Project Handler #####
+    #################################
+    def close_project(self):
+        restart_program()
+
+def restart_program():
+    print("Restarting the application with updated code...")
+    new_process = subprocess.Popen([sys.executable] + sys.argv)
+    # Log the new process ID
+    print(f"Started new process with PID: {new_process.pid}")
+    # Exit the current process
+    sys.exit()
 
 #######################################
 ##### Launch Application Function #####
@@ -209,18 +222,7 @@ if __name__ == "__main__":
 
                 if app.dialog_response == "yes":
                     origin.pull()
-                    # Step 2: Restart the application
-                    print("Restarting the application with updated code...")
-                    #time.sleep(2)  # Optional: delay to show messages or log to a file
-
-                    # Use subprocess to start a new process
-                    new_process = subprocess.Popen([sys.executable] + sys.argv)
-
-                    # Optional: Log the new process ID
-                    print(f"Started new process with PID: {new_process.pid}")
-                    
-                    # Step 3: Exit the current process
-                    sys.exit()
+                    restart_program()
 
                 else:
                     print("Skipping update, running application...")
