@@ -9,7 +9,7 @@ import application.hdl_modifier as hdl_modifier
 import html
 import copy
 from application.builder_utils import *
-
+import traceback
 class HdlgenProject:
 
     def __init__(self, path_to_hdlgen=None):
@@ -239,20 +239,23 @@ class HdlgenProject:
         self.impl_logger = impl_logger
 
     def add_to_build_log(self, msg, set=False):
+        new_msg = msg.strip() + "\n"
         if self.build_logger:
             self.build_logger.add_to_log_box(msg, set)
         else:
             print("No build logger set")
 
     def add_to_syn_log(self, msg, set=False):
+        new_msg = msg.strip() + "\n"
         if self.synth_logger:
-            self.synth_logger.add_to_log_box(msg, set)
+            self.synth_logger.add_to_log_box(new_msg, set)
         else:
             print("No synthesis logger set")
 
     def add_to_impl_log(self, msg, set=False):
+        new_msg = msg.strip() + "\n"
         if self.impl_logger:
-            self.impl_logger.add_to_log_box(msg, set)
+            self.impl_logger.add_to_log_box(new_msg, set)
         else:
             print("No implementation logger set")
 
@@ -754,10 +757,11 @@ class HdlgenProject:
 
         # Generate JNB
         self.start_build_status_process('gen_jnb')
-        self.generate_jnb()
-        self.end_build_status_process('gen_jnb')
-
-
+        
+        if (self.generate_jnb()):
+            self.end_build_status_process('gen_jnb')
+        else:  
+            self.fail_build_status_process('gen_jnb')
         # Copy to Directory
         self.start_build_status_process('cpy_out')
         self.copy_output()
@@ -808,10 +812,12 @@ class HdlgenProject:
             return # Return to leave function
         try:
             self.pm_obj.generate_jnb(self, self.add_to_build_log)
+            return True
         except Exception as e:
-            self.add_to_build_log(f"\nNotebook Generation failed due to the following error:{e}")
+            print(f"\nNotebook Generation failed due to the following error:" + traceback.print_exc)
+            self.add_to_build_log(f"\nNotebook Generation failed due to the following error:" + traceback.print_exc)
             # self.build_force_quit_event.set()     # Generate JNB shouldn't assert this because it doesn't imped other functions
-            self.fail_build_status_process('gen_jnb')
+            return False
 
 
     ########################################################
@@ -827,7 +833,8 @@ class HdlgenProject:
         try:
             self.pm_obj.generate_jnb(self, self.add_to_build_log, force_gen=True)
         except Exception as e:
-            self.add_to_build_log(f"\nNotebook Generation failed due to the following error:{e}")
+            print(f"\nNotebook Generation failed due to the following error:" + traceback.print_exc)
+            self.add_to_build_log(f"\nNotebook Generation failed due to the following error:" + traceback.print_exc)
             self.build_force_quit_event.set()
         self.unlock_sidebar()
 

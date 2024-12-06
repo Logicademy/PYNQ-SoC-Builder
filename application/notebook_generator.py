@@ -159,13 +159,12 @@ def create_jnb(hdlgen_prj, add_to_log_box, force_gen=False):
         print("No TBNoteData - asserting no testplan generation")
         use_testplan = False
     
-
+    io_cfg_blocked_testplan_generation = False
     if io_map:
         # If any INPUT board I/O are used, switches, buttons and the likes
         # TESTPLAN is not possible as inputs cannot be asserted by the processing system AND an input IO.
         # Hence we check, and if necessary, deassert use_testplan and add explanatory text if a testplan was expected.
         input_io = ["sw0", "sw1", "btn0", "btn1", "btn2", "btn3"]
-        io_cfg_blocked_testplan_generation = False
         for pynq_io, comp_io in io_map.items():
             if (comp_io == "None" or comp_io == None):
                 continue
@@ -511,7 +510,7 @@ for thread in threads:
                             code_cell_contents += f"\"0b{test_cases[test_num][i+1]}\", "
                         if sub_radix[i][-1] == "d":
                             code_cell_contents += f"\"{test_cases[test_num][i+1]}\", "
-                    except Exception:
+                    except Exception as e:
                         pass   
 
             code_cell_contents = code_cell_contents[:-2] + " ], "
