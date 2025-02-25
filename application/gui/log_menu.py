@@ -20,7 +20,7 @@ class LogTabView(ctk.CTkTabview):
         # Create tabs
         self.add("Project Summary")
         self.add("Testplan")
-        self.add("Builder Log")
+        self.add("Vivado Log")
         self.add("Synthesis Log")
         self.add("Implementation Log")
 
@@ -34,9 +34,9 @@ class LogTabView(ctk.CTkTabview):
         self.testplan = LogBoxTab(self.tab("Testplan"))
         self.testplan.pack()
 
-        # Builder Log Box
-        self.builderLog = LogBoxTab(self.tab("Builder Log"))
-        self.builderLog.pack()
+        # Vivado Log Box
+        self.vivadoLog = LogBoxTab(self.tab("Vivado Log"))
+        self.vivadoLog.pack()
 
         # Synthesis Log
         self.synthesisLog = LogBoxTab(self.tab("Synthesis Log"))
@@ -50,12 +50,12 @@ class LogTabView(ctk.CTkTabview):
         # Call the resize event handler of all tabs
         self.summarytab.resize(event)
         self.testplan.resize(event)
-        self.builderLog.resize(event)
+        self.vivadoLog.resize(event)
         self.synthesisLog.resize(event)
         self.implLog.resize(event)
 
         # As sample data, add event data to the log boxes.
-        # self.builderLog.add_to_log_box(str(event)+"\n")
+        # self.vivadoLog.add_to_log_box(str(event)+"\n")
         # self.synthesisLog.add_to_log_box(str(event)+"\n")
         # self.implLog.add_to_log_box(str(event)+"\n")
 
@@ -73,7 +73,7 @@ class LogTabView(ctk.CTkTabview):
 
         # Question? Can we now pass the log boxes as parameters to the hdlgen_proj making logging available to all?
         # No other set up should be required from down there.
-        self.hdlgen_prj.set_build_logger(self.builderLog)
+        self.hdlgen_prj.set_build_logger(self.vivadoLog)
         self.hdlgen_prj.set_synth_logger(self.synthesisLog)
         self.hdlgen_prj.set_impl_logger(self.implLog)
 

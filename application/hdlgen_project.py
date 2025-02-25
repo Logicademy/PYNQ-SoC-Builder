@@ -238,12 +238,12 @@ class HdlgenProject:
     def set_impl_logger(self, impl_logger):
         self.impl_logger = impl_logger
 
-    def add_to_build_log(self, msg, set=False):
+    def add_to_viv_log(self, msg, set=False):
         new_msg = msg.strip() + "\n"
         if self.build_logger:
             self.build_logger.add_to_log_box(msg, set)
         else:
-            print("No build logger set")
+            print("No Vivado logger set")
 
     def add_to_syn_log(self, msg, set=False):
         new_msg = msg.strip() + "\n"
@@ -527,7 +527,7 @@ class HdlgenProject:
         
         self.save_project(self.pynqbuildxml)
 
-        self.add_to_build_log(f"\nBuild project commencing @ {time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))}")
+        # self.add_to_viv_log(f"\nBuild project commencing @ {time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))}")
 
         # Try change current tab to the Build Status tab
         try:
@@ -539,23 +539,23 @@ class HdlgenProject:
         self.current_step = None     # Set initalise build_step
 
         # Start Build Status Updater Thread
-        self.add_to_build_log(f"\nStarting Build Status Updater Thread")
+        # self.add_to_viv_log(f"\nStarting Build Status Updater Thread")
         thread1 = threading.Thread(target=self.build_status_process)
         thread1.start()
         # Delete existing Vivado log files
-        self.add_to_build_log(f"\nDeleting existing Vivado .log and .jou files")
+        # self.add_to_viv_log(f"\nDeleting existing Vivado .log and .jou files")
         self.remove_vivado_log_jou_files()
 
         # Create PYNQ Manager Object
-        self.add_to_build_log(f"\nLaunching PYNQ Manager")
+        # self.add_to_viv_log(f"\nLaunching PYNQ Manager")
         self.pm_obj = pm.Pynq_Manager(self.hdlgen_path)
 
         # Install board files (if not already)
-        self.add_to_build_log(f"\nChecking Vivado has PYNQ Z2 board files installed")
+        # self.add_to_viv_log(f"\nChecking Vivado has PYNQ Z2 board files installed")
         self.pm_obj.get_board_config_exists()
 
         # Delete old synthesis and implementation log files
-        self.add_to_build_log(f"\nDeleting existing Vivado Project Synthesis and Implementation (runme.log) log files")
+        # self.add_to_viv_log(f"\nDeleting existing Vivado Project Synthesis and Implementation (runme.log) log files")
         self.remove_vivado_syn_impl_log_files()
 
         try:
@@ -567,7 +567,7 @@ class HdlgenProject:
             # Delete old log files
             self.delete_runme_logs()
             
-            # self.add_to_build_log(f"\nStarting Logger Threads (Build, Synth and Impl loggers)")
+            # self.add_to_viv_log(f"\nStarting Logger Threads (Build, Synth and Impl loggers)")
             # self.build_logger_thread = threading.Thread(target=self.run_build_logger)
             self.synth_logger_thread = threading.Thread(target=self.run_synth_logger)
             self.impl_logger_thread = threading.Thread(target=self.run_impl_logger)
@@ -579,11 +579,11 @@ class HdlgenProject:
 
 
             # Execute Program
-            self.add_to_build_log(f"\nClearing force close threading flag")
+            # self.add_to_viv_log(f"\nClearing force close threading flag")
             self.build_force_quit_event.clear()
-            self.add_to_build_log(f"\nCreating Build Thread")
+            # self.add_to_viv_log(f"\nCreating Build Thread")
             build_thread = threading.Thread(target=self.build)
-            self.add_to_build_log(f"\nStarting Build Thread")
+            # self.add_to_viv_log(f"\nStarting Build Thread")
             build_thread.start()
 
             # Steps:
@@ -624,10 +624,10 @@ class HdlgenProject:
         # If the vivado.log file hasn't been created yet just wait 1 second.
         
         while not os.path.exists(vivado_log_path):
-            self.add_to_build_log("\nWaiting for Vivado to launch...")
+            self.add_to_viv_log("\nWaiting for Vivado to launch...")
             time.sleep(1)
             if self.build_force_quit_event.is_set():
-                self.add_to_build_log("\nQuitting Vivado Logger - Quit flag asserted")
+                self.add_to_viv_log("\nQuitting Vivado Logger - Quit flag asserted")
                 return
 
         waiting_counter = 0
@@ -635,9 +635,11 @@ class HdlgenProject:
         with open(vivado_log_path, 'r') as vivado_log:
             while True:
                 if self.build_force_quit_event.is_set():
-                    self.add_to_build_log("\nQuitting Vivado Logger - Quit flag asserted")
+                    # self.add_to_viv_log("\nQuitting Vivado Logger - Quit flag asserted")
                     return
 
+
+                print("KKKKKKK")
                 # Will return to this depending on our flag scheme
                 # if self.current_running_mode != "run_viv":
                 #         break
@@ -646,67 +648,73 @@ class HdlgenProject:
                 if not line:
                     time.sleep(1)   # No line is available, wait a second
                 else:
+
+                    self.add_to_viv_log(line.strip() + "\n")
+
                     if line == "":
                         pass    # Skip empty lines
                     elif line[0] == '#':
                         pass    # this line just has the tcl script we sourced
                     elif line.startswith("CRITICAL WARNING"):
-                        self.add_to_build_log("\n"+line)
+                        # self.add_to_viv_log("\n"+line)
+                        pass
                     elif line.startswith("ERROR"):
                         # If an error is detected, we want to set the flag as error.
-                        self.add_to_build_log("\n"+line.strip())
+                        # self.add_to_viv_log("\n"+line.strip())
                         # Read out the remainder of the lines in buffer
-                        while True:
-                            line = vivado_log.readline()
-                            if not line:
-                                break
-                            self.add_to_build_log("\n"+line.strip())
-                            time.sleep(0.05)
+                        # while True:
+                            # line = vivado_log.readline()
+                            # if not line:
+                                # break
+                            # self.add_to_viv_log("\n"+line.strip())
+                            # time.sleep(0.05)
+                            # pass
                         # Build failed, set error and change build status page to failed
                         # If the line starts with error, print all the remaining lines in the buffer really then quit.
                         self.build_force_quit_event.set()   # An error has been detected - Raise quit event.
 
                         self.fail_build_status_process('bld_bdn')
-                        self.add_to_build_log("\n\nVivado raised an error and the build could not complete. Please check the log above for more details")
-                        self.add_to_build_log("\nBuild is quitting.")
+                        # self.add_to_viv_log("\n\nVivado raised an error and the build could not complete. Please check the log above for more details")
+                        # self.add_to_viv_log("\nBuild is quitting.")
                     elif "open_project" in line:
                         print("OPEN_PROJECT FOUND")
                         self.start_build_status_process('opn_prj')
-                        self.add_to_build_log(f"\nOpening Vivado Project {self.path_to_xpr}")
-                        self.add_to_build_log("\n" + line.strip())
+                        # self.add_to_viv_log(f"\nOpening Vivado Project {self.path_to_xpr}")
+                        # self.add_to_viv_log("\n" + line.strip())
                     elif "create_bd_design" in line:
                         self.end_build_status_process('opn_prj')
                         self.start_build_status_process('bld_bdn')
-                        self.add_to_build_log(f"\nCreating BD Design: {self.path_to_bd}")
+                        # self.add_to_viv_log(f"\nCreating BD Design: {self.path_to_bd}")
                         self.end_build_status_process('opn_prj') ## Force Open Project to stop if it hasn't already.
-                        self.add_to_build_log("\n"+line)
+                        # self.add_to_viv_log("\n"+line)
                     elif "_0_0_synth_1" in line:
                         self.end_build_status_process('bld_bdn')
                         self.end_build_status_process('opn_prj') ## Force Open Project to stop if it hasn't already.
                         self.buildstatuspage.obj_dict['run_syn']['status'].configure(text="Preparing")
-                        self.add_to_build_log("\nStarting Synthesis of Design")
-                        self.add_to_build_log("\n"+line.strip())
+                        # self.add_to_viv_log("\nStarting Synthesis of Design")
+                        # self.add_to_viv_log("\n"+line.strip())
                     elif "Launched impl_1..." in line:
-                        self.add_to_build_log("\nLaunching Implementation\n" +line)
-                        self.add_to_build_log(vivado_log.readline())
+                        # self.add_to_viv_log("\nLaunching Implementation\n" +line)
+                        # self.add_to_viv_log(vivado_log.readline())
+                        pass
                     elif "Waiting for impl_1 to finish..." in line:
                         # dots = "."*(waiting_counter//2%5)
                         # if waiting_counter == 0:
                             # self.log_data = self.log_data + "\nWaiting for synthesis & implementation to complete, see syn/impl log tabs for more details"
-                        # self.add_to_build_log(self.log_data + dots, True)
+                        # self.add_to_viv_log(self.log_data + dots, True)
                         # time.sleep(0.5)
                         # waiting_counter += 1
                     # elif "" in line:
                         pass
                     elif "Command: write_bitstream -force" in line:
-                        self.add_to_build_log("\nGenerating Bitstream")
-                        self.start_build_status_process('gen_bit')    
+                        # self.add_to_viv_log("\nGenerating Bitstream")
+                        self.start_build_status_process('gen_bit')
                     elif "write_bitstream completed successfully" in line:
                         self.end_build_status_process('gen_bit')
-                        self.add_to_build_log("\nBitstream written successfully.")
+                        # self.add_to_viv_log("\nBitstream written successfully.")
                     elif "exit" in line:
-                        self.add_to_build_log("\nExit command issued to Vivado. Waiting for Vivado to close.")
-                        self.add_to_build_log("\nMoving to next process")
+                        # self.add_to_viv_log("\nExit command issued to Vivado. Waiting for Vivado to close.")
+                        # self.add_to_viv_log("\nMoving to next process")
                         return # All dun
                 if not self.build_running:
                     return # all dun
@@ -758,6 +766,10 @@ class HdlgenProject:
         # Generate JNB
         self.start_build_status_process('gen_jnb')
         
+        # This is here because of a bug that sometimes means it doesn't end properly...
+        # Probably could fix properly but this will do for now :)
+        self.end_build_status_process('gen_bit')
+
         if (self.generate_jnb()):
             self.end_build_status_process('gen_jnb')
         else:  
@@ -780,13 +792,13 @@ class HdlgenProject:
     def generate_tcl(self):
         
         if self.build_force_quit_event.is_set():
-            self.add_to_build_log("\n\nTcl Generation cancelled as force quit flag asserted!")
+            self.add_to_viv_log("\n\nTcl Generation cancelled as force quit flag asserted!")
             print("\n\nTcl Generation cancelled as force quit flag asserted!")
             return # Return to leave function
         try:
-            self.pm_obj.generate_tcl(self, self.add_to_build_log)
+            self.pm_obj.generate_tcl(self, self.add_to_viv_log)
         except Exception as e:
-            self.add_to_build_log(f"\nTcl Generation failed due to the following error:{e}")
+            self.add_to_viv_log(f"\nTcl Generation failed due to the following error:{e}")
             self.build_force_quit_event.set()
 
     ################################################
@@ -795,11 +807,11 @@ class HdlgenProject:
     def run_vivado(self):
 
         if self.build_force_quit_event.is_set():
-            self.add_to_build_log("\n\nRun Vivado cancelled as force quit flag asserted!")
+            self.add_to_viv_log("\n\nRun Vivado cancelled as force quit flag asserted!")
             print("\n\nRun Vivado cancelled as force quit flag asserted!")
             return # Return to leave function
 
-        self.pm_obj.run_vivado(self, self.add_to_build_log)
+        self.pm_obj.run_vivado(self, self.add_to_viv_log)
 
     ###################################################
     ###### Generate Jupyter Notebook (Full Build) #####
@@ -807,15 +819,15 @@ class HdlgenProject:
     def generate_jnb(self):
         # A separate API only for generating JNB
         if self.build_force_quit_event.is_set():
-            self.add_to_build_log("\n\nGenerate JNB cancelled as force quit flag asserted!")
+            self.add_to_viv_log("\n\nGenerate JNB cancelled as force quit flag asserted!")
             print("\n\nGenerate JNB cancelled as force quit flag asserted!")
             return # Return to leave function
         try:
-            self.pm_obj.generate_jnb(self, self.add_to_build_log)
+            self.pm_obj.generate_jnb(self, self.add_to_viv_log)
             return True
         except Exception as e:
             print(f"\nNotebook Generation failed due to the following error:" + traceback.print_exc)
-            self.add_to_build_log(f"\nNotebook Generation failed due to the following error:" + traceback.print_exc)
+            self.add_to_viv_log(f"\nNotebook Generation failed due to the following error:" + traceback.print_exc)
             # self.build_force_quit_event.set()     # Generate JNB shouldn't assert this because it doesn't imped other functions
             return False
 
@@ -826,15 +838,15 @@ class HdlgenProject:
     def generate_jnb_solo(self):
         self.lock_sidebar()
         # Create PYNQ Manager Object
-        self.add_to_build_log(f"\nLaunching PYNQ Manager")
+        self.add_to_viv_log(f"\nLaunching PYNQ Manager")
         self.pm_obj = pm.Pynq_Manager(self.hdlgen_path)
         # We are gonna need a 'force gen' option in the gen_jnb api as the switch could be deassert in config file.
         
         try:
-            self.pm_obj.generate_jnb(self, self.add_to_build_log, force_gen=True)
+            self.pm_obj.generate_jnb(self, self.add_to_viv_log, force_gen=True)
         except Exception as e:
             print(f"\nNotebook Generation failed due to the following error:" + traceback.print_exc)
-            self.add_to_build_log(f"\nNotebook Generation failed due to the following error:" + traceback.print_exc)
+            self.add_to_viv_log(f"\nNotebook Generation failed due to the following error:" + traceback.print_exc)
             self.build_force_quit_event.set()
         self.unlock_sidebar()
 
@@ -844,7 +856,7 @@ class HdlgenProject:
     def copy_output(self):
         print("now copying output...")
         if self.build_force_quit_event.is_set():
-            self.add_to_build_log("\n\nCopy Output cancelled as force quit flag asserted!")
+            self.add_to_viv_log("\n\nCopy Output cancelled as force quit flag asserted!")
             print("\n\nCopy Output cancelled as force quit flag asserted!")
             return # Return to leave function
 
@@ -852,7 +864,7 @@ class HdlgenProject:
             print("all abord the copy ")
             self.pm_obj.copy_to_dir(self)
         except Exception as e:
-            self.add_to_build_log(f"\nError: {e}")
+            self.add_to_viv_log(f"\nError: {e}")
 
 
     ##########################################################

@@ -193,7 +193,7 @@ class SidebarMenu(ctk.CTkScrollableFrame):
         self.parent.app.toplevel_window.wait_window()
 
         if self.parent.app.dialog_response == "no":
-            self.hdlgen_prj.add_to_build_log("\nCancelled Build Operation due to No response to dialog prompt")
+            self.hdlgen_prj.add_to_viv_log("\nCancelled Build Operation due to No response to dialog prompt")
             return
         self.hdlgen_prj.build_project()
 
@@ -346,7 +346,7 @@ class MainPage(ctk.CTkFrame):
         self.sidebarMenu.load_project()
 
         # Assuming all has been run to load the project, I can now call the function to write to log box
-        # self.hdlgen_prj.add_to_build_log("Add a load project message running through the hdlgenprj object!!\n")
+        # self.hdlgen_prj.add_to_viv_log("Add a load project message running through the hdlgenprj object!!\n")
 
     def hide(self):
         self.pack_forget()

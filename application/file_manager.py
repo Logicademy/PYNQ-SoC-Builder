@@ -244,6 +244,13 @@ class File_Manager:
     # file_manager.upload_bitstream()
     
     
+
+
+
+
+# TODO NOTE FOR THE FUTURE: add_to_build_log no longer exists.
+#           Builder log has been replaced by Vivado Log.
+#           25/02/25
 def upload_output_folder_to_direct_connect_pynq(hdlgen_prj):
     pass
     # host_name = "192.168.2.99"  # Default Consignment Always
