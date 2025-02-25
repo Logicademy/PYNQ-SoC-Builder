@@ -638,8 +638,6 @@ class HdlgenProject:
                     # self.add_to_viv_log("\nQuitting Vivado Logger - Quit flag asserted")
                     return
 
-
-                print("KKKKKKK")
                 # Will return to this depending on our flag scheme
                 # if self.current_running_mode != "run_viv":
                 #         break
